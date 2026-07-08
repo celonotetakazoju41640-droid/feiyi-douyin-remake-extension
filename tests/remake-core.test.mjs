@@ -433,3 +433,8 @@ test("normalizeTikTokDurationSeconds keeps long second values instead of misread
   assert.equal(normalizeTikTokDurationSeconds(1800), 1800);
   assert.equal(normalizeTikTokDurationSeconds("3600"), 3600);
 });
+
+test("normalizeTikTokDurationSeconds still converts short millisecond values", () => {
+  assert.equal(normalizeTikTokDurationSeconds(9500), 10);
+  assert.equal(normalizeTikTokDurationSeconds("3000"), 3);
+});

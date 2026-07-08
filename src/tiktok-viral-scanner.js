@@ -647,6 +647,14 @@ function normalizeTikTokDurationSeconds(value) {
   const number = Number(value || 0);
   if (!Number.isFinite(number) || number <= 0) return 0;
   if (number >= 10000) return Math.max(1, Math.round(number / 1000));
+  if (number >= 1000 && number <= 10000) {
+    if (number % 1000 === 0 && number / 1000 <= 60) {
+      return Math.max(1, Math.round(number / 1000));
+    }
+    if (number % 500 === 0 && number % 60 !== 0 && number / 1000 <= 60) {
+      return Math.max(1, Math.round(number / 1000));
+    }
+  }
   return Math.round(number);
 }
 
