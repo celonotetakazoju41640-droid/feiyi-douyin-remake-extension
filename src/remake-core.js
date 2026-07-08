@@ -958,6 +958,24 @@ export function parseTikTokProfileStatsText(text = "") {
   };
 }
 
+export function parseTikTokProfileIdentityText(text = "") {
+  const lines = String(text || "")
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const stopWords = /^(tiktok|搜索|推荐|探索|已关注|直播|上传|主页|更多|登录|注册|公司|计划|条款和政策|terms|privacy|log in|sign up)$/i;
+  const filtered = lines.filter((line) => !stopWords.test(line));
+  const handleIndex = filtered.findIndex((line) => /^@[\w.-]+$/i.test(line));
+  if (handleIndex === -1) {
+    return { displayName: "", bio: "" };
+  }
+  const displayName = handleIndex > 0 ? filtered[handleIndex - 1] : "";
+  const bio = filtered
+    .slice(handleIndex + 1)
+    .find((line) => !/followers|likes|粉丝|获赞|点赞/i.test(line) && !/^(\d+(?:[.,]\d+)?\s*[KMB]?|0)$/i.test(line)) || "";
+  return { displayName, bio };
+}
+
 export function pickPreferredTikTokProfileVideo(previous = {}, next = {}) {
   if (!previous?.videoUrl) return next;
   if (!next?.videoUrl) return previous;

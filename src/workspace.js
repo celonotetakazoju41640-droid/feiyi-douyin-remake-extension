@@ -2,6 +2,7 @@ import {
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
   classifyTikTokProfilePageIssue,
+  parseTikTokProfileIdentityText,
   parseTikTokProfileStatsText,
   parseTikTokVisibleStatsText,
   pickPreferredTikTokProfileVideo,
@@ -2006,12 +2007,12 @@ function scrapeTikTokProfilePage(sampleLimit) {
 
   const getBio = () => {
     const bioNode = document.querySelector('[data-e2e="user-bio"], h2[data-e2e="user-subtitle"], [class*="DivShareDesc"], [class*="StyledUserBio"]');
-    return normalizeText(bioNode?.textContent || "");
+    return normalizeText(bioNode?.textContent || "") || parseTikTokProfileIdentityText(document.body?.innerText || "").bio;
   };
 
   const getDisplayName = () => {
     const node = document.querySelector('h1[data-e2e="user-title"], h1, [data-e2e="browse-user-title"]');
-    return normalizeText(node?.textContent || "");
+    return normalizeText(node?.textContent || "") || parseTikTokProfileIdentityText(document.body?.innerText || "").displayName;
   };
 
   const collectVideoCandidates = () => {

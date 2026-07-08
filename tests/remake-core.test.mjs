@@ -10,6 +10,7 @@ import {
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
   normalizeAccountTemplate,
+  parseTikTokProfileIdentityText,
   pickPreferredTikTokProfileVideo,
   parseTikTokProfileStatsText,
   parseTikTokVisibleStatsText,
@@ -380,4 +381,39 @@ test("pickPreferredTikTokProfileVideo keeps stronger caption when quality is oth
   const picked = pickPreferredTikTokProfileVideo(previous, next);
 
   assert.equal(picked.caption, "Before and after stove degreaser demo with clear hook");
+});
+
+test("parseTikTokProfileIdentityText extracts display name and bio from visible text", () => {
+  const identity = parseTikTokProfileIdentityText(`
+    TikTok
+    搜索
+    Kitchen Lab
+    @kitchenlab
+    Amazon finds and kitchen cleaning hacks. Link in bio.
+    1.2M followers
+    24.5M likes
+  `);
+
+  assert.equal(identity.displayName, "Kitchen Lab");
+  assert.equal(identity.bio, "Amazon finds and kitchen cleaning hacks. Link in bio.");
+});
+
+test("parseTikTokProfileIdentityText ignores login-wall navigation text", () => {
+  const identity = parseTikTokProfileIdentityText(`
+    TikTok
+    搜索
+    推荐
+    探索
+    已关注
+    直播
+    上传
+    主页
+    更多
+    登录
+    公司
+    条款和政策
+  `);
+
+  assert.equal(identity.displayName, "");
+  assert.equal(identity.bio, "");
 });
