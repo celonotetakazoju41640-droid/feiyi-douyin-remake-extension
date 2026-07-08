@@ -1659,6 +1659,7 @@ async function enrichDouyinProfileScan(scan) {
         !Number(video.stats?.comments || 0) ||
         !Number(video.stats?.shares || 0)
     )
+    .sort((left, right) => getDouyinDetailEnrichmentPriority(right) - getDouyinDetailEnrichmentPriority(left))
     .slice(0, Math.min(3, scan.videos.length));
   if (!candidates.length) return scan;
 
@@ -1676,6 +1677,17 @@ async function enrichDouyinProfileScan(scan) {
     ...scan,
     videos: scan.videos.map((video) => detailMap.get(video.videoUrl) || video)
   };
+}
+
+function getDouyinDetailEnrichmentPriority(video) {
+  let score = 0;
+  if (!Number(video.durationSeconds || 0)) score += 4;
+  if (!Number(video.stats?.comments || 0)) score += 3;
+  if (!Number(video.stats?.shares || 0)) score += 3;
+  if (!video.thumbnailUrl) score += 1;
+  score += Math.min(Number(video.stats?.views || 0), 1_000_000) / 50_000;
+  score += Math.min(Number(video.stats?.likes || 0), 100_000) / 10_000;
+  return score;
 }
 
 function mergeProfileVideoDetail(base, detail) {
@@ -1703,16 +1715,41 @@ async function scanDouyinVideoDetail(videoUrl) {
     throw new Error("抖音详情页签打开失败。");
   }
   try {
-    await waitForTabComplete(createdTab.id, "douyin");
-    await delay(2400);
-    const [injection] = await chrome.scripting.executeScript({
-      target: { tabId: createdTab.id },
-      func: scrapeDouyinVideoDetailPage
-    });
-    return injection?.result || null;
+    let bestResult = null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      if (attempt > 0) {
+        await chrome.tabs.reload(createdTab.id);
+      }
+      await waitForTabComplete(createdTab.id, "douyin");
+      await delay(2400 + attempt * 600);
+      const [injection] = await chrome.scripting.executeScript({
+        target: { tabId: createdTab.id },
+        func: scrapeDouyinVideoDetailPage
+      });
+      const nextResult = injection?.result || null;
+      if (!bestResult || scoreDouyinVideoDetail(nextResult) > scoreDouyinVideoDetail(bestResult)) {
+        bestResult = nextResult;
+      }
+      if (scoreDouyinVideoDetail(bestResult) >= 7) {
+        break;
+      }
+    }
+    return bestResult;
   } finally {
     await chrome.tabs.remove(createdTab.id).catch(() => {});
   }
+}
+
+function scoreDouyinVideoDetail(detail) {
+  if (!detail) return 0;
+  let score = 0;
+  if (detail.caption) score += 2;
+  if (detail.thumbnailUrl) score += 1;
+  if (Number(detail.durationSeconds || 0) > 0) score += 2;
+  if (Number(detail.stats?.likes || 0) > 0) score += 1;
+  if (Number(detail.stats?.comments || 0) > 0) score += 2;
+  if (Number(detail.stats?.shares || 0) > 0) score += 2;
+  return score;
 }
 
 async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
