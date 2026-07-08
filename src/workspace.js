@@ -2,6 +2,7 @@ import {
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
   classifyTikTokProfilePageIssue,
+  parseTikTokVisibleStatsText,
   buildExportBundle,
   buildMarkdownFromPackage,
   buildRemakePackage,
@@ -2020,15 +2021,19 @@ function scrapeTikTokProfilePage(sampleLimit) {
         const anchor = anchors.find((item) => normalizeUrl(item.getAttribute("href") || "") === videoUrl);
         const card = anchor?.closest("div") || anchor?.parentElement || document.body;
         const text = normalizeText(card?.innerText || anchor?.innerText || "");
+        const interactionText = Array.from(card?.querySelectorAll("button, strong, span, div") || [])
+          .map((node) => normalizeText(node.getAttribute("aria-label") || node.textContent || ""))
+          .filter(Boolean)
+          .join("\n");
         const lines = text.split(/\n+/).map((item) => normalizeText(item)).filter(Boolean);
         const caption = lines.find((line) => line.length > 12 && !/^\d+([.,]\d+)?[KMB]?$/.test(line)) || text;
         const durationMatch = text.match(/(\d{1,2}):(\d{2})/);
-        const viewLikeNumbers = lines.filter((line) => /^\d+([.,]\d+)?[KMB]?$/.test(line));
         const thumbnailUrl = normalizeUrl(
           card?.querySelector("img")?.getAttribute("src") ||
           anchor?.querySelector("img")?.getAttribute("src") ||
           ""
         );
+        const parsedStats = parseTikTokVisibleStatsText(`${interactionText}\n${text}`);
         return {
           videoId: extractVideoId(videoUrl),
           videoUrl,
@@ -2036,11 +2041,11 @@ function scrapeTikTokProfilePage(sampleLimit) {
           thumbnailUrl,
           durationSeconds: durationMatch ? Number(durationMatch[1]) * 60 + Number(durationMatch[2]) : 0,
           stats: {
-            views: toNumber(viewLikeNumbers[0] || ""),
-            likes: 0,
-            comments: 0,
-            shares: 0,
-            saves: 0
+            views: parsedStats.views || 0,
+            likes: parsedStats.likes || 0,
+            comments: parsedStats.comments || 0,
+            shares: parsedStats.shares || 0,
+            saves: parsedStats.saves || 0
           }
         };
       });

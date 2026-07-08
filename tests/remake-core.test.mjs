@@ -10,6 +10,7 @@ import {
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
   normalizeAccountTemplate,
+  parseTikTokVisibleStatsText,
   splitLines
 } from "../src/remake-core.js";
 
@@ -273,4 +274,35 @@ test("classifyTikTokProfilePageIssue ignores normal public profile pages", () =>
   });
 
   assert.equal(issue, null);
+});
+
+test("parseTikTokVisibleStatsText reads labeled TikTok metrics", () => {
+  const stats = parseTikTokVisibleStatsText(`
+    1.2M likes
+    3.4K comments
+    880 shares
+    540 saves
+    56.7K views
+  `);
+
+  assert.deepEqual(stats, {
+    views: 56700,
+    likes: 1200000,
+    comments: 3400,
+    shares: 880,
+    saves: 540
+  });
+});
+
+test("parseTikTokVisibleStatsText keeps first compact number as view fallback", () => {
+  const stats = parseTikTokVisibleStatsText(`
+    18
+    245K
+  `);
+
+  assert.equal(stats.views, 18);
+  assert.equal(stats.likes, 0);
+  assert.equal(stats.comments, 0);
+  assert.equal(stats.shares, 0);
+  assert.equal(stats.saves, 0);
 });

@@ -908,3 +908,40 @@ export function classifyTikTokProfilePageIssue({ title = "", bodyText = "", hasV
 
   return null;
 }
+
+export function parseTikTokVisibleStatsText(text = "") {
+  const normalized = String(text || "")
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const pickMetric = (labels) => {
+    for (const line of normalized) {
+      const lower = line.toLowerCase();
+      if (labels.some((label) => lower.includes(label))) {
+        const number = line.match(/(\d+(?:[.,]\d+)?\s*[KMB]?)/i)?.[1];
+        if (number) return parseCompactSocialNumber(number);
+      }
+    }
+    return 0;
+  };
+  const compactNumbers = normalized
+    .filter((line) => /^(\d+(?:[.,]\d+)?\s*[KMB]?|0)$/i.test(line))
+    .map(parseCompactSocialNumber);
+
+  return {
+    views: pickMetric(["view", "views", "播放", "观看"]) || compactNumbers[0] || 0,
+    likes: pickMetric(["like", "likes", "赞", "喜欢"]),
+    comments: pickMetric(["comment", "comments", "评论"]),
+    shares: pickMetric(["share", "shares", "分享"]),
+    saves: pickMetric(["save", "saves", "收藏"])
+  };
+}
+
+function parseCompactSocialNumber(input) {
+  if (typeof input === "number" && Number.isFinite(input)) return Math.max(0, Math.round(input));
+  const value = String(input || "").trim().replace(/,/g, "").toUpperCase();
+  const match = value.match(/(\d+(?:\.\d+)?)([KMB])?/);
+  if (!match) return 0;
+  const multiplier = { K: 1_000, M: 1_000_000, B: 1_000_000_000 }[match[2] || ""] || 1;
+  return Math.round(Number(match[1]) * multiplier);
+}
