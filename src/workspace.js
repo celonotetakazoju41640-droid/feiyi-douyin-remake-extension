@@ -933,6 +933,7 @@ function renderProfileSampleList() {
               <div class="profileSampleStats">
                 <span class="profileSampleBadge">播放 ${formatCompactNumber(video.stats?.views || 0)}</span>
                 <span class="profileSampleBadge">点赞 ${formatCompactNumber(video.stats?.likes || 0)}</span>
+                <span class="profileSampleBadge">收藏 ${formatCompactNumber(video.stats?.saves || video.detailMetrics?.collects || 0)}</span>
                 <span class="profileSampleBadge">时长 ${Number(video.durationSeconds || 0)} 秒</span>
                 <span class="profileSampleBadge ${video.thumbnailUrl ? "" : "is-coverless"}">${video.thumbnailUrl ? "有封面" : "无封面"}</span>
                 ${hitReasons.map((reason) => `<span class="profileSampleBadge is-hit">${escapeHtml(reason)}</span>`).join("")}
@@ -1298,6 +1299,7 @@ function exportProfileCandidates() {
     lines.push(`- 链接：${video.videoUrl}`);
     lines.push(`- 播放：${formatCompactNumber(video.stats?.views || 0)}`);
     lines.push(`- 点赞：${formatCompactNumber(video.stats?.likes || 0)}`);
+    lines.push(`- 收藏：${formatCompactNumber(video.stats?.saves || video.detailMetrics?.collects || 0)}`);
     lines.push(`- 时长：${Number(video.durationSeconds || 0)} 秒`);
     lines.push(`- 是否选中：${selectedProfileVideoUrls.has(video.videoUrl) ? "是" : "否"}`);
     lines.push(`- 是否置顶：${getProfileVideoPinLabel(video.videoUrl)}`);
@@ -1701,7 +1703,12 @@ function mergeProfileVideoDetail(base, detail) {
       views: Math.max(Number(base.stats?.views || 0), Number(detail.stats?.views || 0), 0),
       likes: Math.max(Number(base.stats?.likes || 0), Number(detail.stats?.likes || 0), 0),
       comments: Math.max(Number(base.stats?.comments || 0), Number(detail.stats?.comments || 0), 0),
-      shares: Math.max(Number(base.stats?.shares || 0), Number(detail.stats?.shares || 0), 0)
+      shares: Math.max(Number(base.stats?.shares || 0), Number(detail.stats?.shares || 0), 0),
+      saves: Math.max(
+        Number(base.stats?.saves || base.detailMetrics?.collects || 0),
+        Number(detail.stats?.saves || detail.detailMetrics?.collects || 0),
+        0
+      )
     }
   };
 }
@@ -1749,6 +1756,7 @@ function scoreDouyinVideoDetail(detail) {
   if (Number(detail.stats?.likes || 0) > 0) score += 1;
   if (Number(detail.stats?.comments || 0) > 0) score += 2;
   if (Number(detail.stats?.shares || 0) > 0) score += 2;
+  if (Number(detail.stats?.saves || detail.detailMetrics?.collects || 0) > 0) score += 1;
   return score;
 }
 
@@ -1909,7 +1917,8 @@ function scrapeDouyinVideoDetailPage() {
       views: 0,
       likes,
       comments,
-      shares
+      shares,
+      saves: collects
     },
     detailMetrics: {
       collects
@@ -2193,6 +2202,7 @@ function scrapeDouyinProfilePage(sampleLimit) {
     if (Number(video.stats?.likes || 0) > 0) score += 1;
     if (Number(video.stats?.comments || 0) > 0) score += 1;
     if (Number(video.stats?.shares || 0) > 0) score += 1;
+    if (Number(video.stats?.saves || video.detailMetrics?.collects || 0) > 0) score += 1;
     return score;
   };
   const mergeVideo = (previous = {}, next = {}) => {
@@ -2212,7 +2222,12 @@ function scrapeDouyinProfilePage(sampleLimit) {
         views: Math.max(Number(previous.stats?.views || 0), Number(next.stats?.views || 0), 0),
         likes: Math.max(Number(previous.stats?.likes || 0), Number(next.stats?.likes || 0), 0),
         comments: Math.max(Number(previous.stats?.comments || 0), Number(next.stats?.comments || 0), 0),
-        shares: Math.max(Number(previous.stats?.shares || 0), Number(next.stats?.shares || 0), 0)
+        shares: Math.max(Number(previous.stats?.shares || 0), Number(next.stats?.shares || 0), 0),
+        saves: Math.max(
+          Number(previous.stats?.saves || previous.detailMetrics?.collects || 0),
+          Number(next.stats?.saves || next.detailMetrics?.collects || 0),
+          0
+        )
       }
     };
     return scoreVideo(next) >= scoreVideo(previous) ? merged : { ...merged, ...previous };

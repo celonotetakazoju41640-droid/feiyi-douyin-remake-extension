@@ -322,7 +322,9 @@ export function buildReferenceSummaryFromProfileScan(scan) {
     ? topVideos
         .map(
           (video, index) =>
-            `${index + 1}. ${video.caption || "无标题样本"}（${video.durationSeconds || 0} 秒，${video.stats.views || 0} 播放）`
+            `${index + 1}. ${video.caption || "无标题样本"}（${video.durationSeconds || 0} 秒，${video.stats.views || 0} 播放${
+              video.stats.saves ? `，${video.stats.saves} 收藏` : ""
+            }）`
         )
         .join("；")
     : "当前没有抓到可用样本视频。";
@@ -705,7 +707,8 @@ function normalizeProfileScan(scan = {}) {
             views: Number(item.stats?.views || 0),
             likes: Number(item.stats?.likes || 0),
             comments: Number(item.stats?.comments || 0),
-            shares: Number(item.stats?.shares || 0)
+            shares: Number(item.stats?.shares || 0),
+            saves: Number(item.stats?.saves || item.detailMetrics?.collects || 0)
           }
         }))
         .filter((item) => item.videoUrl)

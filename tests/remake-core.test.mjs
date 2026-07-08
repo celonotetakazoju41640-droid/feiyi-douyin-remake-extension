@@ -132,13 +132,13 @@ test("buildReferenceSummaryFromProfileScan outputs concise summary", () => {
         videoUrl: "https://www.tiktok.com/@storylab/video/1",
         caption: "Wait before you judge him. #story #reaction",
         durationSeconds: 28,
-        stats: { views: 80000, likes: 7000, comments: 400, shares: 500 }
+        stats: { views: 80000, likes: 7000, comments: 400, shares: 500, saves: 320 }
       },
       {
         videoUrl: "https://www.tiktok.com/@storylab/video/2",
         caption: "She looked guilty until the full story came out.",
         durationSeconds: 32,
-        stats: { views: 102000, likes: 9200, comments: 620, shares: 810 }
+        stats: { views: 102000, likes: 9200, comments: 620, shares: 810, saves: 560 }
       }
     ]
   });
@@ -146,6 +146,7 @@ test("buildReferenceSummaryFromProfileScan outputs concise summary", () => {
   assert.match(summary, /账号主页蒸馏摘要/);
   assert.match(summary, /@storylab/);
   assert.match(summary, /样本视频/);
+  assert.match(summary, /收藏/);
   assert.match(summary, /表达 DNA/);
   assert.match(summary, /决策启发式/);
   assert.match(summary, /反模式/);
