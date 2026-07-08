@@ -958,6 +958,12 @@ export function parseTikTokProfileStatsText(text = "") {
   };
 }
 
+export function pickPreferredTikTokProfileVideo(previous = {}, next = {}) {
+  if (!previous?.videoUrl) return next;
+  if (!next?.videoUrl) return previous;
+  return scoreTikTokProfileVideoCandidate(next) > scoreTikTokProfileVideoCandidate(previous) ? next : previous;
+}
+
 function parseCompactSocialNumber(input) {
   if (typeof input === "number" && Number.isFinite(input)) return Math.max(0, Math.round(input));
   const value = String(input || "").trim().replace(/,/g, "").toUpperCase();
@@ -965,4 +971,17 @@ function parseCompactSocialNumber(input) {
   if (!match) return 0;
   const multiplier = { K: 1_000, M: 1_000_000, B: 1_000_000_000 }[match[2] || ""] || 1;
   return Math.round(Number(match[1]) * multiplier);
+}
+
+function scoreTikTokProfileVideoCandidate(video = {}) {
+  let score = 0;
+  if (video.caption) score += Math.min(String(video.caption).trim().length, 120) / 40;
+  if (video.thumbnailUrl) score += 2;
+  if (Number(video.durationSeconds || 0) > 0) score += 1;
+  if (Number(video.stats?.views || 0) > 0) score += 1.5;
+  if (Number(video.stats?.likes || 0) > 0) score += 2;
+  if (Number(video.stats?.comments || 0) > 0) score += 1.5;
+  if (Number(video.stats?.shares || 0) > 0) score += 1.5;
+  if (Number(video.stats?.saves || 0) > 0) score += 1.5;
+  return score;
 }

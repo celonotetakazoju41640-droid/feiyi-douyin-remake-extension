@@ -10,6 +10,7 @@ import {
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
   normalizeAccountTemplate,
+  pickPreferredTikTokProfileVideo,
   parseTikTokProfileStatsText,
   parseTikTokVisibleStatsText,
   splitLines
@@ -332,4 +333,51 @@ test("parseTikTokProfileStatsText tolerates mixed locale profile text", () => {
 
   assert.equal(stats.followers, 875400);
   assert.equal(stats.likes, 12300000);
+});
+
+test("pickPreferredTikTokProfileVideo keeps richer interaction stats", () => {
+  const previous = {
+    videoUrl: "https://www.tiktok.com/@lab/video/1",
+    caption: "Longer caption but weak stats",
+    thumbnailUrl: "",
+    durationSeconds: 0,
+    stats: { views: 1200, likes: 0, comments: 0, shares: 0, saves: 0 }
+  };
+  const next = {
+    videoUrl: "https://www.tiktok.com/@lab/video/1",
+    caption: "Short caption",
+    thumbnailUrl: "https://img.example.com/1.jpg",
+    durationSeconds: 18,
+    stats: { views: 1100, likes: 240, comments: 31, shares: 12, saves: 9 }
+  };
+
+  const picked = pickPreferredTikTokProfileVideo(previous, next);
+
+  assert.equal(picked.thumbnailUrl, "https://img.example.com/1.jpg");
+  assert.equal(picked.durationSeconds, 18);
+  assert.equal(picked.stats.likes, 240);
+  assert.equal(picked.stats.comments, 31);
+  assert.equal(picked.stats.shares, 12);
+  assert.equal(picked.stats.saves, 9);
+});
+
+test("pickPreferredTikTokProfileVideo keeps stronger caption when quality is otherwise close", () => {
+  const previous = {
+    videoUrl: "https://www.tiktok.com/@lab/video/2",
+    caption: "Before and after stove degreaser demo with clear hook",
+    thumbnailUrl: "https://img.example.com/2.jpg",
+    durationSeconds: 20,
+    stats: { views: 2200, likes: 80, comments: 10, shares: 4, saves: 2 }
+  };
+  const next = {
+    videoUrl: "https://www.tiktok.com/@lab/video/2",
+    caption: "Short",
+    thumbnailUrl: "https://img.example.com/2.jpg",
+    durationSeconds: 20,
+    stats: { views: 2200, likes: 80, comments: 10, shares: 4, saves: 2 }
+  };
+
+  const picked = pickPreferredTikTokProfileVideo(previous, next);
+
+  assert.equal(picked.caption, "Before and after stove degreaser demo with clear hook");
 });

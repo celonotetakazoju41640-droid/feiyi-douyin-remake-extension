@@ -4,6 +4,7 @@ import {
   classifyTikTokProfilePageIssue,
   parseTikTokProfileStatsText,
   parseTikTokVisibleStatsText,
+  pickPreferredTikTokProfileVideo,
   buildExportBundle,
   buildMarkdownFromPackage,
   buildRemakePackage,
@@ -2129,10 +2130,7 @@ function scrapeTikTokProfilePage(sampleLimit) {
     const byUrl = new Map();
     [...collectVideoCandidates(), ...collectJsonVideoCandidates()].forEach((item) => {
       if (!item?.videoUrl) return;
-      const previous = byUrl.get(item.videoUrl);
-      if (!previous || (item.stats.views || 0) > (previous.stats.views || 0) || (item.caption || "").length > (previous.caption || "").length) {
-        byUrl.set(item.videoUrl, item);
-      }
+      byUrl.set(item.videoUrl, pickPreferredTikTokProfileVideo(byUrl.get(item.videoUrl), item));
     });
     videos.push(...byUrl.values());
     const pageIssue = videos.length === 0 ? getPageIssue() : null;
