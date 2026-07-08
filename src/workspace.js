@@ -2,6 +2,7 @@ import {
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
   classifyTikTokProfilePageIssue,
+  normalizeTikTokDurationSeconds,
   parseTikTokProfileIdentityText,
   parseTikTokProfileStatsText,
   parseTikTokVisibleStatsText,
@@ -2083,7 +2084,7 @@ function scrapeTikTokProfilePage(sampleLimit) {
               node?.video?.cover?.url_list?.[0] ||
               ""
             ),
-            durationSeconds: Number(node?.video?.duration || node?.duration || 0),
+            durationSeconds: normalizeTikTokDurationSeconds(node?.video?.duration || node?.duration || 0),
             stats: {
               views: toNumber(node?.stats?.playCount || node?.statsV2?.playCount || 0),
               likes: toNumber(node?.stats?.diggCount || node?.statsV2?.diggCount || 0),

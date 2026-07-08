@@ -10,6 +10,7 @@ import {
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
   normalizeAccountTemplate,
+  normalizeTikTokDurationSeconds,
   parseTikTokProfileIdentityText,
   pickPreferredTikTokProfileVideo,
   parseTikTokProfileStatsText,
@@ -416,4 +417,14 @@ test("parseTikTokProfileIdentityText ignores login-wall navigation text", () => 
 
   assert.equal(identity.displayName, "");
   assert.equal(identity.bio, "");
+});
+
+test("normalizeTikTokDurationSeconds keeps normal second values", () => {
+  assert.equal(normalizeTikTokDurationSeconds(18), 18);
+  assert.equal(normalizeTikTokDurationSeconds("32"), 32);
+});
+
+test("normalizeTikTokDurationSeconds converts millisecond-like values", () => {
+  assert.equal(normalizeTikTokDurationSeconds(18000), 18);
+  assert.equal(normalizeTikTokDurationSeconds("32500"), 33);
 });
