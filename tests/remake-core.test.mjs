@@ -87,6 +87,40 @@ test("distillAccountTemplateFromProfileScan builds template from profile signals
   assert.match(template.recentSignals, /近期|样本/i);
 });
 
+test("distillAccountTemplateFromProfileScan supports douyin profile scan", () => {
+  const template = distillAccountTemplateFromProfileScan({
+    platform: "douyin",
+    profileUrl: "https://www.douyin.com/user/MS4wLjABAAAA-demo",
+    accountHandle: "dyotars4dokr",
+    displayName: "KANSAI COLLECTION",
+    bio: "日本TOP级时尚活动盛典",
+    stats: {
+      followers: 2627,
+      likes: 16000
+    },
+    videos: [
+      {
+        videoUrl: "https://www.douyin.com/video/7659936456529448230",
+        caption: "It’s time to Holiday 工作日也可以有 Holiday 的心情",
+        durationSeconds: 24,
+        stats: { views: 120000, likes: 3200, comments: 110, shares: 260 }
+      },
+      {
+        videoUrl: "https://www.douyin.com/video/7618113393942351537",
+        caption: "平井大日本巡演现场 LIVE 视频",
+        durationSeconds: 27,
+        stats: { views: 98000, likes: 2800, comments: 90, shares: 210 }
+      }
+    ]
+  });
+
+  assert.equal(template.platform, "douyin");
+  assert.equal(template.profileUrl, "https://www.douyin.com/user/MS4wLjABAAAA-demo");
+  assert.equal(template.accountHandle, "@dyotars4dokr");
+  assert.equal(template.sampleVideoUrls.length, 2);
+  assert.match(template.contentPositioning, /短视频|带货|场景|钩子|复用/i);
+});
+
 test("buildReferenceSummaryFromProfileScan outputs concise summary", () => {
   const summary = buildReferenceSummaryFromProfileScan({
     profileUrl: "https://www.tiktok.com/@storylab",

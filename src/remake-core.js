@@ -294,7 +294,7 @@ export function distillAccountTemplateFromProfileScan(scan, overrides = {}) {
   return normalizeAccountTemplate({
     id: overrides.id,
     name: name.includes("模板") ? name : `${name}模板`,
-    platform: "tiktok",
+    platform: normalized.platform,
     accountHandle: normalized.accountHandle,
     profileUrl: normalized.profileUrl,
     contentPositioning: positioning,
@@ -712,6 +712,7 @@ function normalizeProfileScan(scan = {}) {
     : [];
 
   return {
+    platform: normalizePlatform(scan.platform || scan.profilePlatform || inferPlatformFromUrl(scan.profileUrl)),
     profileUrl: String(scan.profileUrl || "").trim(),
     accountHandle: normalizeHandle(scan.accountHandle || extractHandleFromUrl(scan.profileUrl)),
     displayName: String(scan.displayName || "").trim(),
@@ -860,6 +861,13 @@ function normalizeHandle(value = "") {
 
 function extractHandleFromUrl(url = "") {
   return String(url || "").match(/tiktok\.com\/@([^/?#]+)/i)?.[1] || "";
+}
+
+function inferPlatformFromUrl(url = "") {
+  const value = String(url || "").toLowerCase();
+  if (value.includes("douyin.com/")) return "douyin";
+  if (value.includes("tiktok.com/")) return "tiktok";
+  return "";
 }
 
 function normalizePlatform(value = "") {

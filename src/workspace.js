@@ -637,7 +637,7 @@ function handleTemplateSelectionChange() {
 function handleTemplatePlatformChange() {
   updatePlatformDependentUi();
   renderProfileScanState();
-  setActionFeedback(nodes.templatePlatform.value === "douyin" ? "已切到抖音模板口径，主页自动蒸馏先保留手动模式。" : "已切到 TikTok 模板口径。");
+  setActionFeedback(nodes.templatePlatform.value === "douyin" ? "已切到抖音模板口径，可继续做公开主页蒸馏。" : "已切到 TikTok 模板口径。");
 }
 
 function saveCurrentTemplate() {
@@ -767,8 +767,9 @@ function applyTemplateToGenerationFields() {
 
 function renderProfileScanState() {
   const platform = nodes.templatePlatform.value || "tiktok";
-  const canAutoScan = platform === "tiktok";
-  const canUseScanActions = Boolean(currentProfileScan) && canAutoScan;
+  const canAutoScan = isProfileAutoScanSupported(platform);
+  const hasSamePlatformScan = Boolean(currentProfileScan) && (currentProfileScan.platform || "tiktok") === platform;
+  const canUseScanActions = hasSamePlatformScan && canAutoScan;
 
   nodes.applyProfileSummaryButton.disabled = !canUseScanActions;
   nodes.redistillProfileButton.disabled = !canUseScanActions;
@@ -809,6 +810,15 @@ function renderProfileScanState() {
     return;
   }
 
+  if (!hasSamePlatformScan) {
+    nodes.profileScanStatus.textContent = "待重扫";
+    nodes.profileScanStatus.classList.remove("is-ok");
+    nodes.profileScanStatus.classList.add("is-error");
+    nodes.profileScanResult.textContent = `当前暂存的是${getPlatformLabel(currentProfileScan.platform || "tiktok")}样本，和已选模板平台不一致。请重新扫描${getPlatformLabel(platform)}主页。`;
+    nodes.profileSampleList.innerHTML = `<p class="emptyState">已暂存 ${currentProfileScan.videos.length} 条${getPlatformLabel(currentProfileScan.platform || "tiktok")}样本。切回原平台或重新扫描当前平台后可继续使用。</p>`;
+    return;
+  }
+
   nodes.profileSampleSort.value = profileSampleSortMode;
   nodes.profileMinViewsFilter.value = String(profileMinViewsFilter);
   nodes.profileScanStatus.textContent = "已蒸馏";
@@ -827,16 +837,22 @@ async function handleProfileScan() {
     nodes.profileScanStatus.classList.add("is-error");
     return;
   }
-  if (platform !== "tiktok") {
-    setActionFeedback("抖音版模板已保留，但当前自动蒸馏只支持 TikTok 主页；抖音请先手动填写模板字段。", true);
+  if (!isProfileAutoScanSupported(platform)) {
+    setActionFeedback("当前平台还没接入主页自动蒸馏，请先手动填写模板字段。", true);
     nodes.profileScanStatus.textContent = "手动模式";
     nodes.profileScanStatus.classList.add("is-error");
     nodes.profileScanStatus.classList.remove("is-ok");
-    nodes.profileScanResult.textContent = "抖音版当前先保留手动模板沉淀。可直接填写内容定位、节奏、结构、表达 DNA 和样本链接。";
+    nodes.profileScanResult.textContent = "当前平台还没接入主页自动蒸馏，可直接填写内容定位、节奏、结构、表达 DNA 和样本链接。";
     return;
   }
-  if (!/^https:\/\/www\.tiktok\.com\/@[^/?#]+/i.test(profileUrl)) {
-    setActionFeedback("主页链接格式不对，TikTok 账号主页应类似 https://www.tiktok.com/@account_name 。", true);
+
+  if (!isSupportedProfileUrl(profileUrl, platform)) {
+    setActionFeedback(
+      platform === "douyin"
+        ? "主页链接格式不对，抖音主页应类似 https://www.douyin.com/user/xxxx 。"
+        : "主页链接格式不对，TikTok 账号主页应类似 https://www.tiktok.com/@account_name 。",
+      true
+    );
     nodes.profileScanStatus.textContent = "链接错误";
     nodes.profileScanStatus.classList.add("is-error");
     return;
@@ -845,11 +861,11 @@ async function handleProfileScan() {
   nodes.scanProfileButton.disabled = true;
   nodes.profileScanStatus.textContent = "扫描中";
   nodes.profileScanStatus.classList.remove("is-ok", "is-error");
-  nodes.profileScanResult.textContent = "正在打开 TikTok 主页并抓公开样本，请等页面加载完成。";
+  nodes.profileScanResult.textContent = `正在打开${getPlatformLabel(platform)}主页并抓公开样本，请等页面加载完成。`;
   setActionFeedback("正在抓取对标主页的公开样本并蒸馏模板。");
 
   try {
-    const scan = await scanTikTokProfile(profileUrl, Number(nodes.profileSampleLimit.value || 6));
+    const scan = await scanProfileByPlatform(profileUrl, Number(nodes.profileSampleLimit.value || 6), platform);
     currentProfileScan = scan;
     selectedProfileVideoUrls = new Set(scan.videos.map((item) => item.videoUrl));
     pinnedProfileVideoUrls = [];
@@ -1542,10 +1558,10 @@ function buildDefaultTemplates() {
 
 function updatePlatformDependentUi() {
   const platform = nodes.templatePlatform.value || "tiktok";
-  nodes.scanProfileButton.textContent = platform === "douyin" ? "抖音版先手动沉淀模板" : "扫描 TikTok 主页并蒸馏";
-  nodes.scanProfileButton.disabled = platform === "douyin";
+  nodes.scanProfileButton.textContent = `扫描${getPlatformLabel(platform)}主页并蒸馏`;
+  nodes.scanProfileButton.disabled = !isProfileAutoScanSupported(platform);
   nodes.templateProfileUrl.placeholder =
-    platform === "douyin" ? "抖音主页链接（当前先手动沉淀模板）" : "https://www.tiktok.com/@account_name";
+    platform === "douyin" ? "https://www.douyin.com/user/xxxx" : "https://www.tiktok.com/@account_name";
   if (!nodes.tiktokUrl.value.trim()) {
     nodes.clipcatReferencePlatform.value = platform;
   }
@@ -1614,6 +1630,21 @@ function saveProfileSampleMinViewsFilter() {
 }
 
 async function scanTikTokProfile(profileUrl, sampleLimit) {
+  return scanProfilePage(profileUrl, sampleLimit, "tiktok", scrapeTikTokProfilePage);
+}
+
+async function scanDouyinProfile(profileUrl, sampleLimit) {
+  return scanProfilePage(profileUrl, sampleLimit, "douyin", scrapeDouyinProfilePage);
+}
+
+async function scanProfileByPlatform(profileUrl, sampleLimit, platform) {
+  if (platform === "douyin") {
+    return scanDouyinProfile(profileUrl, sampleLimit);
+  }
+  return scanTikTokProfile(profileUrl, sampleLimit);
+}
+
+async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
   if (!globalThis.chrome?.tabs || !globalThis.chrome?.scripting) {
     throw new Error("当前不是 Chrome 扩展环境，不能执行主页抓取。");
   }
@@ -1624,11 +1655,11 @@ async function scanTikTokProfile(profileUrl, sampleLimit) {
   }
 
   try {
-    await waitForTabComplete(createdTab.id);
+    await waitForTabComplete(createdTab.id, platform);
     await delay(2400);
     const [injection] = await chrome.scripting.executeScript({
       target: { tabId: createdTab.id },
-      func: scrapeTikTokProfilePage,
+      func: scraper,
       args: [sampleLimit]
     });
     const result = injection?.result;
@@ -1638,22 +1669,25 @@ async function scanTikTokProfile(profileUrl, sampleLimit) {
     if (result.videos.length === 0) {
       throw new Error("主页里没抓到公开视频卡片，请换一个主页或手动打开主页后再试。");
     }
-    return result;
+    return {
+      ...result,
+      platform
+    };
   } finally {
     await chrome.tabs.remove(createdTab.id).catch(() => {});
   }
 }
 
-function waitForTabComplete(tabId) {
+function waitForTabComplete(tabId, platform = "tiktok") {
   return new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
       chrome.tabs.onUpdated.removeListener(handleUpdated);
-      reject(new Error("打开 TikTok 主页超时。"));
+      reject(new Error(`打开${getPlatformLabel(platform)}主页超时。`));
     }, 30000);
 
     function handleUpdated(updatedTabId, changeInfo, tab) {
       if (updatedTabId !== tabId) return;
-      if (tab.url && !/^https:\/\/www\.tiktok\.com\//i.test(tab.url)) return;
+      if (tab.url && !isSupportedProfileUrl(tab.url, platform)) return;
       if (changeInfo.status !== "complete") return;
       clearTimeout(timeout);
       chrome.tabs.onUpdated.removeListener(handleUpdated);
@@ -1856,4 +1890,127 @@ function scrapeTikTokProfilePage(sampleLimit) {
       videos: videos.slice(0, limit)
     };
   })();
+}
+
+function scrapeDouyinProfilePage(sampleLimit) {
+  const limit = Math.max(1, Math.min(Number(sampleLimit || 6), 12));
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const normalizeText = (value = "") => String(value || "").replace(/\s+/g, " ").trim();
+  const normalizeUrl = (url = "") => {
+    try {
+      return new URL(url, location.origin).href.split("?")[0];
+    } catch {
+      return "";
+    }
+  };
+  const unique = (items) => [...new Set(items.filter(Boolean))];
+  const toNumber = (value = "") => {
+    const text = normalizeText(value).replace(/,/g, "").toUpperCase();
+    const match = text.match(/(\d+(?:\.\d+)?)([WKM])?/);
+    if (!match) return 0;
+    const unitMap = { W: 10000, K: 1000, M: 1000000 };
+    return Math.round(Number(match[1]) * (unitMap[match[2] || ""] || 1));
+  };
+
+  const bodyText = () => normalizeText(document.body?.innerText || "");
+  const getDisplayName = () =>
+    normalizeText(
+      document.querySelector('img[alt$="头像"]')?.getAttribute("alt")?.replace(/头像$/, "") ||
+      document.querySelector("title")?.textContent?.replace(/的抖音.*$/, "") ||
+      ""
+    );
+  const getHandle = () => {
+    const match = bodyText().match(/抖音号[:：]\s*([A-Za-z0-9_-]+)/i);
+    return match ? `@${match[1]}` : "";
+  };
+  const getBio = () => {
+    const text = bodyText();
+    const parts = text.split(/分享主页|私信|关注|作品|合集/);
+    const head = parts[0] || "";
+    const lines = head.split(/(?=抖音号[:：])|(?=\d+岁)/).map((item) => normalizeText(item)).filter(Boolean);
+    const bioLine = lines.reverse().find((line) => line && !/^抖音号[:：]/.test(line) && !/^\d+岁$/.test(line) && line !== getDisplayName());
+    return bioLine || "";
+  };
+  const getStats = () => {
+    const text = bodyText();
+    return {
+      followers: toNumber(text.match(/粉丝\s*([\d.万wWkKmM]+)/)?.[1] || ""),
+      likes: toNumber(text.match(/获赞\s*([\d.万wWkKmM]+)/)?.[1] || "")
+    };
+  };
+  const parseDuration = (text = "") => {
+    const match = normalizeText(text).match(/(\d{1,2}):(\d{2})/);
+    return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
+  };
+
+  const getVideoLinks = () =>
+    unique(
+      Array.from(document.querySelectorAll('a[href*="/video/"]'))
+        .map((anchor) => normalizeUrl(anchor.getAttribute("href") || ""))
+        .filter((url) => /^https:\/\/www\.douyin\.com\/video\/\d+/i.test(url))
+    ).slice(0, limit);
+
+  const getSeoCaptions = () =>
+    Array.from(document.querySelectorAll('a[href*="/video/"]'))
+      .map((anchor) => ({
+        videoUrl: normalizeUrl(anchor.getAttribute("href") || ""),
+        caption: normalizeText(anchor.textContent || "")
+      }))
+      .filter((item) => item.videoUrl && item.caption);
+
+  return (async () => {
+    for (let step = 0; step < 4; step += 1) {
+      window.scrollTo(0, document.body.scrollHeight);
+      await wait(900);
+    }
+    window.scrollTo(0, 0);
+    await wait(400);
+
+    const seoCaptions = getSeoCaptions();
+    const captionMap = new Map();
+    seoCaptions.forEach((item) => {
+      if (!captionMap.has(item.videoUrl) && item.caption) {
+        captionMap.set(item.videoUrl, item.caption);
+      }
+    });
+
+    const videos = getVideoLinks().map((videoUrl) => ({
+      videoUrl,
+      videoId: String(videoUrl.match(/\/video\/(\d+)/)?.[1] || ""),
+      caption: captionMap.get(videoUrl) || "抖音公开样本",
+      thumbnailUrl: "",
+      durationSeconds: parseDuration(bodyText()),
+      stats: {
+        views: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0
+      }
+    }));
+
+    return {
+      profileUrl: location.href.split("?")[0],
+      accountHandle: getHandle(),
+      displayName: getDisplayName(),
+      bio: getBio(),
+      stats: getStats(),
+      videos
+    };
+  })();
+}
+
+function isProfileAutoScanSupported(platform = "") {
+  return ["tiktok", "douyin"].includes(String(platform || "").toLowerCase());
+}
+
+function isSupportedProfileUrl(url = "", platform = "tiktok") {
+  const value = String(url || "").trim();
+  if (platform === "douyin") {
+    return /^https:\/\/www\.douyin\.com\/user\/[^/?#]+/i.test(value);
+  }
+  return /^https:\/\/www\.tiktok\.com\/@[^/?#]+/i.test(value);
+}
+
+function getPlatformLabel(platform = "") {
+  return String(platform || "").toLowerCase() === "douyin" ? "抖音" : "TikTok";
 }
