@@ -1,0 +1,1859 @@
+import {
+  buildProfileSelectionComparisonSummary,
+  buildReferenceSummaryFromProfileScan,
+  buildExportBundle,
+  buildMarkdownFromPackage,
+  buildRemakePackage,
+  buildSafeClipcatPrompt,
+  createEmptyAccountTemplate,
+  distillAccountTemplateFromProfileScan,
+  normalizeAccountTemplate,
+  regeneratePrompts,
+  splitLines,
+  updateShot
+} from "./remake-core.js";
+
+const storageKey = "feiyi-douyin-fuke-projects";
+const templateStorageKey = "feiyi-douyin-fuke-account-templates";
+const profileSampleSortStorageKey = "feiyi-douyin-fuke-profile-sample-sort";
+const profileSampleMinViewsStorageKey = "feiyi-douyin-fuke-profile-sample-min-views";
+const batchServiceBaseUrl = "http://127.0.0.1:4328";
+const batchServiceCommand = "node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs";
+
+const nodes = {
+  serviceStatus: document.querySelector("#serviceStatus"),
+  startServiceButton: document.querySelector("#startServiceButton"),
+  refreshButton: document.querySelector("#refreshButton"),
+  serviceHelpPanel: document.querySelector("#serviceHelpPanel"),
+  copyStartCommandButton: document.querySelector("#copyStartCommandButton"),
+  retryHealthButton: document.querySelector("#retryHealthButton"),
+  localReferenceVideo: document.querySelector("#localReferenceVideo"),
+  thumbnailImage: document.querySelector("#thumbnailImage"),
+  thumbnailFallback: document.querySelector("#thumbnailFallback"),
+  videoHandle: document.querySelector("#videoHandle"),
+  videoUrlText: document.querySelector("#videoUrlText"),
+  referenceBrief: document.querySelector("#referenceBrief"),
+  referenceVideoFile: document.querySelector("#referenceVideoFile"),
+  referenceVideoFileName: document.querySelector("#referenceVideoFileName"),
+  referenceAnalysisStatus: document.querySelector("#referenceAnalysisStatus"),
+  productImages: document.querySelector("#productImages"),
+  productHeroImage: document.querySelector("#productHeroImage"),
+  sampleProduct: document.querySelector("#sampleProduct"),
+  productHeroBadge: document.querySelector("#productHeroBadge"),
+  productName: document.querySelector("#productName"),
+  productNotes: document.querySelector("#productNotes"),
+  targetDuration: document.querySelector("#targetDuration"),
+  targetDurationLabel: document.querySelector("#targetDurationLabel"),
+  voiceDialect: document.querySelector("#voiceDialect"),
+  generationCount: document.querySelector("#generationCount"),
+  hookStyle: document.querySelector("#hookStyle"),
+  visualStyle: document.querySelector("#visualStyle"),
+  ctaText: document.querySelector("#ctaText"),
+  tiktokUrl: document.querySelector("#tiktokUrl"),
+  clipcatReferencePlatform: document.querySelector("#clipcatReferencePlatform"),
+  clipcatVoiceLanguage: document.querySelector("#clipcatVoiceLanguage"),
+  clipcatExtraRules: document.querySelector("#clipcatExtraRules"),
+  accountTemplateSelect: document.querySelector("#accountTemplateSelect"),
+  templateName: document.querySelector("#templateName"),
+  templatePlatform: document.querySelector("#templatePlatform"),
+  templateAccountHandle: document.querySelector("#templateAccountHandle"),
+  templateProfileUrl: document.querySelector("#templateProfileUrl"),
+  profileSampleLimit: document.querySelector("#profileSampleLimit"),
+  templateContentPositioning: document.querySelector("#templateContentPositioning"),
+  templateRhythm: document.querySelector("#templateRhythm"),
+  templatePreferredModel: document.querySelector("#templatePreferredModel"),
+  templateStructure: document.querySelector("#templateStructure"),
+  templateExpressionDna: document.querySelector("#templateExpressionDna"),
+  templateDecisionHeuristics: document.querySelector("#templateDecisionHeuristics"),
+  templateAntiPatterns: document.querySelector("#templateAntiPatterns"),
+  templateRecentSignals: document.querySelector("#templateRecentSignals"),
+  templateRewriteRules: document.querySelector("#templateRewriteRules"),
+  templateSampleVideoUrls: document.querySelector("#templateSampleVideoUrls"),
+  profileScanStatus: document.querySelector("#profileScanStatus"),
+  scanProfileButton: document.querySelector("#scanProfileButton"),
+  selectAllProfileSamplesButton: document.querySelector("#selectAllProfileSamplesButton"),
+  clearProfileSamplesButton: document.querySelector("#clearProfileSamplesButton"),
+  keepCoveredProfileSamplesButton: document.querySelector("#keepCoveredProfileSamplesButton"),
+  keepTopProfileSamplesButton: document.querySelector("#keepTopProfileSamplesButton"),
+  keepCoveredPopularProfileSamplesButton: document.querySelector("#keepCoveredPopularProfileSamplesButton"),
+  exportProfileCandidatesButton: document.querySelector("#exportProfileCandidatesButton"),
+  redistillProfileButton: document.querySelector("#redistillProfileButton"),
+  applyProfileSummaryButton: document.querySelector("#applyProfileSummaryButton"),
+  profileScanResult: document.querySelector("#profileScanResult"),
+  profileSampleSort: document.querySelector("#profileSampleSort"),
+  profileMinViewsFilter: document.querySelector("#profileMinViewsFilter"),
+  profileSampleList: document.querySelector("#profileSampleList"),
+  saveTemplateButton: document.querySelector("#saveTemplateButton"),
+  deleteTemplateButton: document.querySelector("#deleteTemplateButton"),
+  newTemplateButton: document.querySelector("#newTemplateButton"),
+  batchServiceStatus: document.querySelector("#batchServiceStatus"),
+  batchServiceCommand: document.querySelector("#batchServiceCommand"),
+  copyBatchServiceCommandButton: document.querySelector("#copyBatchServiceCommandButton"),
+  refreshBatchServiceButton: document.querySelector("#refreshBatchServiceButton"),
+  copyClipcatPromptButton: document.querySelector("#copyClipcatPromptButton"),
+  copyBatchTasksButton: document.querySelector("#copyBatchTasksButton"),
+  sendBatchTasksButton: document.querySelector("#sendBatchTasksButton"),
+  actionFeedback: document.querySelector("#actionFeedback"),
+  remakeButton: document.querySelector("#remakeButton"),
+  seriesCount: document.querySelector("#seriesCount"),
+  seriesStats: document.querySelector("#seriesStats"),
+  seriesList: document.querySelector("#seriesList"),
+  projectDetailPanel: document.querySelector("#projectDetailPanel"),
+  shotEditorPanel: document.querySelector("#shotEditorPanel"),
+  importJsonInput: document.querySelector("#importJsonInput"),
+  downloadBundleButton: document.querySelector("#downloadBundleButton"),
+  downloadJsonButton: document.querySelector("#downloadJsonButton"),
+  downloadMarkdownButton: document.querySelector("#downloadMarkdownButton"),
+  clearProjectsButton: document.querySelector("#clearProjectsButton")
+};
+
+let currentPackage = null;
+let projects = loadProjects();
+let accountTemplates = loadAccountTemplates();
+let selectedTemplateId = accountTemplates[0]?.id || "";
+let productPreviewUrl = "";
+let referencePreviewUrl = "";
+let activeDetailTab = "summary";
+let currentProjectId = projects[0]?.id || null;
+let currentProfileScan = null;
+let selectedProfileVideoUrls = new Set();
+let profileSampleSortMode = loadProfileSampleSortMode();
+let profileMinViewsFilter = loadProfileSampleMinViewsFilter();
+let pinnedProfileVideoUrls = [];
+let excludedProfileVideoUrls = new Set();
+
+init();
+
+function init() {
+  nodes.serviceStatus.textContent = "本地可用";
+  nodes.serviceStatus.classList.add("is-ok");
+  nodes.serviceHelpPanel.hidden = false;
+  nodes.startServiceButton.hidden = true;
+  nodes.refreshButton.hidden = true;
+  nodes.copyStartCommandButton.textContent = "复制使用说明";
+  nodes.batchServiceCommand.textContent = batchServiceCommand;
+  bindEvents();
+  renderTemplateOptions();
+  syncTemplateForm();
+  applyTemplateToGenerationFields();
+  renderProfileScanState();
+  renderProjects();
+  updateActionFeedback();
+  refreshBatchServiceHealth();
+}
+
+function bindEvents() {
+  nodes.referenceVideoFile.addEventListener("change", handleReferenceVideoChange);
+  nodes.productImages.addEventListener("change", handleProductImagesChange);
+  nodes.remakeButton.addEventListener("click", handleGenerate);
+  nodes.downloadJsonButton.addEventListener("click", () => downloadCurrent("json"));
+  nodes.downloadMarkdownButton.addEventListener("click", () => downloadCurrent("md"));
+  nodes.clearProjectsButton.addEventListener("click", clearProjects);
+  nodes.importJsonInput.addEventListener("change", importJsonProject);
+  nodes.downloadBundleButton.addEventListener("click", downloadBundle);
+  nodes.copyClipcatPromptButton.addEventListener("click", copyClipcatPrompt);
+  nodes.copyBatchTasksButton.addEventListener("click", copyBatchTasks);
+  nodes.sendBatchTasksButton.addEventListener("click", sendBatchTasksToService);
+  nodes.accountTemplateSelect.addEventListener("change", handleTemplateSelectionChange);
+  nodes.templatePlatform.addEventListener("change", handleTemplatePlatformChange);
+  nodes.scanProfileButton.addEventListener("click", handleProfileScan);
+  nodes.selectAllProfileSamplesButton.addEventListener("click", selectAllProfileSamples);
+  nodes.clearProfileSamplesButton.addEventListener("click", clearProfileSamplesSelection);
+  nodes.keepCoveredProfileSamplesButton.addEventListener("click", keepCoveredProfileSamples);
+  nodes.keepTopProfileSamplesButton.addEventListener("click", keepTopProfileSamples);
+  nodes.keepCoveredPopularProfileSamplesButton.addEventListener("click", keepCoveredPopularProfileSamples);
+  nodes.exportProfileCandidatesButton.addEventListener("click", exportProfileCandidates);
+  nodes.redistillProfileButton.addEventListener("click", redistillFromSelectedSamples);
+  nodes.applyProfileSummaryButton.addEventListener("click", applyProfileSummaryToReference);
+  nodes.profileSampleSort.addEventListener("change", () => {
+    profileSampleSortMode = nodes.profileSampleSort.value;
+    saveProfileSampleSortMode();
+    renderProfileSampleList();
+  });
+  nodes.profileMinViewsFilter.addEventListener("change", () => {
+    profileMinViewsFilter = Number(nodes.profileMinViewsFilter.value || 0);
+    saveProfileSampleMinViewsFilter();
+    renderProfileSampleList();
+  });
+  nodes.saveTemplateButton.addEventListener("click", saveCurrentTemplate);
+  nodes.deleteTemplateButton.addEventListener("click", deleteCurrentTemplate);
+  nodes.newTemplateButton.addEventListener("click", createNewTemplate);
+  nodes.copyBatchServiceCommandButton.addEventListener("click", copyBatchServiceCommand);
+  nodes.refreshBatchServiceButton.addEventListener("click", refreshBatchServiceHealth);
+  nodes.copyStartCommandButton.addEventListener("click", async () => {
+    const text = "这套工作台当前是本地静态版：先选对标模板，再填写参考摘要、商品名、卖点，点击“拆解复刻”即可生成镜头表、批量视频任务和返工清单。";
+    await navigator.clipboard.writeText(text);
+    setActionFeedback("使用说明已复制。");
+  });
+  nodes.retryHealthButton.addEventListener("click", () => {
+    setActionFeedback("这是本地静态工作台，不需要额外启动服务。");
+  });
+}
+
+function handleReferenceVideoChange() {
+  const file = nodes.referenceVideoFile.files?.[0];
+  if (referencePreviewUrl) {
+    URL.revokeObjectURL(referencePreviewUrl);
+    referencePreviewUrl = "";
+  }
+  if (!file) {
+    nodes.referenceVideoFileName.textContent = "请上传视频";
+    nodes.referenceAnalysisStatus.textContent = "未选择参考视频";
+    return;
+  }
+
+  referencePreviewUrl = URL.createObjectURL(file);
+  nodes.localReferenceVideo.src = referencePreviewUrl;
+  nodes.localReferenceVideo.hidden = false;
+  nodes.thumbnailImage.hidden = true;
+  nodes.thumbnailFallback.hidden = true;
+  nodes.videoHandle.textContent = file.name;
+  nodes.videoUrlText.textContent = "已加载本地参考视频";
+  nodes.referenceVideoFileName.textContent = file.name;
+  nodes.referenceAnalysisStatus.textContent = "已选择参考视频，可以开始拆结构。";
+  updateActionFeedback();
+}
+
+function handleProductImagesChange() {
+  const file = nodes.productImages.files?.[0];
+  if (productPreviewUrl) {
+    URL.revokeObjectURL(productPreviewUrl);
+    productPreviewUrl = "";
+  }
+  if (!file) {
+    nodes.productHeroImage.hidden = true;
+    nodes.sampleProduct.hidden = false;
+    nodes.productHeroBadge.textContent = "示例";
+    return;
+  }
+
+  productPreviewUrl = URL.createObjectURL(file);
+  nodes.productHeroImage.src = productPreviewUrl;
+  nodes.productHeroImage.hidden = false;
+  nodes.sampleProduct.hidden = true;
+  nodes.productHeroBadge.textContent = "主图";
+  updateActionFeedback();
+}
+
+function handleGenerate() {
+  const productName = nodes.productName.value.trim();
+  const referenceSummary = nodes.referenceBrief.value.trim();
+  const sellingPoints = splitLines(nodes.productNotes.value);
+  const template = getSelectedTemplate();
+
+  if (!template) {
+    setActionFeedback("请先选择或新建一个对标账户模板。", true);
+    return;
+  }
+  if (!productName) {
+    setActionFeedback("请先填写当前商品名。", true);
+    return;
+  }
+  if (!referenceSummary) {
+    setActionFeedback("请先填写参考视频摘要。", true);
+    return;
+  }
+  if (sellingPoints.length === 0) {
+    setActionFeedback("请至少写一条商品卖点，每行一条。", true);
+    return;
+  }
+
+  currentPackage = buildRemakePackage({
+    projectName: `${productName}-${template.name}-复刻包`,
+    referenceSummary,
+    productName,
+    sellingPoints,
+    hookStyle: nodes.hookStyle.value,
+    visualStyle: nodes.visualStyle.value,
+    cta: nodes.ctaText.value,
+    durationSeconds: Number(nodes.targetDuration.value || template.defaultDurationSeconds || 30),
+    generationCount: Number(nodes.generationCount.value || 3),
+    voiceDialect: nodes.voiceDialect.value,
+    tiktokUrl: nodes.tiktokUrl.value.trim(),
+    referencePlatform: nodes.clipcatReferencePlatform.value,
+    voiceLanguage: nodes.clipcatVoiceLanguage.value,
+    extraRules: nodes.clipcatExtraRules.value.trim(),
+    productImageCount: nodes.productImages.files?.length || 0,
+    accountTemplate: template
+  });
+
+  const record = {
+    id: `project-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    package: currentPackage
+  };
+  projects.unshift(record);
+  currentProjectId = record.id;
+  saveProjects();
+  syncFormWithCurrentPackage();
+  renderProjects();
+  renderShotEditor();
+  renderProjectDetail();
+  updateResultButtons();
+  setActionFeedback("复刻包已生成，已带出蒸馏摘要和批量视频任务。");
+}
+
+function renderProjects() {
+  ensureCurrentProject();
+  nodes.seriesCount.textContent = `${projects.length} 个项目`;
+  nodes.seriesStats.innerHTML = `
+    <div class="badge">本地项目：${projects.length}</div>
+    <div class="badge">模板数量：${accountTemplates.length}</div>
+    <div class="badge">输出内容：镜头表 / 候选版本 / 批量视频任务</div>
+  `;
+
+  if (projects.length === 0) {
+    currentProjectId = null;
+    currentPackage = null;
+    nodes.projectDetailPanel.innerHTML = "";
+    nodes.shotEditorPanel.innerHTML = "";
+    nodes.seriesList.innerHTML = `<div class="panel"><strong>还没有生成结果</strong><p>先选对标模板，再填好左侧信息，点“拆解复刻”即可生成项目。</p></div>`;
+    updateResultButtons();
+    return;
+  }
+
+  nodes.seriesList.innerHTML = projects
+    .map((item) => {
+      const pkg = item.package;
+      const firstPrompt = pkg.prompts.videoShots[0];
+      const isActive = item.id === currentProjectId;
+      return `
+        <article class="panel projectListCard ${isActive ? "is-active" : ""}">
+          <div class="panelHead">
+            <div class="projectListMeta">
+              <strong>${escapeHtml(pkg.project.projectName)}</strong>
+              <span class="countBadge">${pkg.shots.length} 个镜头</span>
+              <span class="countBadge">${escapeHtml(pkg.project.accountTemplate?.name || "未选模板")}</span>
+            </div>
+            <div class="projectListActions">
+              <button class="ghostButton projectListButton" type="button" data-project-select="${item.id}">${isActive ? "当前项目" : "切换到这里"}</button>
+              <button class="ghostButton projectListDeleteButton" type="button" data-project-delete="${item.id}">删除</button>
+            </div>
+          </div>
+          <p>${escapeHtml(pkg.project.referenceSummary)}</p>
+          <p><strong>商品：</strong>${escapeHtml(pkg.project.productName)}</p>
+          <p><strong>模板：</strong>${escapeHtml(pkg.project.accountTemplate?.name || "未填写")}</p>
+          <p><strong>任务数：</strong>${pkg.batchVideoTasks?.length || 0}</p>
+          <details>
+            <summary>查看首条批量视频任务</summary>
+            <pre>${escapeHtml(pkg.batchVideoTasks?.[0]?.prompt || firstPrompt)}</pre>
+          </details>
+        </article>
+      `;
+    })
+    .join("");
+
+  bindProjectListEvents();
+  renderProjectDetail();
+  renderShotEditor();
+  updateResultButtons();
+}
+
+function renderProjectDetail() {
+  if (!currentPackage) {
+    nodes.projectDetailPanel.innerHTML = "";
+    return;
+  }
+
+  const tabMap = {
+    summary: buildSummaryText(currentPackage),
+    distilled: [
+      currentPackage.distilledFramework.summary,
+      "",
+      ...currentPackage.distilledFramework.breakdown.map((item) => `- ${item}`)
+    ].join("\n"),
+    shots: currentPackage.shots
+      .map(
+        (shot) =>
+          `镜头 ${shot.shotNumber}：${shot.title}\n目标：${shot.purpose}\n动作：${shot.action}\n商品任务：${shot.productRole}\n口播意图：${shot.lineIntent}`
+      )
+      .join("\n\n"),
+    prompts: currentPackage.prompts.videoShots
+      .map((prompt, index) => `视频提示词 ${index + 1}\n${prompt}`)
+      .join("\n\n"),
+    variants: (currentPackage.promptVariants || [])
+      .map(
+        (variant) =>
+          `${variant.title}\n${variant.summary}\n\n${variant.videoShots
+            .map((line, index) => `${index + 1}. ${line}`)
+            .join("\n")}`
+      )
+      .join("\n\n"),
+    batch: (currentPackage.batchVideoTasks || [])
+      .map(
+        (task) =>
+          `${task.taskTitle}\n任务编号：${task.taskId}\n模型：${task.model}\n时长：${task.durationSeconds} 秒\n状态：${task.status}\n模板：${task.accountTemplateName}\n\n${task.prompt}`
+      )
+      .join("\n\n"),
+    review: currentPackage.reviewChecklist.map((item) => `- ${item}`).join("\n")
+  };
+
+  const metaTextMap = {
+    distilled: "这里是按对标账户模板抽出来的框架，不是照抄原视频。",
+    variants: "这里给你 3 套候选版本：稳妥、快节奏、强转化。",
+    batch: "这里是一组准备发给本地视频服务的批量任务。"
+  };
+
+  nodes.projectDetailPanel.innerHTML = `
+    <div class="detailTabs">
+      ${[
+        ["summary", "项目摘要"],
+        ["distilled", "蒸馏摘要"],
+        ["shots", "镜头详情"],
+        ["prompts", "提示词"],
+        ["variants", "候选版本"],
+        ["batch", "批量任务"],
+        ["review", "审片清单"]
+      ]
+        .map(
+          ([key, label]) =>
+            `<button class="detailTabButton ${activeDetailTab === key ? "is-active" : ""}" type="button" data-detail-tab="${key}">${label}</button>`
+        )
+        .join("")}
+    </div>
+    <div class="detailContent">${metaTextMap[activeDetailTab] ? `<div class="detailMeta">${escapeHtml(metaTextMap[activeDetailTab])}</div>` : ""}<pre>${escapeHtml(tabMap[activeDetailTab] || "")}</pre></div>
+  `;
+
+  nodes.projectDetailPanel.querySelectorAll("[data-detail-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeDetailTab = button.dataset.detailTab;
+      renderProjectDetail();
+    });
+  });
+}
+
+function renderShotEditor() {
+  if (!currentPackage) {
+    nodes.shotEditorPanel.innerHTML = "";
+    return;
+  }
+
+  nodes.shotEditorPanel.innerHTML = currentPackage.shots
+    .map(
+      (shot) => `
+        <article class="shotCard" data-shot-number="${shot.shotNumber}">
+          <div class="shotCardHead">
+            <strong>镜头 ${shot.shotNumber}：${escapeHtml(shot.title)}</strong>
+            <button class="ghostButton shotSaveButton" type="button" data-shot-save="${shot.shotNumber}">保存这条镜头</button>
+          </div>
+          <div class="shotCardGrid">
+            <label class="fieldBlock">
+              镜头目标
+              <textarea data-field="purpose" rows="3">${escapeHtml(shot.purpose)}</textarea>
+            </label>
+            <label class="fieldBlock">
+              动作描述
+              <textarea data-field="action" rows="3">${escapeHtml(shot.action)}</textarea>
+            </label>
+            <label class="fieldBlock">
+              商品任务
+              <textarea data-field="productRole" rows="3">${escapeHtml(shot.productRole)}</textarea>
+            </label>
+            <label class="fieldBlock">
+              口播意图
+              <textarea data-field="lineIntent" rows="3">${escapeHtml(shot.lineIntent)}</textarea>
+            </label>
+          </div>
+          <div class="shotPromptPreview">${escapeHtml(currentPackage.prompts.videoShots[shot.shotNumber - 1])}</div>
+        </article>
+      `
+    )
+    .join("");
+
+  nodes.shotEditorPanel.querySelectorAll(".shotSaveButton").forEach((button) => {
+    button.addEventListener("click", () => saveShotEdit(Number(button.dataset.shotSave)));
+  });
+}
+
+function saveShotEdit(shotNumber) {
+  if (!currentPackage) return;
+  const card = nodes.shotEditorPanel.querySelector(`[data-shot-number="${shotNumber}"]`);
+  if (!card) return;
+  const patch = {};
+  card.querySelectorAll("[data-field]").forEach((field) => {
+    patch[field.dataset.field] = field.value.trim();
+  });
+  currentPackage = updateShot(currentPackage, shotNumber, patch);
+  replaceCurrentProject(currentPackage);
+  renderProjects();
+  setActionFeedback(`镜头 ${shotNumber} 已更新，相关提示词和批量任务已重生成。`);
+}
+
+function downloadCurrent(format) {
+  if (!currentPackage) {
+    setActionFeedback("当前没有可下载的复刻包。", true);
+    return;
+  }
+
+  if (format === "json") {
+    downloadBlob(
+      `${currentPackage.project.projectName}.json`,
+      JSON.stringify(currentPackage, null, 2),
+      "application/json"
+    );
+    return;
+  }
+
+  downloadBlob(
+    `${currentPackage.project.projectName}.md`,
+    buildMarkdownFromPackage(currentPackage),
+    "text/markdown"
+  );
+}
+
+function clearProjects() {
+  projects = [];
+  currentPackage = null;
+  currentProjectId = null;
+  saveProjects();
+  renderProjects();
+  nodes.projectDetailPanel.innerHTML = "";
+  nodes.shotEditorPanel.innerHTML = "";
+  setActionFeedback("本地记录已清空。");
+}
+
+async function importJsonProject(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    currentPackage = regeneratePrompts(parsed);
+    const record = {
+      id: `project-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      package: currentPackage
+    };
+    projects.unshift(record);
+    currentProjectId = record.id;
+    saveProjects();
+    syncFormWithCurrentPackage();
+    renderProjects();
+    setActionFeedback("JSON 项目已导入，可以继续改模板和镜头。");
+  } catch {
+    setActionFeedback("导入失败：请确认是本插件导出的 JSON。", true);
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function downloadBundle() {
+  if (!currentPackage) {
+    setActionFeedback("当前没有可批量导出的项目。", true);
+    return;
+  }
+  const bundle = buildExportBundle(currentPackage);
+  for (const file of bundle.files) {
+    const [, ...parts] = file.path.split("/");
+    const filename = parts.join("__");
+    const type = filename.endsWith(".json") ? "application/json" : "text/plain";
+    downloadBlob(filename, file.content, type);
+  }
+  setActionFeedback(`已按项目结构导出 ${bundle.files.length} 个文件。`);
+}
+
+async function copyClipcatPrompt() {
+  const text = buildSafeClipcatPrompt({
+    productName: nodes.productName.value.trim() || "当前商品",
+    productImageCount: nodes.productImages.files?.length || 0,
+    tiktokUrl: nodes.tiktokUrl.value.trim(),
+    referencePlatform: nodes.clipcatReferencePlatform.value,
+    durationSeconds: Number(nodes.targetDuration.value || 15),
+    voiceLanguage: nodes.clipcatVoiceLanguage.value,
+    extraRules: nodes.clipcatExtraRules.value.trim() || "不要字幕，保留强钩子。"
+  });
+  await navigator.clipboard.writeText(text);
+  setActionFeedback("Clipcat 安全改写指令已复制。");
+}
+
+async function copyBatchTasks() {
+  if (!currentPackage) {
+    setActionFeedback("当前没有批量任务可复制。", true);
+    return;
+  }
+  await navigator.clipboard.writeText(JSON.stringify(currentPackage.batchVideoTasks, null, 2));
+  setActionFeedback("批量视频任务 JSON 已复制。");
+}
+
+async function sendBatchTasksToService() {
+  if (!currentPackage) {
+    setActionFeedback("当前没有批量任务可发送。", true);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${batchServiceBaseUrl}/api/video-batches`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectName: currentPackage.project.projectName,
+        accountTemplate: currentPackage.project.accountTemplate,
+        tasks: currentPackage.batchVideoTasks,
+        submitMode: "queue_only"
+      })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || `${response.status} ${response.statusText}`);
+    }
+    setActionFeedback(`已发送到本地服务，批次号：${data.batchId || "未返回"}`);
+    refreshBatchServiceHealth();
+  } catch (error) {
+    setActionFeedback(`发送失败：${error instanceof Error ? error.message : String(error)}`, true);
+  }
+}
+
+async function refreshBatchServiceHealth() {
+  try {
+    const response = await fetch(`${batchServiceBaseUrl}/health`);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+    nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可转发" : "队列模式";
+    nodes.batchServiceStatus.classList.add("is-ok");
+    nodes.batchServiceStatus.classList.remove("is-error");
+    setActionFeedback(`本地视频任务服务可用，当前队列 ${data.queueSize || 0} 条。`);
+  } catch {
+    nodes.batchServiceStatus.textContent = "未连接";
+    nodes.batchServiceStatus.classList.add("is-error");
+    nodes.batchServiceStatus.classList.remove("is-ok");
+  }
+}
+
+async function copyBatchServiceCommand() {
+  await navigator.clipboard.writeText(batchServiceCommand);
+  setActionFeedback("本地视频任务服务启动命令已复制。");
+}
+
+function handleTemplateSelectionChange() {
+  selectedTemplateId = nodes.accountTemplateSelect.value;
+  currentProfileScan = null;
+  selectedProfileVideoUrls = new Set();
+  syncTemplateForm();
+  applyTemplateToGenerationFields();
+  renderProfileScanState();
+  setActionFeedback("已切换对标账户模板。");
+}
+
+function handleTemplatePlatformChange() {
+  updatePlatformDependentUi();
+  renderProfileScanState();
+  setActionFeedback(nodes.templatePlatform.value === "douyin" ? "已切到抖音模板口径，主页自动蒸馏先保留手动模式。" : "已切到 TikTok 模板口径。");
+}
+
+function saveCurrentTemplate() {
+  const template = normalizeAccountTemplate({
+    id: selectedTemplateId || undefined,
+    name: nodes.templateName.value.trim(),
+    platform: nodes.templatePlatform.value,
+    accountHandle: nodes.templateAccountHandle.value.trim(),
+    profileUrl: nodes.templateProfileUrl.value.trim(),
+    contentPositioning: nodes.templateContentPositioning.value.trim(),
+    hookStyle: nodes.hookStyle.value,
+    rhythm: nodes.templateRhythm.value.trim(),
+    structure: nodes.templateStructure.value.trim(),
+    expressionDna: nodes.templateExpressionDna.value.trim(),
+    decisionHeuristics: nodes.templateDecisionHeuristics.value.trim(),
+    antiPatterns: nodes.templateAntiPatterns.value.trim(),
+    recentSignals: nodes.templateRecentSignals.value.trim(),
+    ctaStyle: nodes.ctaText.value.trim(),
+    rewriteRules: nodes.templateRewriteRules.value.trim(),
+    defaultDurationSeconds: Number(nodes.targetDuration.value || 30),
+    defaultVoiceLanguage: nodes.clipcatVoiceLanguage.value,
+    preferredModel: nodes.templatePreferredModel.value.trim() || "veo-3-fast",
+    sampleVideoUrls: splitLines(nodes.templateSampleVideoUrls.value)
+  });
+
+  const index = accountTemplates.findIndex((item) => item.id === template.id);
+  if (index === -1) {
+    accountTemplates.unshift(template);
+  } else {
+    accountTemplates[index] = template;
+  }
+  selectedTemplateId = template.id;
+  saveAccountTemplates();
+  renderTemplateOptions();
+  syncTemplateForm();
+  renderProfileScanState();
+  setActionFeedback(`模板已保存：${template.name}`);
+}
+
+function deleteCurrentTemplate() {
+  if (!selectedTemplateId) {
+    setActionFeedback("当前没有可删除的模板。", true);
+    return;
+  }
+  const index = accountTemplates.findIndex((item) => item.id === selectedTemplateId);
+  if (index === -1) return;
+  const [removed] = accountTemplates.splice(index, 1);
+  selectedTemplateId = accountTemplates[0]?.id || "";
+  if (accountTemplates.length === 0) {
+    accountTemplates = buildDefaultTemplates();
+    selectedTemplateId = accountTemplates[0].id;
+  }
+  saveAccountTemplates();
+  renderTemplateOptions();
+  syncTemplateForm();
+  applyTemplateToGenerationFields();
+  currentProfileScan = null;
+  selectedProfileVideoUrls = new Set();
+  renderProfileScanState();
+  setActionFeedback(`模板已删除：${removed.name}`);
+}
+
+function createNewTemplate() {
+  const empty = normalizeAccountTemplate({
+    ...createEmptyAccountTemplate(),
+    id: `template-${Date.now()}`,
+    name: "新模板"
+  });
+  accountTemplates.unshift(empty);
+  selectedTemplateId = empty.id;
+  currentProfileScan = null;
+  selectedProfileVideoUrls = new Set();
+  saveAccountTemplates();
+  renderTemplateOptions();
+  syncTemplateForm();
+  renderProfileScanState();
+  setActionFeedback("已新建空模板。");
+}
+
+function renderTemplateOptions() {
+  if (!accountTemplates.length) {
+    accountTemplates = buildDefaultTemplates();
+    selectedTemplateId = accountTemplates[0].id;
+    saveAccountTemplates();
+  }
+
+  nodes.accountTemplateSelect.innerHTML = accountTemplates
+    .map(
+      (template) =>
+        `<option value="${escapeHtml(template.id)}" ${template.id === selectedTemplateId ? "selected" : ""}>${escapeHtml(template.name)}${template.accountHandle ? ` · ${escapeHtml(template.accountHandle)}` : ""}</option>`
+    )
+    .join("");
+}
+
+function syncTemplateForm() {
+  const template = getSelectedTemplate();
+  if (!template) return;
+  nodes.templateName.value = template.name || "";
+  nodes.templatePlatform.value = template.platform || "tiktok";
+  nodes.templateAccountHandle.value = template.accountHandle || "";
+  nodes.templateProfileUrl.value = template.profileUrl || "";
+  nodes.templateContentPositioning.value = template.contentPositioning || "";
+  nodes.templateRhythm.value = template.rhythm || "";
+  nodes.templatePreferredModel.value = template.preferredModel || "veo-3-fast";
+  nodes.templateStructure.value = template.structure || "";
+  nodes.templateExpressionDna.value = template.expressionDna || "";
+  nodes.templateDecisionHeuristics.value = template.decisionHeuristics || "";
+  nodes.templateAntiPatterns.value = template.antiPatterns || "";
+  nodes.templateRecentSignals.value = template.recentSignals || "";
+  nodes.templateRewriteRules.value = template.rewriteRules || "";
+  nodes.templateSampleVideoUrls.value = (template.sampleVideoUrls || []).join("\n");
+  updatePlatformDependentUi();
+}
+
+function applyTemplateToGenerationFields() {
+  const template = getSelectedTemplate();
+  if (!template) return;
+  nodes.hookStyle.value = template.hookStyle || nodes.hookStyle.value;
+  nodes.ctaText.value = template.ctaStyle || nodes.ctaText.value;
+  nodes.targetDuration.value = String(template.defaultDurationSeconds || 30);
+  nodes.targetDurationLabel.textContent = `${template.defaultDurationSeconds || 30} 秒`;
+  nodes.clipcatReferencePlatform.value = template.platform || "tiktok";
+  nodes.clipcatVoiceLanguage.value = template.defaultVoiceLanguage || "英文";
+  nodes.clipcatExtraRules.value = template.rewriteRules || "";
+  updatePlatformDependentUi();
+}
+
+function renderProfileScanState() {
+  const platform = nodes.templatePlatform.value || "tiktok";
+  const canAutoScan = platform === "tiktok";
+  const canUseScanActions = Boolean(currentProfileScan) && canAutoScan;
+
+  nodes.applyProfileSummaryButton.disabled = !canUseScanActions;
+  nodes.redistillProfileButton.disabled = !canUseScanActions;
+  nodes.selectAllProfileSamplesButton.disabled = !canUseScanActions;
+  nodes.clearProfileSamplesButton.disabled = !canUseScanActions;
+  nodes.keepCoveredProfileSamplesButton.disabled = !canUseScanActions;
+  nodes.keepTopProfileSamplesButton.disabled = !canUseScanActions;
+  nodes.keepCoveredPopularProfileSamplesButton.disabled = !canUseScanActions;
+  nodes.exportProfileCandidatesButton.disabled = !canUseScanActions;
+  nodes.profileSampleSort.disabled = !canUseScanActions;
+  nodes.profileMinViewsFilter.disabled = !canUseScanActions;
+
+  if (!currentProfileScan) {
+    if (canAutoScan) {
+      nodes.profileScanStatus.textContent = "未扫描";
+      nodes.profileScanStatus.classList.remove("is-ok", "is-error");
+      nodes.profileScanResult.textContent = "还没有主页扫描结果。";
+    } else {
+      nodes.profileScanStatus.textContent = "手动模式";
+      nodes.profileScanStatus.classList.add("is-error");
+      nodes.profileScanStatus.classList.remove("is-ok");
+      nodes.profileScanResult.textContent = "抖音版当前先保留手动模板沉淀。可直接填写内容定位、节奏、结构、表达 DNA 和样本链接。";
+    }
+    nodes.profileSampleSort.value = "captured";
+    nodes.profileMinViewsFilter.value = "0";
+    nodes.profileSampleList.innerHTML = "";
+    return;
+  }
+
+  if (!canAutoScan) {
+    nodes.profileSampleSort.value = profileSampleSortMode;
+    nodes.profileMinViewsFilter.value = String(profileMinViewsFilter);
+    nodes.profileScanStatus.textContent = "手动模式";
+    nodes.profileScanStatus.classList.add("is-error");
+    nodes.profileScanStatus.classList.remove("is-ok");
+    nodes.profileScanResult.textContent = `抖音版当前先保留手动模板沉淀。已保留上次 TikTok 蒸馏样本 ${currentProfileScan.videos.length} 条，仅供参考；切回 TikTok 模式后可继续筛片和重蒸馏。`;
+    nodes.profileSampleList.innerHTML = `<p class="emptyState">已暂存 ${currentProfileScan.videos.length} 条 TikTok 公开样本。切回 TikTok 模式后可继续使用。</p>`;
+    return;
+  }
+
+  nodes.profileSampleSort.value = profileSampleSortMode;
+  nodes.profileMinViewsFilter.value = String(profileMinViewsFilter);
+  nodes.profileScanStatus.textContent = "已蒸馏";
+  nodes.profileScanStatus.classList.add("is-ok");
+  nodes.profileScanStatus.classList.remove("is-error");
+  nodes.profileScanResult.textContent = buildProfileScanResultText();
+  renderProfileSampleList();
+}
+
+async function handleProfileScan() {
+  const profileUrl = nodes.templateProfileUrl.value.trim();
+  const platform = nodes.templatePlatform.value || "tiktok";
+  if (!profileUrl) {
+    setActionFeedback("请先填对标主页链接。", true);
+    nodes.profileScanStatus.textContent = "缺链接";
+    nodes.profileScanStatus.classList.add("is-error");
+    return;
+  }
+  if (platform !== "tiktok") {
+    setActionFeedback("抖音版模板已保留，但当前自动蒸馏只支持 TikTok 主页；抖音请先手动填写模板字段。", true);
+    nodes.profileScanStatus.textContent = "手动模式";
+    nodes.profileScanStatus.classList.add("is-error");
+    nodes.profileScanStatus.classList.remove("is-ok");
+    nodes.profileScanResult.textContent = "抖音版当前先保留手动模板沉淀。可直接填写内容定位、节奏、结构、表达 DNA 和样本链接。";
+    return;
+  }
+  if (!/^https:\/\/www\.tiktok\.com\/@[^/?#]+/i.test(profileUrl)) {
+    setActionFeedback("主页链接格式不对，TikTok 账号主页应类似 https://www.tiktok.com/@account_name 。", true);
+    nodes.profileScanStatus.textContent = "链接错误";
+    nodes.profileScanStatus.classList.add("is-error");
+    return;
+  }
+
+  nodes.scanProfileButton.disabled = true;
+  nodes.profileScanStatus.textContent = "扫描中";
+  nodes.profileScanStatus.classList.remove("is-ok", "is-error");
+  nodes.profileScanResult.textContent = "正在打开 TikTok 主页并抓公开样本，请等页面加载完成。";
+  setActionFeedback("正在抓取对标主页的公开样本并蒸馏模板。");
+
+  try {
+    const scan = await scanTikTokProfile(profileUrl, Number(nodes.profileSampleLimit.value || 6));
+    currentProfileScan = scan;
+    selectedProfileVideoUrls = new Set(scan.videos.map((item) => item.videoUrl));
+    pinnedProfileVideoUrls = [];
+    excludedProfileVideoUrls = new Set();
+    applyDistilledTemplateToForm(scan);
+    renderProfileScanState();
+    setActionFeedback(`主页蒸馏完成，已抓到 ${scan.videos.length} 条样本。`);
+  } catch (error) {
+    currentProfileScan = null;
+    selectedProfileVideoUrls = new Set();
+    pinnedProfileVideoUrls = [];
+    excludedProfileVideoUrls = new Set();
+    nodes.profileScanStatus.textContent = "扫描失败";
+    nodes.profileScanStatus.classList.add("is-error");
+    nodes.profileScanStatus.classList.remove("is-ok");
+    nodes.profileScanResult.textContent = error instanceof Error ? error.message : String(error);
+    setActionFeedback(`主页扫描失败：${error instanceof Error ? error.message : String(error)}`, true);
+  } finally {
+    nodes.scanProfileButton.disabled = false;
+  }
+}
+
+function renderProfileSampleList() {
+  if (!currentProfileScan?.videos?.length) {
+    nodes.profileSampleList.innerHTML = "";
+    return;
+  }
+
+  const selectedCount = getSelectedProfileVideos().length;
+  const sortedVideos = getSortedProfileVideos();
+  const visibleVideoUrls = new Set(getVisibleProfileVideos().map((video) => video.videoUrl));
+  const visibleVideos = sortedVideos.filter((video) => visibleVideoUrls.has(video.videoUrl));
+  const excludedVideos = currentProfileScan.videos.filter((video) => excludedProfileVideoUrls.has(video.videoUrl));
+  nodes.profileSampleList.innerHTML = `
+    <div class="profileSampleMeta">已选 ${selectedCount} / ${currentProfileScan.videos.length} 条样本。当前列表显示 ${visibleVideos.length} 条；可按播放阈值、置顶和排除快速筛。</div>
+    ${visibleVideos
+      .map((video, index) => {
+        const checked = selectedProfileVideoUrls.has(video.videoUrl) ? "checked" : "";
+        const hitReasons = getProfileSampleHitReasons(video);
+        const isPinned = pinnedProfileVideoUrls.includes(video.videoUrl);
+        const pinIndex = pinnedProfileVideoUrls.indexOf(video.videoUrl);
+        const stateBadges = [];
+        if (checked) stateBadges.push('<span class="profileSampleBadge is-selected">已选中</span>');
+        if (isPinned) stateBadges.push(`<span class="profileSampleBadge is-pinned">置顶 #${pinIndex + 1}</span>`);
+        if (!video.thumbnailUrl) stateBadges.push('<span class="profileSampleBadge is-muted">待补封面</span>');
+        return `
+          <label class="profileSampleCard">
+            <div class="profileSampleThumb">
+              ${video.thumbnailUrl ? `<img src="${escapeHtml(video.thumbnailUrl)}" alt="样本 ${index + 1} 封面" />` : `<span>无封面</span>`}
+            </div>
+            <div class="profileSampleBody">
+              <div class="profileSampleHead">
+                <input class="profileSampleCheckbox" type="checkbox" data-profile-video="${escapeHtml(video.videoUrl)}" ${checked} />
+                <div>
+                  <div class="profileSampleTitle">样本 ${index + 1}</div>
+                  <div class="profileSampleMeta">${escapeHtml(video.caption || "无文案")}<\/div>
+                </div>
+              </div>
+              ${stateBadges.length ? `<div class="profileSampleStateRow">${stateBadges.join("")}</div>` : ""}
+              <div class="profileSampleStats">
+                <span class="profileSampleBadge">播放 ${formatCompactNumber(video.stats?.views || 0)}</span>
+                <span class="profileSampleBadge">点赞 ${formatCompactNumber(video.stats?.likes || 0)}</span>
+                <span class="profileSampleBadge">时长 ${Number(video.durationSeconds || 0)} 秒</span>
+                <span class="profileSampleBadge ${video.thumbnailUrl ? "" : "is-coverless"}">${video.thumbnailUrl ? "有封面" : "无封面"}</span>
+                ${hitReasons.map((reason) => `<span class="profileSampleBadge is-hit">${escapeHtml(reason)}</span>`).join("")}
+              </div>
+              <div class="profileSampleActions">
+                <button type="button" data-keep-only-video="${escapeHtml(video.videoUrl)}">只保留这条</button>
+                <button type="button" data-pin-video="${escapeHtml(video.videoUrl)}">${isPinned ? "取消置顶" : "置顶到最前"}</button>
+                ${isPinned ? `<button type="button" data-pin-up-video="${escapeHtml(video.videoUrl)}" ${pinIndex <= 0 ? "disabled" : ""}>上移</button>` : ""}
+                ${isPinned ? `<button type="button" data-pin-down-video="${escapeHtml(video.videoUrl)}" ${pinIndex === -1 || pinIndex >= pinnedProfileVideoUrls.length - 1 ? "disabled" : ""}>下移</button>` : ""}
+                <button type="button" data-exclude-video="${escapeHtml(video.videoUrl)}">排除这条</button>
+                <a href="${escapeHtml(video.videoUrl)}" target="_blank" rel="noreferrer">打开视频</a>
+              </div>
+              <a class="profileSampleLink" href="${escapeHtml(video.videoUrl)}" target="_blank" rel="noreferrer">${escapeHtml(video.videoUrl)}</a>
+            </div>
+          </label>
+        `;
+      })
+      .join("")}
+    ${excludedVideos.length ? `
+      <div class="profileExcludedPanel">
+        <div class="profileExcludedHead">
+          <div class="profileSampleMeta">已排除 ${excludedVideos.length} 条样本，可按需恢复。</div>
+          <div class="profileExcludedActions">
+            <button type="button" data-restore-all-excluded>恢复全部</button>
+            <button type="button" data-restore-all-select-excluded>恢复并选中</button>
+          </div>
+        </div>
+        <div class="profileExcludedList">
+          ${excludedVideos
+            .map(
+              (video, index) => `
+                <span class="profileExcludedItem">
+                  <span>排除 ${index + 1}</span>
+                  <button type="button" data-restore-video="${escapeHtml(video.videoUrl)}">恢复</button>
+                  <button type="button" data-restore-select-video="${escapeHtml(video.videoUrl)}">恢复并选中</button>
+                </span>
+              `
+            )
+            .join("")}
+        </div>
+      </div>
+    ` : ""}
+  `;
+
+  nodes.profileSampleList.querySelectorAll("[data-profile-video]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const videoUrl = input.dataset.profileVideo;
+      if (!videoUrl) return;
+      if (input.checked) {
+        selectedProfileVideoUrls.add(videoUrl);
+      } else {
+        selectedProfileVideoUrls.delete(videoUrl);
+      }
+      renderProfileSampleList();
+    });
+  });
+
+  nodes.profileSampleList.querySelectorAll("[data-keep-only-video]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const videoUrl = button.dataset.keepOnlyVideo;
+      if (!videoUrl) return;
+      keepOnlyProfileSample(videoUrl);
+    });
+  });
+
+  nodes.profileSampleList.querySelectorAll("[data-pin-video]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const videoUrl = button.dataset.pinVideo;
+      if (!videoUrl) return;
+      togglePinProfileSample(videoUrl);
+    });
+  });
+
+  nodes.profileSampleList.querySelectorAll("[data-pin-up-video]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const videoUrl = button.dataset.pinUpVideo;
+      if (!videoUrl) return;
+      movePinnedProfileSample(videoUrl, -1);
+    });
+  });
+
+  nodes.profileSampleList.querySelectorAll("[data-pin-down-video]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const videoUrl = button.dataset.pinDownVideo;
+      if (!videoUrl) return;
+      movePinnedProfileSample(videoUrl, 1);
+    });
+  });
+
+  nodes.profileSampleList.querySelectorAll("[data-exclude-video]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const videoUrl = button.dataset.excludeVideo;
+      if (!videoUrl) return;
+      excludeProfileSample(videoUrl);
+    });
+  });
+
+  nodes.profileSampleList.querySelectorAll("[data-restore-video]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const videoUrl = button.dataset.restoreVideo;
+      if (!videoUrl) return;
+      restoreExcludedProfileSample(videoUrl, false);
+    });
+  });
+
+  nodes.profileSampleList.querySelectorAll("[data-restore-select-video]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const videoUrl = button.dataset.restoreSelectVideo;
+      if (!videoUrl) return;
+      restoreExcludedProfileSample(videoUrl, true);
+    });
+  });
+
+  nodes.profileSampleList.querySelector("[data-restore-all-excluded]")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    restoreAllExcludedProfileSamples(false);
+  });
+
+  nodes.profileSampleList.querySelector("[data-restore-all-select-excluded]")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    restoreAllExcludedProfileSamples(true);
+  });
+}
+
+function getVisibleProfileVideos() {
+  if (!currentProfileScan?.videos?.length) return [];
+  return currentProfileScan.videos.filter(
+    (video) => !excludedProfileVideoUrls.has(video.videoUrl) && Number(video.stats?.views || 0) >= profileMinViewsFilter
+  );
+}
+
+function getProfileSortLabel() {
+  const labels = {
+    captured: "按抓取顺序",
+    views_desc: "按播放从高到低",
+    likes_desc: "按点赞从高到低",
+    duration_desc: "按时长从长到短"
+  };
+  return labels[profileSampleSortMode] || labels.captured;
+}
+
+function getVideoDisplayLabel(video) {
+  if (!currentProfileScan?.videos?.length) return "样本";
+  const originalIndex = currentProfileScan.videos.findIndex((item) => item.videoUrl === video.videoUrl);
+  return originalIndex === -1 ? "样本" : `样本 ${originalIndex + 1}`;
+}
+
+function getProfileVideoVisibilityLabel(video) {
+  if (excludedProfileVideoUrls.has(video.videoUrl)) return "已排除";
+  if (Number(video.stats?.views || 0) < profileMinViewsFilter) return "低于播放阈值";
+  return "当前可见";
+}
+
+function getProfileVideoPinLabel(videoUrl) {
+  const pinIndex = pinnedProfileVideoUrls.indexOf(videoUrl);
+  return pinIndex === -1 ? "否" : `是 (#${pinIndex + 1})`;
+}
+
+function getSelectedProfileVideos() {
+  if (!currentProfileScan?.videos?.length) return [];
+  return currentProfileScan.videos.filter((video) => selectedProfileVideoUrls.has(video.videoUrl));
+}
+
+function getSortedProfileVideos() {
+  if (!currentProfileScan?.videos?.length) return [];
+  const videos = currentProfileScan.videos.map((video, index) => ({ ...video, _captureIndex: index }));
+  const sorters = {
+    captured: (left, right) => left._captureIndex - right._captureIndex,
+    views_desc: (left, right) => Number(right.stats?.views || 0) - Number(left.stats?.views || 0),
+    likes_desc: (left, right) => Number(right.stats?.likes || 0) - Number(left.stats?.likes || 0),
+    duration_desc: (left, right) => Number(right.durationSeconds || 0) - Number(left.durationSeconds || 0)
+  };
+  const sorted = videos.sort(sorters[profileSampleSortMode] || sorters.captured);
+  if (!pinnedProfileVideoUrls.length) return sorted;
+  const pinOrder = new Map(pinnedProfileVideoUrls.map((url, index) => [url, index]));
+  return sorted.sort((left, right) => {
+    const leftPinned = pinOrder.has(left.videoUrl);
+    const rightPinned = pinOrder.has(right.videoUrl);
+    if (leftPinned && rightPinned) return pinOrder.get(left.videoUrl) - pinOrder.get(right.videoUrl);
+    if (leftPinned) return -1;
+    if (rightPinned) return 1;
+    return 0;
+  });
+}
+
+function getProfileScanForCurrentSelection() {
+  if (!currentProfileScan) return null;
+  const selectedVideos = getSelectedProfileVideos();
+  return {
+    ...currentProfileScan,
+    videos: selectedVideos.length ? selectedVideos : currentProfileScan.videos
+  };
+}
+
+function redistillFromSelectedSamples() {
+  if (!currentProfileScan) {
+    setActionFeedback("当前没有主页扫描结果可重蒸馏。", true);
+    return;
+  }
+  const selectedVideos = getSelectedProfileVideos();
+  if (selectedVideos.length === 0) {
+    setActionFeedback("请至少勾选 1 条样本后再重蒸馏。", true);
+    return;
+  }
+  const filteredScan = getProfileScanForCurrentSelection();
+  applyDistilledTemplateToForm(filteredScan);
+  nodes.profileScanResult.textContent = buildProfileScanResultText();
+  setActionFeedback(`已按选中样本重蒸馏，当前使用 ${selectedVideos.length} 条样本。`);
+}
+
+function buildProfileScanResultText() {
+  const selectedScan = getProfileScanForCurrentSelection();
+  if (!selectedScan) return "还没有主页扫描结果。";
+  const summary = buildReferenceSummaryFromProfileScan(selectedScan);
+  if (!currentProfileScan) return summary;
+  const comparison = buildProfileSelectionComparisonSummary(currentProfileScan, selectedScan);
+  return `${summary}\n\n${comparison}`;
+}
+
+function selectAllProfileSamples() {
+  if (!currentProfileScan?.videos?.length) return;
+  selectedProfileVideoUrls = new Set(getVisibleProfileVideos().map((video) => video.videoUrl));
+  renderProfileSampleList();
+  setActionFeedback(`已全选当前可见样本 ${selectedProfileVideoUrls.size} 条。`);
+}
+
+function clearProfileSamplesSelection() {
+  if (!currentProfileScan?.videos?.length) return;
+  selectedProfileVideoUrls = new Set();
+  renderProfileSampleList();
+  setActionFeedback("已清空样本选择。");
+}
+
+function keepTopProfileSamples() {
+  if (!currentProfileScan?.videos?.length) return;
+  const topVideos = currentProfileScan.videos
+    .slice()
+    .sort((left, right) => Number(right.stats?.views || 0) - Number(left.stats?.views || 0))
+    .slice(0, Math.min(3, currentProfileScan.videos.length));
+  selectedProfileVideoUrls = new Set(topVideos.map((video) => video.videoUrl));
+  renderProfileSampleList();
+  setActionFeedback(`已只保留高播放前 ${topVideos.length} 条样本。`);
+}
+
+function keepCoveredProfileSamples() {
+  if (!currentProfileScan?.videos?.length) return;
+  const coveredVideos = currentProfileScan.videos.filter((video) => Boolean(video.thumbnailUrl));
+  if (coveredVideos.length === 0) {
+    setActionFeedback("当前样本里没有可用封面。", true);
+    return;
+  }
+  selectedProfileVideoUrls = new Set(coveredVideos.map((video) => video.videoUrl));
+  renderProfileSampleList();
+  setActionFeedback(`已只保留有封面的 ${coveredVideos.length} 条样本。`);
+}
+
+function keepCoveredPopularProfileSamples() {
+  if (!currentProfileScan?.videos?.length) return;
+  const filtered = currentProfileScan.videos.filter(
+    (video) => Boolean(video.thumbnailUrl) && Number(video.stats?.views || 0) >= 100000
+  );
+  if (filtered.length === 0) {
+    setActionFeedback("当前样本里没有同时满足“有封面 + 10 万播放”的内容。", true);
+    return;
+  }
+  selectedProfileVideoUrls = new Set(filtered.map((video) => video.videoUrl));
+  renderProfileSampleList();
+  setActionFeedback(`已只保留有封面且播放 10 万以上的 ${filtered.length} 条样本。`);
+}
+
+function keepOnlyProfileSample(videoUrl) {
+  selectedProfileVideoUrls = new Set([videoUrl]);
+  renderProfileSampleList();
+  setActionFeedback("已只保留当前这条样本。");
+}
+
+function togglePinProfileSample(videoUrl) {
+  if (pinnedProfileVideoUrls.includes(videoUrl)) {
+    pinnedProfileVideoUrls = pinnedProfileVideoUrls.filter((item) => item !== videoUrl);
+    setActionFeedback("已取消置顶这条样本。");
+  } else {
+    pinnedProfileVideoUrls = [videoUrl, ...pinnedProfileVideoUrls.filter((item) => item !== videoUrl)];
+    setActionFeedback("已把这条样本置顶到最前。");
+  }
+  renderProfileSampleList();
+}
+
+function movePinnedProfileSample(videoUrl, direction) {
+  const index = pinnedProfileVideoUrls.indexOf(videoUrl);
+  if (index === -1) return;
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= pinnedProfileVideoUrls.length) return;
+  const next = pinnedProfileVideoUrls.slice();
+  const [item] = next.splice(index, 1);
+  next.splice(targetIndex, 0, item);
+  pinnedProfileVideoUrls = next;
+  renderProfileSampleList();
+  setActionFeedback(direction < 0 ? "已把置顶样本上移。" : "已把置顶样本下移。");
+}
+
+function excludeProfileSample(videoUrl) {
+  excludedProfileVideoUrls.add(videoUrl);
+  selectedProfileVideoUrls.delete(videoUrl);
+  pinnedProfileVideoUrls = pinnedProfileVideoUrls.filter((item) => item !== videoUrl);
+  renderProfileSampleList();
+  setActionFeedback("已排除这条样本。");
+}
+
+function restoreExcludedProfileSample(videoUrl, shouldSelect) {
+  excludedProfileVideoUrls.delete(videoUrl);
+  if (shouldSelect) {
+    selectedProfileVideoUrls.add(videoUrl);
+  }
+  renderProfileSampleList();
+  setActionFeedback(shouldSelect ? "已恢复并选中这条被排除的样本。" : "已恢复这条被排除的样本。");
+}
+
+function restoreAllExcludedProfileSamples(shouldSelect) {
+  if (!excludedProfileVideoUrls.size) return;
+  const restoredUrls = Array.from(excludedProfileVideoUrls);
+  excludedProfileVideoUrls = new Set();
+  if (shouldSelect) {
+    restoredUrls.forEach((url) => selectedProfileVideoUrls.add(url));
+  }
+  renderProfileSampleList();
+  setActionFeedback(shouldSelect ? `已恢复并选中 ${restoredUrls.length} 条排除样本。` : `已恢复 ${restoredUrls.length} 条排除样本。`);
+}
+
+function exportProfileCandidates() {
+  if (!currentProfileScan?.videos?.length) {
+    setActionFeedback("当前没有候选样本可导出。", true);
+    return;
+  }
+  const filtered = getVisibleProfileVideos();
+  const visibleVideoUrls = new Set(filtered.map((video) => video.videoUrl));
+  const lines = [
+    `账号：${currentProfileScan.accountHandle || "未识别"}`,
+    `排序：${getProfileSortLabel()}`,
+    `最少播放：${profileMinViewsFilter}`,
+    `可见样本数：${filtered.length}`,
+    `置顶样本数：${pinnedProfileVideoUrls.length}`,
+    `排除样本数：${excludedProfileVideoUrls.size}`,
+    ""
+  ];
+  getSortedProfileVideos().forEach((video, index) => {
+    lines.push(`## ${getVideoDisplayLabel(video)} / 当前排序位 ${index + 1}`);
+    lines.push(`- 链接：${video.videoUrl}`);
+    lines.push(`- 播放：${formatCompactNumber(video.stats?.views || 0)}`);
+    lines.push(`- 点赞：${formatCompactNumber(video.stats?.likes || 0)}`);
+    lines.push(`- 时长：${Number(video.durationSeconds || 0)} 秒`);
+    lines.push(`- 是否选中：${selectedProfileVideoUrls.has(video.videoUrl) ? "是" : "否"}`);
+    lines.push(`- 是否置顶：${getProfileVideoPinLabel(video.videoUrl)}`);
+    lines.push(`- 是否排除：${excludedProfileVideoUrls.has(video.videoUrl) ? "是" : "否"}`);
+    lines.push(`- 当前可见：${visibleVideoUrls.has(video.videoUrl) ? "是" : "否"}`);
+    lines.push(`- 可见状态：${getProfileVideoVisibilityLabel(video)}`);
+    lines.push(`- 命中原因：${getProfileSampleHitReasons(video).join(" / ") || "无"}`);
+    lines.push(`- 文案：${video.caption || "无文案"}`);
+    lines.push("");
+  });
+  downloadBlob(
+    `profile-candidates-${Date.now()}.md`,
+    lines.join("\n"),
+    "text/markdown;charset=utf-8"
+  );
+  setActionFeedback(`已导出候选清单，共 ${filtered.length} 条当前可见样本，完整包含 ${currentProfileScan.videos.length} 条记录。`);
+}
+
+function getProfileSampleHitReasons(video) {
+  const reasons = [];
+  if (video.thumbnailUrl) reasons.push("有封面");
+  const views = Number(video.stats?.views || 0);
+  const likes = Number(video.stats?.likes || 0);
+  if (views >= 300000) {
+    reasons.push("高播放 30万+");
+  } else if (views >= 100000) {
+    reasons.push("高播放 10万+");
+  }
+  if (likes >= 10000) reasons.push("高点赞");
+  if (Number(video.durationSeconds || 0) >= 20 && Number(video.durationSeconds || 0) <= 35) {
+    reasons.push("时长适中");
+  }
+  return reasons;
+}
+
+function applyDistilledTemplateToForm(scan) {
+  const distilled = distillAccountTemplateFromProfileScan(scan, {
+    id: selectedTemplateId || undefined,
+    name: nodes.templateName.value.trim() || undefined
+  });
+  nodes.templateName.value = distilled.name || "";
+  nodes.templatePlatform.value = distilled.platform || "tiktok";
+  nodes.templateAccountHandle.value = distilled.accountHandle || "";
+  nodes.templateProfileUrl.value = distilled.profileUrl || "";
+  nodes.templateContentPositioning.value = distilled.contentPositioning || "";
+  nodes.hookStyle.value = distilled.hookStyle || nodes.hookStyle.value;
+  nodes.templateRhythm.value = distilled.rhythm || "";
+  nodes.targetDuration.value = String(distilled.defaultDurationSeconds || 30);
+  nodes.targetDurationLabel.textContent = `${distilled.defaultDurationSeconds || 30} 秒`;
+  nodes.clipcatVoiceLanguage.value = distilled.defaultVoiceLanguage || "英文";
+  nodes.templatePreferredModel.value = distilled.preferredModel || "veo-3-fast";
+  nodes.templateStructure.value = distilled.structure || "";
+  nodes.templateExpressionDna.value = distilled.expressionDna || "";
+  nodes.templateDecisionHeuristics.value = distilled.decisionHeuristics || "";
+  nodes.templateAntiPatterns.value = distilled.antiPatterns || "";
+  nodes.templateRecentSignals.value = distilled.recentSignals || "";
+  nodes.ctaText.value = distilled.ctaStyle || "";
+  nodes.templateRewriteRules.value = distilled.rewriteRules || "";
+  nodes.clipcatExtraRules.value = distilled.rewriteRules || "";
+  nodes.clipcatReferencePlatform.value = distilled.platform || "tiktok";
+  nodes.templateSampleVideoUrls.value = (distilled.sampleVideoUrls || []).join("\n");
+  updatePlatformDependentUi();
+}
+
+function applyProfileSummaryToReference() {
+  if (!currentProfileScan) {
+    setActionFeedback("当前没有主页蒸馏摘要可写入。", true);
+    return;
+  }
+  nodes.referenceBrief.value = buildProfileScanResultText();
+  setActionFeedback("已把主页蒸馏摘要写入参考视频摘要区。");
+}
+
+function buildSummaryText(pkg) {
+  return [
+    `项目名：${pkg.project.projectName}`,
+    `对标模板：${pkg.project.accountTemplate?.name || "未选择"}`,
+    `模板账号：${pkg.project.accountTemplate?.accountHandle || "未填写"}`,
+    `参考摘要：${pkg.project.referenceSummary || "未填写"}`,
+    `当前商品：${pkg.project.productName || "未填写"}`,
+    `卖点：${pkg.project.sellingPoints.join(" / ") || "未填写"}`,
+    `钩子风格：${pkg.project.hookStyle}`,
+    `视觉风格：${pkg.project.visualStyle}`,
+    `收口引导：${pkg.project.cta}`,
+    `时长：${pkg.project.durationSeconds} 秒`,
+    `批量任务数：${pkg.batchVideoTasks?.length || 0}`,
+    `Clipcat 参考链接：${pkg.project.clipcatConfig?.tiktokUrl || "未填写"}`,
+    `Clipcat 口播语言：${pkg.project.clipcatConfig?.voiceLanguage || "未填写"}`
+  ].join("\n");
+}
+
+function bindProjectListEvents() {
+  nodes.seriesList.querySelectorAll("[data-project-select]").forEach((button) => {
+    button.addEventListener("click", () => selectProject(button.dataset.projectSelect));
+  });
+  nodes.seriesList.querySelectorAll("[data-project-delete]").forEach((button) => {
+    button.addEventListener("click", () => deleteProject(button.dataset.projectDelete));
+  });
+}
+
+function selectProject(projectId) {
+  currentProjectId = projectId;
+  ensureCurrentProject();
+  syncFormWithCurrentPackage();
+  renderProjects();
+  setActionFeedback(`已切换到：${currentPackage.project.projectName}`);
+}
+
+function deleteProject(projectId) {
+  const index = projects.findIndex((item) => item.id === projectId);
+  if (index === -1) return;
+  const [removed] = projects.splice(index, 1);
+  if (projectId === currentProjectId) {
+    currentProjectId = projects[0]?.id || null;
+  }
+  ensureCurrentProject();
+  saveProjects();
+  renderProjects();
+  if (currentPackage) {
+    syncFormWithCurrentPackage();
+  }
+  setActionFeedback(`已删除项目：${removed.package.project.projectName}`);
+}
+
+function replaceCurrentProject(pkg) {
+  const index = getCurrentProjectIndex();
+  if (index === -1) {
+    const record = {
+      id: `project-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      package: pkg
+    };
+    projects.unshift(record);
+    currentProjectId = record.id;
+  } else {
+    projects[index] = { ...projects[index], package: pkg };
+  }
+  saveProjects();
+}
+
+function syncFormWithCurrentPackage() {
+  if (!currentPackage) return;
+  nodes.productName.value = currentPackage.project.productName || "";
+  nodes.referenceBrief.value = currentPackage.project.referenceSummary || "";
+  nodes.productNotes.value = (currentPackage.project.sellingPoints || []).join("\n");
+  nodes.hookStyle.value = currentPackage.project.hookStyle || nodes.hookStyle.value;
+  nodes.visualStyle.value = currentPackage.project.visualStyle || "";
+  nodes.ctaText.value = currentPackage.project.cta || "";
+  nodes.targetDuration.value = currentPackage.project.durationSeconds || 30;
+  nodes.targetDurationLabel.textContent = `${currentPackage.project.durationSeconds || 30} 秒`;
+  nodes.voiceDialect.value = currentPackage.project.voiceDialect || "普通话";
+  nodes.generationCount.value = String(currentPackage.project.generationCount || 3);
+  nodes.tiktokUrl.value = currentPackage.project.clipcatConfig?.tiktokUrl || "";
+  nodes.clipcatReferencePlatform.value = currentPackage.project.clipcatConfig?.referencePlatform || "tiktok";
+  nodes.clipcatVoiceLanguage.value = currentPackage.project.clipcatConfig?.voiceLanguage || "英文";
+  nodes.clipcatExtraRules.value = currentPackage.project.clipcatConfig?.extraRules || "";
+
+  const template = normalizeAccountTemplate(currentPackage.project.accountTemplate);
+  const existingIndex = accountTemplates.findIndex((item) => item.id === template.id);
+  if (existingIndex === -1) {
+    accountTemplates.unshift(template);
+  } else {
+    accountTemplates[existingIndex] = template;
+  }
+  selectedTemplateId = template.id;
+  saveAccountTemplates();
+  renderTemplateOptions();
+  syncTemplateForm();
+}
+
+function ensureCurrentProject() {
+  if (!projects.length) {
+    currentPackage = null;
+    return;
+  }
+  const record = projects.find((item) => item.id === currentProjectId) || projects[0];
+  currentProjectId = record.id;
+  currentPackage = record.package;
+}
+
+function getCurrentProjectIndex() {
+  return projects.findIndex((item) => item.id === currentProjectId);
+}
+
+function getSelectedTemplate() {
+  return accountTemplates.find((item) => item.id === selectedTemplateId) || accountTemplates[0] || null;
+}
+
+function updateResultButtons() {
+  const disabled = !currentPackage;
+  nodes.downloadBundleButton.disabled = disabled;
+  nodes.downloadJsonButton.disabled = disabled;
+  nodes.downloadMarkdownButton.disabled = disabled;
+  nodes.copyBatchTasksButton.disabled = disabled;
+  nodes.sendBatchTasksButton.disabled = disabled;
+}
+
+function updateActionFeedback() {
+  const hasVideo = Boolean(nodes.referenceVideoFile.files?.length);
+  const hasImages = Boolean(nodes.productImages.files?.length);
+  if (!hasVideo && !hasImages) {
+    setActionFeedback("先选对标模板，再上传参考视频和商品图片。");
+    return;
+  }
+  if (!hasVideo) {
+    setActionFeedback("已上传商品图片，再补参考视频就能生成蒸馏项目。");
+    return;
+  }
+  if (!hasImages) {
+    setActionFeedback("已上传参考视频，再补商品图片就能生成蒸馏项目。");
+    return;
+  }
+  setActionFeedback("素材已准备，补完文字信息后可以直接拆解复刻。");
+}
+
+function setActionFeedback(message, isError = false) {
+  nodes.actionFeedback.textContent = message;
+  nodes.actionFeedback.style.color = isError ? "#b42318" : "#475467";
+}
+
+function buildDefaultTemplates() {
+  return [
+    normalizeAccountTemplate({
+      id: "template-cleaning-fast",
+      name: "快节奏家清模板",
+      platform: "tiktok",
+      accountHandle: "@cleaning_fast_demo",
+      contentPositioning: "家清去污，痛点冲突强，结果证明快",
+      hookStyle: "强冲突开场",
+      rhythm: "3秒钩子，15到30秒完成问题、证明和收口",
+      structure: "痛点开场 -> 脏污特写 -> 产品上场 -> 前后对比 -> 收口转化",
+      expressionDna: "短句先抛痛点，命令式开场明显，先给结果再补解释。",
+      decisionHeuristics: "先打痛点，再给前后对比证明，最后快速收口转化。",
+      antiPatterns: "不要一上来讲参数；不要没有结果镜头就直接夸效果。",
+      recentSignals: "近期家清内容仍然以 20 到 30 秒前后对比短视频为主。",
+      ctaStyle: "结尾轻转化，引导去评论区或主页",
+      rewriteRules: "只借结构，不借人物、字幕、品牌、台词和原账号痕迹。",
+      defaultDurationSeconds: 30,
+      defaultVoiceLanguage: "英文",
+      preferredModel: "veo-3-fast"
+    }),
+    normalizeAccountTemplate({
+      id: "template-emotion-story",
+      name: "情绪短剧模板",
+      platform: "douyin",
+      accountHandle: "@story_hook_demo",
+      contentPositioning: "误会、冲突、反转后植入商品",
+      hookStyle: "误会反转",
+      rhythm: "前5秒制造误会，中段反转，后段自然植入产品",
+      structure: "误会钩子 -> 冲突拉高 -> 反转揭示 -> 商品出场 -> 结果证明 -> 收口",
+      expressionDna: "先埋误判，文案偏情绪句和悬念句，中段再翻回真相。",
+      decisionHeuristics: "先让观众误判，再在中段翻转，最后把产品接进解决方案。",
+      antiPatterns: "不要太早剧透反转；不要把人物对白和原关系线原样照搬。",
+      recentSignals: "近期仍适合 25 到 35 秒内完成反转和商品植入。",
+      ctaStyle: "结尾用人物状态恢复来做转化收口",
+      rewriteRules: "保留结构，不照抄人物关系、场景、对白和原品牌。",
+      defaultDurationSeconds: 30,
+      defaultVoiceLanguage: "中文",
+      preferredModel: "veo-3-fast"
+    })
+  ];
+}
+
+function updatePlatformDependentUi() {
+  const platform = nodes.templatePlatform.value || "tiktok";
+  nodes.scanProfileButton.textContent = platform === "douyin" ? "抖音版先手动沉淀模板" : "扫描 TikTok 主页并蒸馏";
+  nodes.scanProfileButton.disabled = platform === "douyin";
+  nodes.templateProfileUrl.placeholder =
+    platform === "douyin" ? "抖音主页链接（当前先手动沉淀模板）" : "https://www.tiktok.com/@account_name";
+  if (!nodes.tiktokUrl.value.trim()) {
+    nodes.clipcatReferencePlatform.value = platform;
+  }
+  nodes.tiktokUrl.placeholder =
+    nodes.clipcatReferencePlatform.value === "douyin"
+      ? "抖音视频链接"
+      : "https://www.tiktok.com/@xxx/video/xxxx 或抖音视频链接";
+}
+
+function loadProjects() {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveProjects() {
+  localStorage.setItem(storageKey, JSON.stringify(projects));
+}
+
+function loadAccountTemplates() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(templateStorageKey) || "[]");
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item) => normalizeAccountTemplate(item));
+    }
+  } catch {}
+  return buildDefaultTemplates();
+}
+
+function saveAccountTemplates() {
+  localStorage.setItem(templateStorageKey, JSON.stringify(accountTemplates));
+}
+
+function loadProfileSampleSortMode() {
+  try {
+    const value = localStorage.getItem(profileSampleSortStorageKey);
+    if (["captured", "views_desc", "likes_desc", "duration_desc"].includes(value)) {
+      return value;
+    }
+  } catch {}
+  return "captured";
+}
+
+function saveProfileSampleSortMode() {
+  try {
+    localStorage.setItem(profileSampleSortStorageKey, profileSampleSortMode);
+  } catch {}
+}
+
+function loadProfileSampleMinViewsFilter() {
+  try {
+    const value = Number(localStorage.getItem(profileSampleMinViewsStorageKey) || 0);
+    if ([0, 10000, 50000, 100000, 300000].includes(value)) {
+      return value;
+    }
+  } catch {}
+  return 0;
+}
+
+function saveProfileSampleMinViewsFilter() {
+  try {
+    localStorage.setItem(profileSampleMinViewsStorageKey, String(profileMinViewsFilter));
+  } catch {}
+}
+
+async function scanTikTokProfile(profileUrl, sampleLimit) {
+  if (!globalThis.chrome?.tabs || !globalThis.chrome?.scripting) {
+    throw new Error("当前不是 Chrome 扩展环境，不能执行主页抓取。");
+  }
+
+  const createdTab = await chrome.tabs.create({ url: profileUrl, active: false });
+  if (!createdTab.id) {
+    throw new Error("主页页签打开失败。");
+  }
+
+  try {
+    await waitForTabComplete(createdTab.id);
+    await delay(2400);
+    const [injection] = await chrome.scripting.executeScript({
+      target: { tabId: createdTab.id },
+      func: scrapeTikTokProfilePage,
+      args: [sampleLimit]
+    });
+    const result = injection?.result;
+    if (!result || !Array.isArray(result.videos)) {
+      throw new Error("没有抓到主页样本，请确认账号主页能正常打开。");
+    }
+    if (result.videos.length === 0) {
+      throw new Error("主页里没抓到公开视频卡片，请换一个主页或手动打开主页后再试。");
+    }
+    return result;
+  } finally {
+    await chrome.tabs.remove(createdTab.id).catch(() => {});
+  }
+}
+
+function waitForTabComplete(tabId) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      chrome.tabs.onUpdated.removeListener(handleUpdated);
+      reject(new Error("打开 TikTok 主页超时。"));
+    }, 30000);
+
+    function handleUpdated(updatedTabId, changeInfo, tab) {
+      if (updatedTabId !== tabId) return;
+      if (tab.url && !/^https:\/\/www\.tiktok\.com\//i.test(tab.url)) return;
+      if (changeInfo.status !== "complete") return;
+      clearTimeout(timeout);
+      chrome.tabs.onUpdated.removeListener(handleUpdated);
+      resolve(tab);
+    }
+
+    chrome.tabs.onUpdated.addListener(handleUpdated);
+  });
+}
+
+function downloadBlob(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function formatCompactNumber(value) {
+  const number = Number(value || 0);
+  if (!Number.isFinite(number)) return "0";
+  if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(number >= 10_000_000 ? 0 : 1).replace(/\.0$/, "")}M`;
+  if (number >= 1_000) return `${(number / 1_000).toFixed(number >= 10_000 ? 0 : 1).replace(/\.0$/, "")}K`;
+  return String(Math.round(number));
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function scrapeTikTokProfilePage(sampleLimit) {
+  const limit = Math.max(1, Math.min(Number(sampleLimit || 6), 12));
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const normalizeText = (value = "") => String(value || "").replace(/\s+/g, " ").trim();
+  const toNumber = (value = "") => {
+    const text = normalizeText(value).replace(/,/g, "").toUpperCase();
+    const match = text.match(/(\d+(?:\.\d+)?)([KMB])?/);
+    if (!match) return 0;
+    const unit = { K: 1_000, M: 1_000_000, B: 1_000_000_000 }[match[2] || ""] || 1;
+    return Math.round(Number(match[1]) * unit);
+  };
+  const unique = (items) => [...new Set(items.filter(Boolean))];
+  const extractHandle = (url = location.href) => url.match(/tiktok\.com\/@([^/?#]+)/i)?.[1] || "";
+  const extractVideoId = (url = "") => url.match(/\/video\/(\d+)/)?.[1] || "";
+  const normalizeUrl = (url = "") => {
+    try {
+      return new URL(url, location.origin).href.split("?")[0];
+    } catch {
+      return "";
+    }
+  };
+
+  const getStats = () => {
+    const labels = Array.from(document.querySelectorAll('strong, h3, [data-e2e="followers-count"], [data-e2e="likes-count"]'));
+    const numbers = labels.map((node) => normalizeText(node.textContent));
+    const bodyText = normalizeText(document.body?.innerText || "");
+    const followersText = numbers.find((value) => /[KMB]?$/.test(value) && /followers/i.test(bodyText)) || "";
+    const likesText = numbers.find((value) => /[KMB]?$/.test(value) && /likes/i.test(bodyText)) || "";
+    return {
+      followers: toNumber(followersText),
+      likes: toNumber(likesText)
+    };
+  };
+
+  const getBio = () => {
+    const bioNode = document.querySelector('[data-e2e="user-bio"], h2[data-e2e="user-subtitle"], [class*="DivShareDesc"], [class*="StyledUserBio"]');
+    return normalizeText(bioNode?.textContent || "");
+  };
+
+  const getDisplayName = () => {
+    const node = document.querySelector('h1[data-e2e="user-title"], h1, [data-e2e="browse-user-title"]');
+    return normalizeText(node?.textContent || "");
+  };
+
+  const collectVideoCandidates = () => {
+    const anchors = Array.from(document.querySelectorAll('a[href*="/video/"]'));
+    return unique(
+      anchors
+        .map((anchor) => normalizeUrl(anchor.getAttribute("href") || ""))
+        .filter((url) => /tiktok\.com\/@[^/]+\/video\/\d+/i.test(url))
+    )
+      .slice(0, limit)
+      .map((videoUrl) => {
+        const anchor = anchors.find((item) => normalizeUrl(item.getAttribute("href") || "") === videoUrl);
+        const card = anchor?.closest("div") || anchor?.parentElement || document.body;
+        const text = normalizeText(card?.innerText || anchor?.innerText || "");
+        const lines = text.split(/\n+/).map((item) => normalizeText(item)).filter(Boolean);
+        const caption = lines.find((line) => line.length > 12 && !/^\d+([.,]\d+)?[KMB]?$/.test(line)) || text;
+        const durationMatch = text.match(/(\d{1,2}):(\d{2})/);
+        const viewLikeNumbers = lines.filter((line) => /^\d+([.,]\d+)?[KMB]?$/.test(line));
+        const thumbnailUrl = normalizeUrl(
+          card?.querySelector("img")?.getAttribute("src") ||
+          anchor?.querySelector("img")?.getAttribute("src") ||
+          ""
+        );
+        return {
+          videoId: extractVideoId(videoUrl),
+          videoUrl,
+          caption,
+          thumbnailUrl,
+          durationSeconds: durationMatch ? Number(durationMatch[1]) * 60 + Number(durationMatch[2]) : 0,
+          stats: {
+            views: toNumber(viewLikeNumbers[0] || ""),
+            likes: 0,
+            comments: 0,
+            shares: 0
+          }
+        };
+      });
+  };
+
+  const collectJsonVideoCandidates = () => {
+    const videos = [];
+    for (const script of document.querySelectorAll('script[id="__UNIVERSAL_DATA_FOR_REHYDRATION__"], script[id="SIGI_STATE"]')) {
+      const text = script.textContent || "";
+      if (!text.trim()) continue;
+      try {
+        const data = JSON.parse(text);
+        walk(data, (node) => {
+          const id = String(node?.id || node?.awemeId || node?.itemId || "");
+          const author = String(node?.author?.uniqueId || node?.author?.nickname || node?.authorId || "");
+          const shareUrl = normalizeUrl(node?.shareUrl || node?.url || "");
+          if (!/^\d{12,}$/.test(id)) return;
+          const videoUrl = shareUrl || (author ? `https://www.tiktok.com/@${author}/video/${id}` : "");
+          if (!/tiktok\.com\/@[^/]+\/video\/\d+/i.test(videoUrl)) return;
+          videos.push({
+            videoId: id,
+            videoUrl,
+            caption: normalizeText(node?.desc || node?.description || ""),
+            thumbnailUrl: normalizeUrl(
+              node?.video?.dynamicCover ||
+              node?.video?.originCover ||
+              node?.video?.cover ||
+              node?.video?.coverUrl ||
+              node?.video?.cover?.url_list?.[0] ||
+              ""
+            ),
+            durationSeconds: Number(node?.video?.duration || node?.duration || 0),
+            stats: {
+              views: toNumber(node?.stats?.playCount || node?.statsV2?.playCount || 0),
+              likes: toNumber(node?.stats?.diggCount || node?.statsV2?.diggCount || 0),
+              comments: toNumber(node?.stats?.commentCount || node?.statsV2?.commentCount || 0),
+              shares: toNumber(node?.stats?.shareCount || node?.statsV2?.shareCount || 0)
+            }
+          });
+        });
+      } catch {}
+    }
+    return unique(videos.map((item) => item.videoUrl))
+      .map((url) => videos.find((item) => item.videoUrl === url))
+      .filter(Boolean)
+      .slice(0, limit);
+  };
+
+  const walk = (node, visitor) => {
+    if (!node || typeof node !== "object") return;
+    visitor(node);
+    if (Array.isArray(node)) {
+      node.forEach((item) => walk(item, visitor));
+      return;
+    }
+    Object.values(node).forEach((item) => walk(item, visitor));
+  };
+
+  return (async () => {
+    for (let step = 0; step < 4; step += 1) {
+      window.scrollTo(0, document.body.scrollHeight);
+      await wait(900);
+    }
+    window.scrollTo(0, 0);
+    await wait(400);
+
+    const videos = [];
+    const byUrl = new Map();
+    [...collectVideoCandidates(), ...collectJsonVideoCandidates()].forEach((item) => {
+      if (!item?.videoUrl) return;
+      const previous = byUrl.get(item.videoUrl);
+      if (!previous || (item.stats.views || 0) > (previous.stats.views || 0) || (item.caption || "").length > (previous.caption || "").length) {
+        byUrl.set(item.videoUrl, item);
+      }
+    });
+    videos.push(...byUrl.values());
+
+    return {
+      profileUrl: location.href.split("?")[0],
+      accountHandle: `@${extractHandle()}`,
+      displayName: getDisplayName(),
+      bio: getBio(),
+      stats: getStats(),
+      videos: videos.slice(0, limit)
+    };
+  })();
+}

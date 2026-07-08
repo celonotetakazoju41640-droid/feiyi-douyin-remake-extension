@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "飞蚁抖音复刻",
+  "version": "0.2.0",
+  "description": "上传参考短视频和商品图，按对标账户模板生成抖音复刻包、批量提示词和本地任务。",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.tiktok.com/*",
+    "http://127.0.0.1:4328/*",
+    "http://localhost:4328/*"
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "飞蚁抖音复刻",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+}

@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>飞蚁抖音复刻</title>
+    <link rel="stylesheet" href="./workspace.css" />
+  </head>
+  <body>
+    <main class="workspaceShell">
+      <header class="topBar">
+        <div class="brandBlock">
+          <img src="../images/feiyi-logo.png" alt="飞蚁" />
+          <div>
+            <h1>飞蚁抖音复刻</h1>
+            <p>参考视频拆解、TikTok / 抖音双平台复刻、Seedance 提示词、返工审片</p>
+          </div>
+        </div>
+        <div class="statusGroup">
+          <span id="serviceStatus" class="statusBadge">检测中</span>
+          <button id="startServiceButton" class="startButton" type="button">启动服务</button>
+          <button id="refreshButton" class="ghostButton" type="button">刷新</button>
+        </div>
+      </header>
+
+      <section id="serviceHelpPanel" class="serviceHelpPanel" hidden>
+        <div>
+          <strong>当前工作台说明</strong>
+          <p>这版先做模板蒸馏、复刻包和批量任务整理。当前保留 TikTok 自动蒸馏；抖音版先保留手动模板沉淀，不会自动实跑视频。</p>
+        </div>
+        <code id="startCommand">流程：选模板 / 扫主页蒸馏 / 勾样本重蒸馏 / 写入参考摘要 / 上传商品图 / 生成复刻包。</code>
+        <div class="serviceHelpActions">
+          <button id="copyStartCommandButton" type="button">复制结构说明</button>
+          <button id="retryHealthButton" type="button">重新查看</button>
+        </div>
+      </section>
+
+      <section class="stageGrid">
+        <aside class="referencePanel">
+          <div class="panelHead">
+            <strong>对标参考</strong>
+            <span>拆结构，不照抄</span>
+          </div>
+          <div class="referenceCard">
+            <video id="localReferenceVideo" class="localReferenceVideo" controls playsinline hidden></video>
+            <img id="thumbnailImage" alt="参考视频首帧" hidden />
+            <div id="thumbnailFallback" class="thumbnailFallback">
+              <span class="playMark">▶</span>
+              <strong id="videoHandle">参考短视频</strong>
+              <small id="videoUrlText">用于拆钩子、节奏和转化结构</small>
+            </div>
+            <a id="videoLink" class="referenceVideoOpenLink" href="#" target="_blank" rel="noreferrer" hidden>查看参考</a>
+          </div>
+          <p class="referenceVideoNote">先拆钩子、反转、商品植入和收口，再把每段改写成你的产品和角色；不照抄人物、台词、品牌、音乐和素材。</p>
+          <label class="fieldBlock is-hiddenField">
+            参考视频来源
+            <input id="videoUrl" type="url" placeholder="本地参考视频或可选参考来源" />
+          </label>
+          <label class="fieldBlock">
+            参考视频摘要
+            <textarea id="referenceBrief" rows="5" placeholder="写清这个参考视频的钩子、转折、人物关系、商品植入方式和结尾动作。"></textarea>
+          </label>
+          <input id="thumbnailUrl" type="hidden" />
+        </aside>
+
+        <section class="controlPanel">
+          <section class="referenceVideoUploadPanel">
+            <div class="panelHead">
+              <div>
+                <strong>请上传对标短视频</strong>
+                <p>这里放参考视频。点击拆解复刻时，先拆结构，再输出镜头表和复刻提示词。</p>
+              </div>
+            </div>
+            <label class="referenceVideoDropTile">
+              <input id="referenceVideoFile" type="file" accept="video/*" />
+              <span class="referenceUploadIcon">＋</span>
+              <strong id="referenceVideoFileName">请上传视频</strong>
+                <small id="referenceAnalysisStatus">未选择参考视频</small>
+                <button id="referenceReanalysisButton" class="referenceReanalysisButton" type="button" hidden>重新拆解参考视频</button>
+            </label>
+          </section>
+
+          <section class="uploadPanel">
+            <div class="panelHead">
+              <div>
+                <strong>上传商品图片（必填，最多9张）</strong>
+                <p>复刻必须先锁定当前商品图。参考视频只能提供结构，不能替你决定产品卖点。</p>
+              </div>
+            </div>
+            <div class="uploadGrid">
+              <div id="productPreviewItem" class="productPreviewItem">
+                <div id="productHeroTile" class="productHeroTile">
+                  <span id="productHeroBadge">示例</span>
+                  <div id="sampleProduct" class="sampleProduct"></div>
+                  <img id="productHeroImage" alt="商品图预览" hidden />
+                </div>
+              </div>
+              <label class="uploadTile">
+                <input id="productImages" type="file" accept="image/*" multiple />
+                <strong>＋</strong>
+                <small>上传</small>
+              </label>
+            </div>
+          </section>
+
+          <section class="formPanel">
+            <div class="panelHead">
+              <div>
+                <strong>对标账户蒸馏模板</strong>
+                <p>先把账号的结构、节奏、钩子和收口沉淀成模板，后面选模板直接生成。</p>
+              </div>
+            </div>
+            <div class="settingsGrid">
+              <label class="fieldBlock">
+                已存模板
+                <select id="accountTemplateSelect"></select>
+              </label>
+              <label class="fieldBlock">
+                模板名称
+                <input id="templateName" type="text" placeholder="比如：厨房清洁快节奏模板" />
+              </label>
+              <label class="fieldBlock">
+                对标平台
+                <select id="templatePlatform">
+                  <option value="tiktok">TikTok</option>
+                  <option value="douyin">抖音</option>
+                </select>
+              </label>
+              <label class="fieldBlock">
+                对标账号
+                <input id="templateAccountHandle" type="text" placeholder="@account_name" />
+              </label>
+              <label class="fieldBlock">
+                对标主页链接
+                <input id="templateProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name 或抖音主页链接" />
+              </label>
+              <label class="fieldBlock">
+                抓样本数量
+                <select id="profileSampleLimit">
+                  <option value="6">6 条</option>
+                  <option value="9">9 条</option>
+                  <option value="12">12 条</option>
+                </select>
+              </label>
+              <label class="fieldBlock">
+                内容定位
+                <input id="templateContentPositioning" type="text" placeholder="比如：家清去污、情绪带货、对比实验" />
+              </label>
+              <label class="fieldBlock">
+                节奏
+                <input id="templateRhythm" type="text" placeholder="比如：3秒强钩子，15秒内完成证明" />
+              </label>
+              <label class="fieldBlock">
+                默认模型
+                <input id="templatePreferredModel" type="text" value="veo-3-fast" />
+              </label>
+            </div>
+            <label class="fieldBlock">
+              结构拆解
+              <textarea id="templateStructure" rows="3" placeholder="比如：钩子 -> 脏污问题 -> 喷产品 -> 近景证明 -> 收口。"></textarea>
+            </label>
+            <label class="fieldBlock">
+              表达 DNA
+              <textarea id="templateExpressionDna" rows="3" placeholder="比如：短句先抛钩子，命令式开场明显，先结果后解释。"></textarea>
+            </label>
+            <label class="fieldBlock">
+              决策启发式
+              <textarea id="templateDecisionHeuristics" rows="3" placeholder="比如：先拿最容易懂的痛点开场，再用前后对比证明。"></textarea>
+            </label>
+            <label class="fieldBlock">
+              反模式 / 禁用项
+              <textarea id="templateAntiPatterns" rows="3" placeholder="比如：不要长篇讲参数，不要照搬原字幕和原人物。"></textarea>
+            </label>
+            <label class="fieldBlock">
+              近期变化 / 当前信号
+              <textarea id="templateRecentSignals" rows="3" placeholder="比如：近期 20-30 秒前后对比内容表现仍然最好。"></textarea>
+            </label>
+            <label class="fieldBlock">
+              改写边界 / 蒸馏规则
+              <textarea id="templateRewriteRules" rows="3" placeholder="比如：只借结构，不借人物、字幕、品牌、台词。"></textarea>
+            </label>
+            <label class="fieldBlock">
+              样本链接
+              <textarea id="templateSampleVideoUrls" rows="3" placeholder="每行一个样本链接。"></textarea>
+            </label>
+            <div class="profileScanPanel">
+              <div class="panelHead">
+                <div>
+                  <strong>主页自动蒸馏</strong>
+                  <p>当前支持自动打开 TikTok 主页抓公开样本并回填模板；抖音版先保留手动模板沉淀。</p>
+                </div>
+                <span id="profileScanStatus" class="statusBadge">未扫描</span>
+              </div>
+              <div class="resultActions">
+                <button id="scanProfileButton" class="ghostButton" type="button">扫描 TikTok 主页并蒸馏</button>
+                <button id="selectAllProfileSamplesButton" class="ghostButton" type="button" disabled>全选样本</button>
+                <button id="clearProfileSamplesButton" class="ghostButton" type="button" disabled>清空选择</button>
+                <button id="keepCoveredProfileSamplesButton" class="ghostButton" type="button" disabled>只留有封面样本</button>
+                <button id="keepTopProfileSamplesButton" class="ghostButton" type="button" disabled>只留高播放前 3</button>
+                <button id="keepCoveredPopularProfileSamplesButton" class="ghostButton" type="button" disabled>只留有封面 + 10 万+</button>
+                <button id="exportProfileCandidatesButton" class="ghostButton" type="button" disabled>导出候选清单</button>
+                <button id="redistillProfileButton" class="ghostButton" type="button" disabled>按选中样本重蒸馏</button>
+                <button id="applyProfileSummaryButton" class="ghostButton" type="button" disabled>把摘要写入参考区</button>
+              </div>
+              <pre id="profileScanResult" class="profileScanResult">还没有主页扫描结果。</pre>
+              <div class="profileSampleToolbar">
+                <label class="fieldBlock">
+                  样本排序
+                  <select id="profileSampleSort" disabled>
+                    <option value="captured">按抓取顺序</option>
+                    <option value="views_desc">按播放高到低</option>
+                    <option value="likes_desc">按点赞高到低</option>
+                    <option value="duration_desc">按时长高到低</option>
+                  </select>
+                </label>
+                <label class="fieldBlock">
+                  最少播放
+                  <select id="profileMinViewsFilter" disabled>
+                    <option value="0">不过滤</option>
+                    <option value="10000">1 万+</option>
+                    <option value="50000">5 万+</option>
+                    <option value="100000">10 万+</option>
+                    <option value="300000">30 万+</option>
+                  </select>
+                </label>
+              </div>
+              <div id="profileSampleList" class="profileSampleList"></div>
+            </div>
+            <div class="resultActions">
+              <button id="saveTemplateButton" class="ghostButton" type="button">保存模板</button>
+              <button id="deleteTemplateButton" class="ghostButton" type="button">删除模板</button>
+              <button id="newTemplateButton" class="ghostButton" type="button">新建空模板</button>
+            </div>
+          </section>
+
+          <section class="formPanel">
+            <label class="fieldBlock">
+              当前商品名
+              <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
+            </label>
+            <label class="fieldBlock">
+              产品补充信息
+              <textarea id="productNotes" rows="5" placeholder="每行写一个卖点或限制。比如：去异味 / 不靠香精遮味 / 适合夏天冰箱。"></textarea>
+            </label>
+            <h2>复刻设置</h2>
+            <div class="settingsGrid">
+              <label class="fieldBlock">
+                视频比例
+                <select id="aspectRatio">
+                  <option value="9:16">9:16</option>
+                </select>
+              </label>
+              <label class="fieldBlock">
+                生成时长
+                <input id="targetDuration" type="hidden" value="45" />
+                <span id="targetDurationLabel" class="autoDurationLabel">等待视频</span>
+              </label>
+              <label class="fieldBlock">
+                口播语言
+                <select id="voiceDialect">
+                  <option value="普通话">普通话</option>
+                  <option value="四川话">四川话</option>
+                  <option value="粤语">粤语</option>
+                  <option value="东北话">东北话</option>
+                </select>
+              </label>
+              <input id="copyLanguage" type="hidden" value="zh" />
+              <label class="fieldBlock">
+                生成数量
+                <select id="generationCount">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </label>
+              <label class="fieldBlock">
+                钩子风格
+                <select id="hookStyle">
+                  <option value="误会反转">误会反转</option>
+                  <option value="强冲突开场">强冲突开场</option>
+                  <option value="前后对比">前后对比</option>
+                  <option value="情绪带入">情绪带入</option>
+                </select>
+              </label>
+              <label class="fieldBlock">
+                视觉风格
+                <input id="visualStyle" type="text" value="生活化短视频" />
+              </label>
+              <label class="fieldBlock">
+                收口引导
+                <input id="ctaText" type="text" value="引导用户看评论区或主页" />
+              </label>
+            </div>
+            <p id="referenceDurationHint" class="referenceDurationHint">上传视频后，会按参考视频真实时长处理。</p>
+          </section>
+
+          <section class="formPanel">
+            <div class="panelHead">
+              <div>
+                <strong>Clipcat 模式</strong>
+                <p>适合把参考 TikTok / 抖音链接、产品图和安全改写指令一起整理出来，再复制到外部复刻工具。</p>
+              </div>
+            </div>
+            <div class="settingsGrid">
+              <label class="fieldBlock">
+                参考平台
+                <select id="clipcatReferencePlatform">
+                  <option value="tiktok">TikTok</option>
+                  <option value="douyin">抖音</option>
+                </select>
+              </label>
+              <label class="fieldBlock">
+                参考短视频链接
+                <input id="tiktokUrl" type="url" placeholder="https://www.tiktok.com/@xxx/video/xxxx 或抖音视频链接" />
+              </label>
+              <label class="fieldBlock">
+                口播语言
+                <select id="clipcatVoiceLanguage">
+                  <option value="英文">英文</option>
+                  <option value="中文">中文</option>
+                </select>
+              </label>
+            </div>
+            <label class="fieldBlock">
+              Clipcat 附加规则
+              <textarea id="clipcatExtraRules" rows="3" placeholder="比如：不要字幕，保留强钩子，人物不要换脸。"></textarea>
+            </label>
+            <div class="resultActions">
+              <button id="copyClipcatPromptButton" class="ghostButton" type="button">复制 Clipcat 指令</button>
+            </div>
+          </section>
+
+          <footer class="actionBar">
+            <span id="actionFeedback">请先准备参考视频和商品图片</span>
+            <button id="remakeButton" class="primaryButton" type="button">拆解复刻</button>
+          </footer>
+        </section>
+      </section>
+
+      <section class="projectPanel">
+          <div class="panelHead">
+            <div>
+              <strong>复刻结果</strong>
+              <p>这里显示镜头表、提示词和最近生成的复刻项目。</p>
+            </div>
+            <span id="seriesCount" class="countBadge">0 个项目</span>
+          </div>
+          <div id="seriesStats" class="projectStatsGrid" aria-label="剧集生产统计"></div>
+          <div class="resultActions">
+            <label class="ghostButton importButton">
+              导入 JSON
+              <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+            </label>
+            <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制批量任务</button>
+            <button id="sendBatchTasksButton" class="ghostButton" type="button" disabled>发送到本地服务</button>
+            <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+            <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
+            <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
+            <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
+          </div>
+          <div id="batchServicePanel" class="batchServicePanel">
+            <div class="panelHead">
+              <div>
+                <strong>本地视频任务服务</strong>
+                <p>这里负责接住批量短视频任务，并读取你本机已有的 Packy / Gemini 配置。</p>
+              </div>
+              <span id="batchServiceStatus" class="statusBadge">未检测</span>
+            </div>
+            <code id="batchServiceCommand">node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs</code>
+            <div class="resultActions">
+              <button id="copyBatchServiceCommandButton" class="ghostButton" type="button">复制启动命令</button>
+              <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
+            </div>
+          </div>
+          <div id="projectDetailPanel" class="projectDetailPanel"></div>
+          <div id="shotEditorPanel" class="shotEditorPanel"></div>
+          <div id="seriesList" class="seriesList"></div>
+        </section>
+    </main>
+    <script type="module" src="./workspace.js"></script>
+  </body>
+</html>

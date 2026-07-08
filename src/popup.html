@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>飞蚁抖音复刻</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <img class="brandLogo" src="../images/feiyi-logo.png" alt="飞蚁" />
+        <div>
+          <h1>飞蚁抖音复刻</h1>
+          <p>参考短视频拆解、复刻提示词、Seedance 返工</p>
+        </div>
+        <span id="status">检测中</span>
+      </header>
+
+      <section class="panel">
+        <div class="panelHead">
+          <strong>当前主流程</strong>
+          <span>先拆参考，再出复刻包</span>
+        </div>
+        <ol class="flowList">
+          <li>打开复刻工作台，上传参考视频或镜头资料</li>
+          <li>上传商品图，确认后拆结构并生成提示词</li>
+          <li>按镜头表生成素材，再按审片规则返工</li>
+        </ol>
+        <div class="actions">
+          <button id="openRemakeButton" type="button">打开复刻工作台</button>
+          <button id="openProjectsButton" class="secondaryButton" type="button">查看项目结构</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panelHead">
+          <strong>最近复刻任务</strong>
+          <span id="taskState">未开始</span>
+        </div>
+        <p id="taskSummary">先在工作台保存项目，再生成镜头表、图片提示词和 Seedance 提示词。</p>
+        <div class="actions">
+          <button id="runSyButton" class="remakeButton" type="button" disabled>生成复刻包</button>
+          <button id="openDirButton" class="secondaryButton" type="button" disabled>打开工作目录</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panelHead">
+          <strong>最近项目列表</strong>
+          <span id="projectCount">0 个</span>
+        </div>
+        <div id="projectList" class="projectList">
+          <p class="emptyState">还没有本地项目。</p>
+        </div>
+        <div class="actions">
+          <button id="copySummaryButton" class="secondaryButton" type="button" disabled>复制项目摘要</button>
+          <button id="copyClipcatButton" type="button" disabled>复制 Clipcat 指令</button>
+        </div>
+      </section>
+
+      <pre id="result"></pre>
+    </main>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

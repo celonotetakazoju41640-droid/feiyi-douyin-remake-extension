@@ -1,0 +1,160 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 360px;
+  color: #17202a;
+  background: #f4f6f8;
+  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+main {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+header,
+.panelHead,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+header {
+  min-height: 42px;
+}
+
+.brandLogo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 17px;
+  letter-spacing: 0;
+}
+
+header p,
+.panelHead span,
+#taskSummary {
+  color: #667085;
+  font-size: 12px;
+}
+
+#status,
+#taskState {
+  margin-left: auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e8edf3;
+  color: #223044;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d7dde6;
+  border-radius: 8px;
+  background: white;
+}
+
+.panelHead {
+  justify-content: space-between;
+}
+
+.flowList {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 18px;
+  color: #334155;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.projectList {
+  display: grid;
+  gap: 8px;
+}
+
+.projectCard {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  color: #17202a;
+}
+
+.projectCard strong {
+  font-size: 13px;
+}
+
+.projectCard span,
+.projectCard small,
+.emptyState {
+  color: #667085;
+}
+
+.projectCard.is-active {
+  border-color: #1d4ed8;
+  background: #dbeafe;
+}
+
+button {
+  min-height: 36px;
+  border: 1px solid #1d4ed8;
+  border-radius: 6px;
+  padding: 7px 9px;
+  background: #1d4ed8;
+  color: white;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+}
+
+button:disabled {
+  border-color: #a9b3c1;
+  background: #a9b3c1;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  border-color: #4b5563;
+  background: #4b5563;
+}
+
+.remakeButton {
+  border-color: #047857;
+  background: #047857;
+}
+
+#result {
+  max-height: 180px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: #111827;
+  color: #d1fae5;
+  white-space: pre-wrap;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
