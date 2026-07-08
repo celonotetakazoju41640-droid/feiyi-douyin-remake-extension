@@ -2031,7 +2031,8 @@ function scrapeTikTokProfilePage(sampleLimit) {
             views: toNumber(viewLikeNumbers[0] || ""),
             likes: 0,
             comments: 0,
-            shares: 0
+            shares: 0,
+            saves: 0
           }
         };
       });
@@ -2068,7 +2069,16 @@ function scrapeTikTokProfilePage(sampleLimit) {
               views: toNumber(node?.stats?.playCount || node?.statsV2?.playCount || 0),
               likes: toNumber(node?.stats?.diggCount || node?.statsV2?.diggCount || 0),
               comments: toNumber(node?.stats?.commentCount || node?.statsV2?.commentCount || 0),
-              shares: toNumber(node?.stats?.shareCount || node?.statsV2?.shareCount || 0)
+              shares: toNumber(node?.stats?.shareCount || node?.statsV2?.shareCount || 0),
+              saves: toNumber(
+                node?.stats?.collectCount ||
+                node?.statsV2?.collectCount ||
+                node?.stats?.saveCount ||
+                node?.statsV2?.saveCount ||
+                node?.stats?.saves ||
+                node?.statsV2?.saves ||
+                0
+              )
             }
           });
         });
