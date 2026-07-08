@@ -248,7 +248,7 @@ function normalizeJsonVideoNode(node, evidence) {
     authorHandle,
     caption: node.desc || node.description || "",
     createTime,
-    durationSeconds: Number(video.duration || node.duration || 0),
+    durationSeconds: normalizeTikTokDurationSeconds(video.duration || node.duration || 0),
     stats: {
       views: parseCompactNumber(stats.playCount || stats.play || stats.views),
       likes: parseCompactNumber(stats.diggCount || stats.likes),
@@ -641,6 +641,13 @@ function parseCompactNumber(input) {
   if (!match) return 0;
   const multiplier = { K: 1_000, M: 1_000_000, B: 1_000_000_000 }[match[2] || ""] || 1;
   return Math.round(Number(match[1]) * multiplier);
+}
+
+function normalizeTikTokDurationSeconds(value) {
+  const number = Number(value || 0);
+  if (!Number.isFinite(number) || number <= 0) return 0;
+  if (number >= 1000) return Math.max(1, Math.round(number / 1000));
+  return Math.round(number);
 }
 
 function extractVideoId(url) {
