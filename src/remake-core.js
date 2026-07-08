@@ -997,6 +997,29 @@ export function pickPreferredTikTokProfileVideo(previous = {}, next = {}) {
   return scoreTikTokProfileVideoCandidate(next) > scoreTikTokProfileVideoCandidate(previous) ? next : previous;
 }
 
+export function mergeTikTokProfileVideoCandidates(left = {}, right = {}) {
+  const preferred = pickPreferredTikTokProfileVideo(left, right);
+  const fallback = preferred === left ? right : left;
+  return {
+    ...fallback,
+    ...preferred,
+    videoUrl: preferred.videoUrl || fallback.videoUrl || "",
+    caption:
+      (String(preferred.caption || "").trim().length >= String(fallback.caption || "").trim().length
+        ? preferred.caption
+        : fallback.caption) || "",
+    thumbnailUrl: preferred.thumbnailUrl || fallback.thumbnailUrl || "",
+    durationSeconds: Math.max(Number(left.durationSeconds || 0), Number(right.durationSeconds || 0), 0),
+    stats: {
+      views: Math.max(Number(left.stats?.views || 0), Number(right.stats?.views || 0), 0),
+      likes: Math.max(Number(left.stats?.likes || 0), Number(right.stats?.likes || 0), 0),
+      comments: Math.max(Number(left.stats?.comments || 0), Number(right.stats?.comments || 0), 0),
+      shares: Math.max(Number(left.stats?.shares || 0), Number(right.stats?.shares || 0), 0),
+      saves: Math.max(Number(left.stats?.saves || 0), Number(right.stats?.saves || 0), 0)
+    }
+  };
+}
+
 function parseCompactSocialNumber(input) {
   if (typeof input === "number" && Number.isFinite(input)) return Math.max(0, Math.round(input));
   const value = String(input || "").trim().replace(/,/g, "").toUpperCase();

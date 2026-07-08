@@ -2,6 +2,7 @@ import {
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
   classifyTikTokProfilePageIssue,
+  mergeTikTokProfileVideoCandidates,
   normalizeTikTokDurationSeconds,
   parseTikTokProfileIdentityText,
   parseTikTokProfileStatsText,
@@ -2132,7 +2133,12 @@ function scrapeTikTokProfilePage(sampleLimit) {
     const byUrl = new Map();
     [...collectVideoCandidates(), ...collectJsonVideoCandidates()].forEach((item) => {
       if (!item?.videoUrl) return;
-      byUrl.set(item.videoUrl, pickPreferredTikTokProfileVideo(byUrl.get(item.videoUrl), item));
+      const previous = byUrl.get(item.videoUrl);
+      if (!previous) {
+        byUrl.set(item.videoUrl, item);
+        return;
+      }
+      byUrl.set(item.videoUrl, mergeTikTokProfileVideoCandidates(previous, item));
     });
     videos.push(...byUrl.values());
     const pageIssue = videos.length === 0 ? getPageIssue() : null;

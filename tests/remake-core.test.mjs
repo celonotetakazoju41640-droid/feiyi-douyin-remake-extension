@@ -9,6 +9,7 @@ import {
   classifyTikTokProfilePageIssue,
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
+  mergeTikTokProfileVideoCandidates,
   normalizeAccountTemplate,
   normalizeTikTokDurationSeconds,
   parseTikTokProfileIdentityText,
@@ -382,6 +383,36 @@ test("pickPreferredTikTokProfileVideo keeps stronger caption when quality is oth
   const picked = pickPreferredTikTokProfileVideo(previous, next);
 
   assert.equal(picked.caption, "Before and after stove degreaser demo with clear hook");
+});
+
+test("mergeTikTokProfileVideoCandidates combines richer stats and better media fields", () => {
+  const left = {
+    videoUrl: "https://www.tiktok.com/@lab/video/3",
+    caption: "Short",
+    thumbnailUrl: "",
+    durationSeconds: 0,
+    stats: { views: 1200, likes: 0, comments: 0, shares: 0, saves: 0 }
+  };
+  const right = {
+    videoUrl: "https://www.tiktok.com/@lab/video/3",
+    caption: "Before and after degreaser demo with clearer hook",
+    thumbnailUrl: "https://img.example.com/3.jpg",
+    durationSeconds: 18,
+    stats: { views: 1100, likes: 240, comments: 31, shares: 12, saves: 9 }
+  };
+
+  const merged = mergeTikTokProfileVideoCandidates(left, right);
+
+  assert.equal(merged.caption, "Before and after degreaser demo with clearer hook");
+  assert.equal(merged.thumbnailUrl, "https://img.example.com/3.jpg");
+  assert.equal(merged.durationSeconds, 18);
+  assert.deepEqual(merged.stats, {
+    views: 1200,
+    likes: 240,
+    comments: 31,
+    shares: 12,
+    saves: 9
+  });
 });
 
 test("parseTikTokProfileIdentityText extracts display name and bio from visible text", () => {
