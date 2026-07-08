@@ -872,7 +872,12 @@ async function handleProfileScan() {
     excludedProfileVideoUrls = new Set();
     applyDistilledTemplateToForm(scan);
     renderProfileScanState();
-    setActionFeedback(`主页蒸馏完成，已抓到 ${scan.videos.length} 条样本。`);
+    const coveredCount = scan.videos.filter((item) => item.thumbnailUrl).length;
+    const withViewsCount = scan.videos.filter((item) => Number(item.stats?.views || 0) > 0).length;
+    const withDurationCount = scan.videos.filter((item) => Number(item.durationSeconds || 0) > 0).length;
+    setActionFeedback(
+      `主页蒸馏完成，已抓到 ${scan.videos.length} 条样本；其中 ${coveredCount} 条有封面，${withViewsCount} 条带播放数据，${withDurationCount} 条带时长。`
+    );
   } catch (error) {
     currentProfileScan = null;
     selectedProfileVideoUrls = new Set();
@@ -1656,13 +1661,28 @@ async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
 
   try {
     await waitForTabComplete(createdTab.id, platform);
-    await delay(2400);
-    const [injection] = await chrome.scripting.executeScript({
-      target: { tabId: createdTab.id },
-      func: scraper,
-      args: [sampleLimit]
-    });
-    const result = injection?.result;
+    await delay(platform === "douyin" ? 2800 : 2400);
+
+    let result = null;
+    const attempts = platform === "douyin" ? 3 : 1;
+    for (let attempt = 0; attempt < attempts; attempt += 1) {
+      if (attempt > 0) {
+        await delay(1200 * attempt);
+      }
+      const [injection] = await chrome.scripting.executeScript({
+        target: { tabId: createdTab.id },
+        func: scraper,
+        args: [sampleLimit]
+      });
+      const nextResult = injection?.result;
+      if (!nextResult || !Array.isArray(nextResult.videos)) continue;
+      if (!result || scoreProfileScanQuality(nextResult) > scoreProfileScanQuality(result)) {
+        result = nextResult;
+      }
+      if (result.videos.length >= Math.min(Number(sampleLimit || 6), 3) && scoreProfileScanQuality(result) >= 8) {
+        break;
+      }
+    }
     if (!result || !Array.isArray(result.videos)) {
       throw new Error("没有抓到主页样本，请确认账号主页能正常打开。");
     }
@@ -1696,6 +1716,19 @@ function waitForTabComplete(tabId, platform = "tiktok") {
 
     chrome.tabs.onUpdated.addListener(handleUpdated);
   });
+}
+
+function scoreProfileScanQuality(scan) {
+  if (!scan?.videos?.length) return 0;
+  return scan.videos.reduce((score, video) => {
+    let next = score + 1;
+    if (video.caption && video.caption !== "抖音公开样本") next += 1;
+    if (video.thumbnailUrl) next += 1;
+    if (Number(video.durationSeconds || 0) > 0) next += 1;
+    if (Number(video.stats?.views || 0) > 0) next += 1;
+    if (Number(video.stats?.likes || 0) > 0) next += 1;
+    return next;
+  }, 0);
 }
 
 function downloadBlob(filename, content, type) {
@@ -1896,6 +1929,7 @@ function scrapeDouyinProfilePage(sampleLimit) {
   const limit = Math.max(1, Math.min(Number(sampleLimit || 6), 12));
   const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
   const normalizeText = (value = "") => String(value || "").replace(/\s+/g, " ").trim();
+  const normalizeCaption = (value = "") => normalizeText(String(value || "").replace(/打开看看|进入主页|合集·?.*$/g, ""));
   const normalizeUrl = (url = "") => {
     try {
       return new URL(url, location.origin).href.split("?")[0];
@@ -1906,15 +1940,73 @@ function scrapeDouyinProfilePage(sampleLimit) {
   const unique = (items) => [...new Set(items.filter(Boolean))];
   const toNumber = (value = "") => {
     const text = normalizeText(value).replace(/,/g, "").toUpperCase();
-    const match = text.match(/(\d+(?:\.\d+)?)([WKM])?/);
+    const match = text.match(/(\d+(?:\.\d+)?)([万亿WKM])?/);
     if (!match) return 0;
-    const unitMap = { W: 10000, K: 1000, M: 1000000 };
+    const unitMap = { "万": 10000, "亿": 100000000, W: 10000, K: 1000, M: 1000000 };
     return Math.round(Number(match[1]) * (unitMap[match[2] || ""] || 1));
+  };
+  const normalizeDuration = (value = 0) => {
+    const number = Number(value || 0);
+    if (!Number.isFinite(number) || number <= 0) return 0;
+    if (number > 1000) return Math.round(number / 1000);
+    return Math.round(number);
+  };
+  const pickFirstText = (...values) => values.map((item) => normalizeText(item)).find(Boolean) || "";
+  const pickFirstUrl = (...values) => values.map((item) => normalizeUrl(item)).find(Boolean) || "";
+  const walk = (root, visitor) => {
+    const stack = [root];
+    while (stack.length) {
+      const node = stack.pop();
+      if (!node || typeof node !== "object") continue;
+      visitor(node);
+      if (Array.isArray(node)) {
+        for (const item of node) stack.push(item);
+        continue;
+      }
+      for (const value of Object.values(node)) {
+        if (value && typeof value === "object") {
+          stack.push(value);
+        }
+      }
+    }
+  };
+  const scoreVideo = (video) => {
+    let score = 0;
+    if (video.caption && video.caption !== "抖音公开样本") score += 2;
+    if (video.thumbnailUrl) score += 2;
+    if (Number(video.durationSeconds || 0) > 0) score += 1;
+    if (Number(video.stats?.views || 0) > 0) score += 2;
+    if (Number(video.stats?.likes || 0) > 0) score += 1;
+    if (Number(video.stats?.comments || 0) > 0) score += 1;
+    if (Number(video.stats?.shares || 0) > 0) score += 1;
+    return score;
+  };
+  const mergeVideo = (previous = {}, next = {}) => {
+    const merged = {
+      ...previous,
+      ...next,
+      videoId: next.videoId || previous.videoId || "",
+      videoUrl: next.videoUrl || previous.videoUrl || "",
+      caption:
+        normalizeCaption((next.caption || "").length >= (previous.caption || "").length ? next.caption : previous.caption) ||
+        previous.caption ||
+        next.caption ||
+        "抖音公开样本",
+      thumbnailUrl: next.thumbnailUrl || previous.thumbnailUrl || "",
+      durationSeconds: Math.max(Number(previous.durationSeconds || 0), Number(next.durationSeconds || 0), 0),
+      stats: {
+        views: Math.max(Number(previous.stats?.views || 0), Number(next.stats?.views || 0), 0),
+        likes: Math.max(Number(previous.stats?.likes || 0), Number(next.stats?.likes || 0), 0),
+        comments: Math.max(Number(previous.stats?.comments || 0), Number(next.stats?.comments || 0), 0),
+        shares: Math.max(Number(previous.stats?.shares || 0), Number(next.stats?.shares || 0), 0)
+      }
+    };
+    return scoreVideo(next) >= scoreVideo(previous) ? merged : { ...merged, ...previous };
   };
 
   const bodyText = () => normalizeText(document.body?.innerText || "");
   const getDisplayName = () =>
-    normalizeText(
+    pickFirstText(
       document.querySelector('img[alt$="头像"]')?.getAttribute("alt")?.replace(/头像$/, "") ||
       document.querySelector("title")?.textContent?.replace(/的抖音.*$/, "") ||
       ""
@@ -1942,6 +2034,150 @@ function scrapeDouyinProfilePage(sampleLimit) {
     const match = normalizeText(text).match(/(\d{1,2}):(\d{2})/);
     return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
   };
+  const parseStatsFromText = (text = "") => ({
+    views: toNumber(text.match(/(?:播放|次播放|播放量)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || ""),
+    likes: toNumber(text.match(/(?:点赞|赞)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || ""),
+    comments: toNumber(text.match(/(?:评论)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || ""),
+    shares: toNumber(text.match(/(?:分享|转发)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || "")
+  });
+  const parseJsonBlob = (rawText = "") => {
+    const text = String(rawText || "").trim();
+    if (!text) return null;
+    const candidates = [text];
+    if (/%7B|%5B|%22/i.test(text)) {
+      try {
+        candidates.push(decodeURIComponent(text));
+      } catch {}
+    }
+    if ((text.startsWith("\"") && text.endsWith("\"")) || (text.startsWith("'") && text.endsWith("'"))) {
+      try {
+        const decoded = JSON.parse(text);
+        if (typeof decoded === "string") {
+          candidates.push(decoded);
+        }
+      } catch {}
+    }
+    for (const candidate of candidates) {
+      const trimmed = String(candidate || "").trim();
+      if (!trimmed) continue;
+      const normalizedCandidate = trimmed.replace(/^window\.__[^=]+=\s*/, "").replace(/;$/, "");
+      try {
+        return JSON.parse(normalizedCandidate);
+      } catch {}
+    }
+    return null;
+  };
+
+  const collectJsonCandidates = () => {
+    const videosByUrl = new Map();
+    const profile = {
+      displayName: "",
+      accountHandle: "",
+      bio: "",
+      followers: 0,
+      likes: 0
+    };
+    const scriptTexts = Array.from(document.scripts)
+      .map((script) => script.textContent || "")
+      .filter((text) => /RENDER_DATA|aweme|video|play_count|follower_count|share_info/i.test(text))
+      .slice(0, 30);
+
+    for (const text of scriptTexts) {
+      const data = parseJsonBlob(text);
+      if (!data) continue;
+      walk(data, (node) => {
+        const id = String(node?.aweme_id || node?.awemeId || node?.item_id || node?.itemId || node?.group_id || "");
+        const videoUrl = pickFirstUrl(
+          node?.share_url,
+          node?.shareUrl,
+          node?.share_info?.share_url,
+          node?.seo_info?.canonical_url,
+          id ? `https://www.douyin.com/video/${id}` : ""
+        );
+        if (/^https:\/\/www\.douyin\.com\/video\/\d+/i.test(videoUrl)) {
+          const video = {
+            videoId: String(videoUrl.match(/\/video\/(\d+)/)?.[1] || id || ""),
+            videoUrl,
+            caption: normalizeCaption(
+              pickFirstText(
+                node?.desc,
+                node?.description,
+                node?.share_info?.share_desc,
+                node?.share_info?.share_title,
+                node?.seo_info?.seo_title,
+                node?.preview_title
+              )
+            ) || "抖音公开样本",
+            thumbnailUrl: pickFirstUrl(
+              node?.video?.dynamic_cover?.url_list?.[0],
+              node?.video?.origin_cover?.url_list?.[0],
+              node?.video?.cover?.url_list?.[0],
+              node?.video?.cover?.urlList?.[0],
+              node?.images?.[0]?.url_list?.[0],
+              node?.images?.[0]?.urlList?.[0]
+            ),
+            durationSeconds: normalizeDuration(node?.video?.duration || node?.duration || node?.video_duration),
+            stats: {
+              views: Number(
+                node?.statistics?.play_count ||
+                node?.stats?.play_count ||
+                node?.stats?.playCount ||
+                0
+              ),
+              likes: Number(
+                node?.statistics?.digg_count ||
+                node?.stats?.digg_count ||
+                node?.stats?.diggCount ||
+                0
+              ),
+              comments: Number(
+                node?.statistics?.comment_count ||
+                node?.stats?.comment_count ||
+                node?.stats?.commentCount ||
+                0
+              ),
+              shares: Number(
+                node?.statistics?.share_count ||
+                node?.stats?.share_count ||
+                node?.stats?.shareCount ||
+                0
+              )
+            }
+          };
+          videosByUrl.set(video.videoUrl, mergeVideo(videosByUrl.get(video.videoUrl), video));
+        }
+
+        if (!profile.displayName || !profile.accountHandle || !profile.bio) {
+          const nickname = pickFirstText(node?.nickname, node?.author?.nickname, node?.user?.nickname);
+          const handle = pickFirstText(node?.unique_id, node?.short_id, node?.author?.unique_id, node?.author?.short_id);
+          const signature = pickFirstText(node?.signature, node?.author?.signature, node?.user?.signature);
+          const followers = Number(
+            node?.follower_count ||
+            node?.author?.follower_count ||
+            node?.user?.follower_count ||
+            0
+          );
+          const likes = Number(
+            node?.total_favorited ||
+            node?.favoriting_count ||
+            node?.author?.total_favorited ||
+            node?.user?.total_favorited ||
+            0
+          );
+          if (nickname) profile.displayName = profile.displayName || nickname;
+          if (handle) profile.accountHandle = profile.accountHandle || `@${handle.replace(/^@/, "")}`;
+          if (signature) profile.bio = profile.bio || signature;
+          if (followers > 0) profile.followers = Math.max(profile.followers, followers);
+          if (likes > 0) profile.likes = Math.max(profile.likes, likes);
+        }
+      });
+    }
+
+    return {
+      profile,
+      videos: Array.from(videosByUrl.values())
+    };
+  };
 
   const getVideoLinks = () =>
     unique(
@@ -1949,37 +2185,88 @@ function scrapeDouyinProfilePage(sampleLimit) {
         .map((anchor) => normalizeUrl(anchor.getAttribute("href") || ""))
         .filter((url) => /^https:\/\/www\.douyin\.com\/video\/\d+/i.test(url))
     ).slice(0, limit);
-
-  const getSeoCaptions = () =>
+  const collectDomCandidates = () =>
     Array.from(document.querySelectorAll('a[href*="/video/"]'))
-      .map((anchor) => ({
-        videoUrl: normalizeUrl(anchor.getAttribute("href") || ""),
-        caption: normalizeText(anchor.textContent || "")
-      }))
-      .filter((item) => item.videoUrl && item.caption);
+      .map((anchor) => {
+        const videoUrl = normalizeUrl(anchor.getAttribute("href") || "");
+        if (!/^https:\/\/www\.douyin\.com\/video\/\d+/i.test(videoUrl)) return null;
+        const card =
+          anchor.closest("li, article, [data-index], [class*='feed'], [class*='post'], [class*='video']") ||
+          anchor.parentElement ||
+          anchor;
+        const cardText = normalizeText(card?.innerText || anchor.textContent || "");
+        const image = card?.querySelector("img") || anchor.querySelector("img");
+        const caption = normalizeCaption(
+          pickFirstText(
+            anchor.textContent,
+            image?.getAttribute("alt"),
+            cardText
+              .split(/(?=\d{1,2}:\d{2})/)
+              .map((item) => normalizeText(item))
+              .find((item) => item.length >= 8 && !/^[\d.万亿wWkKmM:]+$/.test(item))
+          )
+        );
+        return {
+          videoUrl,
+          videoId: String(videoUrl.match(/\/video\/(\d+)/)?.[1] || ""),
+          caption: caption || "抖音公开样本",
+          thumbnailUrl: pickFirstUrl(image?.currentSrc, image?.getAttribute("src"), image?.getAttribute("data-src")),
+          durationSeconds: parseDuration(cardText),
+          stats: parseStatsFromText(cardText)
+        };
+      })
+      .filter(Boolean);
 
   return (async () => {
-    for (let step = 0; step < 4; step += 1) {
+    let bestSnapshot = null;
+
+    for (let step = 0; step < 5; step += 1) {
       window.scrollTo(0, document.body.scrollHeight);
-      await wait(900);
+      await wait(950);
+      const jsonCandidates = collectJsonCandidates();
+      const videosByUrl = new Map();
+      [...jsonCandidates.videos, ...collectDomCandidates()].forEach((video) => {
+        if (!video?.videoUrl) return;
+        videosByUrl.set(video.videoUrl, mergeVideo(videosByUrl.get(video.videoUrl), video));
+      });
+
+      const videos = Array.from(videosByUrl.values())
+        .sort((left, right) => {
+          const viewDelta = Number(right.stats?.views || 0) - Number(left.stats?.views || 0);
+          if (viewDelta !== 0) return viewDelta;
+          return scoreVideo(right) - scoreVideo(left);
+        })
+        .slice(0, limit);
+      const snapshot = {
+        profileUrl: location.href.split("?")[0],
+        accountHandle: getHandle() || jsonCandidates.profile.accountHandle,
+        displayName: getDisplayName() || jsonCandidates.profile.displayName,
+        bio: getBio() || jsonCandidates.profile.bio,
+        stats: {
+          followers: Math.max(getStats().followers, jsonCandidates.profile.followers || 0),
+          likes: Math.max(getStats().likes, jsonCandidates.profile.likes || 0)
+        },
+        videos
+      };
+      if (!bestSnapshot || scoreProfileScanQuality(snapshot) > scoreProfileScanQuality(bestSnapshot)) {
+        bestSnapshot = snapshot;
+      }
+      if (videos.length >= Math.min(limit, 3) && scoreProfileScanQuality(snapshot) >= 10) {
+        break;
+      }
     }
     window.scrollTo(0, 0);
     await wait(400);
+    if (bestSnapshot?.videos?.length) {
+      return bestSnapshot;
+    }
 
-    const seoCaptions = getSeoCaptions();
-    const captionMap = new Map();
-    seoCaptions.forEach((item) => {
-      if (!captionMap.has(item.videoUrl) && item.caption) {
-        captionMap.set(item.videoUrl, item.caption);
-      }
-    });
-
-    const videos = getVideoLinks().map((videoUrl) => ({
+    const fallbackVideos = getVideoLinks().map((videoUrl) => ({
       videoUrl,
       videoId: String(videoUrl.match(/\/video\/(\d+)/)?.[1] || ""),
-      caption: captionMap.get(videoUrl) || "抖音公开样本",
+      caption: "抖音公开样本",
       thumbnailUrl: "",
-      durationSeconds: parseDuration(bodyText()),
+      durationSeconds: 0,
       stats: {
         views: 0,
         likes: 0,
@@ -1994,7 +2281,7 @@ function scrapeDouyinProfilePage(sampleLimit) {
       displayName: getDisplayName(),
       bio: getBio(),
       stats: getStats(),
-      videos
+      videos: fallbackVideos
     };
   })();
 }
