@@ -1807,7 +1807,7 @@ async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
       throw new Error("没有抓到主页样本，请确认账号主页能正常打开。");
     }
     if (result.videos.length === 0) {
-      throw new Error("主页里没抓到公开视频卡片，请换一个主页或手动打开主页后再试。");
+      throw new Error(result.pageIssueMessage || "主页里没抓到公开视频卡片，请换一个主页或手动打开主页后再试。");
     }
     return {
       ...result,
@@ -1977,6 +1977,28 @@ function scrapeTikTokProfilePage(sampleLimit) {
       return "";
     }
   };
+  const getPageIssue = () => {
+    const title = normalizeText(document.title || "");
+    const text = normalizeText(document.body?.innerText || "");
+    const hasVideoLink = /tiktok\.com\/@[^/]+\/video\/\d+/i.test(document.body?.innerHTML || "");
+    if (/找不到此账号|couldn't find this account|account not found|unable to find this account/i.test(`${title} ${text}`)) {
+      return {
+        code: "not_found",
+        message: "这个 TikTok 主页当前显示为“找不到此账号”，请先确认主页链接没填错，或该账号仍对公开访问可见。"
+      };
+    }
+    if (
+      !hasVideoLink &&
+      /(?:^|\\s)(log in|sign up)(?:\\s|$)|登录|注册|扫码登录|continue with/i.test(text) &&
+      /推荐|探索|直播|主页|更多|tiktok/i.test(text)
+    ) {
+      return {
+        code: "login_wall",
+        message: "这个 TikTok 主页当前被登录页或访问限制拦住了，公开样本没有正常露出来。请先手动确认该主页在当前环境能直接打开。"
+      };
+    }
+    return null;
+  };
 
   const getStats = () => {
     const labels = Array.from(document.querySelectorAll('strong, h3, [data-e2e="followers-count"], [data-e2e="likes-count"]'));
@@ -2118,6 +2140,7 @@ function scrapeTikTokProfilePage(sampleLimit) {
       }
     });
     videos.push(...byUrl.values());
+    const pageIssue = videos.length === 0 ? getPageIssue() : null;
 
     return {
       profileUrl: location.href.split("?")[0],
@@ -2125,6 +2148,8 @@ function scrapeTikTokProfilePage(sampleLimit) {
       displayName: getDisplayName(),
       bio: getBio(),
       stats: getStats(),
+      pageIssueCode: pageIssue?.code || "",
+      pageIssueMessage: pageIssue?.message || "",
       videos: videos.slice(0, limit)
     };
   })();
