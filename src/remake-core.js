@@ -937,6 +937,27 @@ export function parseTikTokVisibleStatsText(text = "") {
   };
 }
 
+export function parseTikTokProfileStatsText(text = "") {
+  const normalized = String(text || "")
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const pickMetric = (labels) => {
+    for (const line of normalized) {
+      const lower = line.toLowerCase();
+      if (labels.some((label) => lower.includes(label))) {
+        const number = line.match(/(\d+(?:[.,]\d+)?\s*[KMB]?)/i)?.[1];
+        if (number) return parseCompactSocialNumber(number);
+      }
+    }
+    return 0;
+  };
+  return {
+    followers: pickMetric(["follower", "followers", "粉丝"]),
+    likes: pickMetric(["like", "likes", "获赞", "点赞"])
+  };
+}
+
 function parseCompactSocialNumber(input) {
   if (typeof input === "number" && Number.isFinite(input)) return Math.max(0, Math.round(input));
   const value = String(input || "").trim().replace(/,/g, "").toUpperCase();

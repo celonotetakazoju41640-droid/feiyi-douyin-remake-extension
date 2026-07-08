@@ -10,6 +10,7 @@ import {
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
   normalizeAccountTemplate,
+  parseTikTokProfileStatsText,
   parseTikTokVisibleStatsText,
   splitLines
 } from "../src/remake-core.js";
@@ -305,4 +306,30 @@ test("parseTikTokVisibleStatsText keeps first compact number as view fallback", 
   assert.equal(stats.comments, 0);
   assert.equal(stats.shares, 0);
   assert.equal(stats.saves, 0);
+});
+
+test("parseTikTokProfileStatsText reads english follower and like counts", () => {
+  const stats = parseTikTokProfileStatsText(`
+    Kitchen Lab
+    1.2M followers
+    24.5M likes
+  `);
+
+  assert.deepEqual(stats, {
+    followers: 1200000,
+    likes: 24500000
+  });
+});
+
+test("parseTikTokProfileStatsText tolerates mixed locale profile text", () => {
+  const stats = parseTikTokProfileStatsText(`
+    TikTok 搜索 推荐 探索
+    @kitchenlab
+    875.4K followers
+    12.3M likes
+    登录
+  `);
+
+  assert.equal(stats.followers, 875400);
+  assert.equal(stats.likes, 12300000);
 });

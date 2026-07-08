@@ -2,6 +2,7 @@ import {
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
   classifyTikTokProfilePageIssue,
+  parseTikTokProfileStatsText,
   parseTikTokVisibleStatsText,
   buildExportBundle,
   buildMarkdownFromPackage,
@@ -1988,14 +1989,17 @@ function scrapeTikTokProfilePage(sampleLimit) {
   };
 
   const getStats = () => {
-    const labels = Array.from(document.querySelectorAll('strong, h3, [data-e2e="followers-count"], [data-e2e="likes-count"]'));
-    const numbers = labels.map((node) => normalizeText(node.textContent));
+    const focusedText = Array.from(
+      document.querySelectorAll('strong, h3, [data-e2e="followers-count"], [data-e2e="likes-count"], [aria-label*="followers"], [aria-label*="likes"]')
+    )
+      .map((node) => normalizeText(node.getAttribute("aria-label") || node.textContent || ""))
+      .filter(Boolean)
+      .join("\n");
     const bodyText = normalizeText(document.body?.innerText || "");
-    const followersText = numbers.find((value) => /[KMB]?$/.test(value) && /followers/i.test(bodyText)) || "";
-    const likesText = numbers.find((value) => /[KMB]?$/.test(value) && /likes/i.test(bodyText)) || "";
+    const parsed = parseTikTokProfileStatsText(`${focusedText}\n${bodyText}`);
     return {
-      followers: toNumber(followersText),
-      likes: toNumber(likesText)
+      followers: parsed.followers || 0,
+      likes: parsed.likes || 0
     };
   };
 
