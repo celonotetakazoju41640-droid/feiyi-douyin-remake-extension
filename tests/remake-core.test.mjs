@@ -338,6 +338,20 @@ test("parseTikTokProfileStatsText tolerates mixed locale profile text", () => {
   assert.equal(stats.likes, 12300000);
 });
 
+test("parseTikTokProfileStatsText supports split-line follower and like labels", () => {
+  const stats = parseTikTokProfileStatsText(`
+    NBA
+    nba
+    27.1M
+    粉丝
+    1.1B
+    赞
+  `);
+
+  assert.equal(stats.followers, 27100000);
+  assert.equal(stats.likes, 1100000000);
+});
+
 test("pickPreferredTikTokProfileVideo keeps richer interaction stats", () => {
   const previous = {
     videoUrl: "https://www.tiktok.com/@lab/video/1",

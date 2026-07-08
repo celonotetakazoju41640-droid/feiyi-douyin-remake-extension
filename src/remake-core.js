@@ -942,19 +942,29 @@ export function parseTikTokProfileStatsText(text = "") {
     .split(/\n+/)
     .map((line) => line.replace(/\s+/g, " ").trim())
     .filter(Boolean);
+  const compactNumberPattern = /^(\d+(?:[.,]\d+)?\s*[KMB]?|0)$/i;
   const pickMetric = (labels) => {
-    for (const line of normalized) {
+    for (let index = 0; index < normalized.length; index += 1) {
+      const line = normalized[index];
       const lower = line.toLowerCase();
       if (labels.some((label) => lower.includes(label))) {
         const number = line.match(/(\d+(?:[.,]\d+)?\s*[KMB]?)/i)?.[1];
         if (number) return parseCompactSocialNumber(number);
+        const previousLine = normalized[index - 1] || "";
+        if (compactNumberPattern.test(previousLine)) {
+          return parseCompactSocialNumber(previousLine);
+        }
+        const nextLine = normalized[index + 1] || "";
+        if (compactNumberPattern.test(nextLine)) {
+          return parseCompactSocialNumber(nextLine);
+        }
       }
     }
     return 0;
   };
   return {
     followers: pickMetric(["follower", "followers", "粉丝"]),
-    likes: pickMetric(["like", "likes", "获赞", "点赞"])
+    likes: pickMetric(["like", "likes", "获赞", "点赞", "赞"])
   };
 }
 
