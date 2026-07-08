@@ -2074,8 +2074,11 @@ function scrapeDouyinProfilePage(sampleLimit) {
   const extractTaggedMetric = (card, pattern) => {
     const candidates = [
       card?.querySelector('[class*="author-card-user-video-like"]'),
+      card?.querySelector(".BP1CQkLg"),
       card?.querySelector('[class*="like"]'),
+      card?.querySelector('[class*="comment-count"], [class*="commentCount"]'),
       card?.querySelector('[class*="comment"]'),
+      card?.querySelector('[class*="share-count"], [class*="shareCount"]'),
       card?.querySelector('[class*="share"]')
     ].filter(Boolean);
     for (const node of candidates) {
@@ -2109,6 +2112,12 @@ function scrapeDouyinProfilePage(sampleLimit) {
     }
     return stats;
   };
+  const extractBackgroundImageUrl = (node) => {
+    if (!node?.getAttribute) return "";
+    const style = node.getAttribute("style") || "";
+    const match = style.match(/background(?:-image)?\s*:\s*url\((['"]?)(.*?)\1\)/i);
+    return match?.[2] ? normalizeUrl(match[2]) : "";
+  };
   const parseJsonBlob = (rawText = "") => {
     const text = String(rawText || "").trim();
     if (!text) return null;
@@ -2140,7 +2149,9 @@ function scrapeDouyinProfilePage(sampleLimit) {
     const anchorText = normalizeText(anchor?.textContent || "");
     const imageAlt = normalizeText(image?.getAttribute("alt") || "");
     const titleNodeText = normalizeText(
-      card?.querySelector("[class*='title'], [class*='desc'], [class*='caption'], [data-e2e*='desc']")?.textContent || ""
+      card?.querySelector(
+        "p[class], [class*='title'], [class*='desc'], [class*='caption'], [data-e2e*='desc']"
+      )?.textContent || ""
     );
     const lines = cardText
       .split(/\n+/)
@@ -2289,11 +2300,17 @@ function scrapeDouyinProfilePage(sampleLimit) {
         const cardText = normalizeText(card?.innerText || anchor.textContent || "");
         const image = card?.querySelector("img") || anchor.querySelector("img");
         const caption = extractCardCaption(anchor, card, image, getDisplayName());
+        const backgroundCoverNode = card?.querySelector("[style*='background'], [class*='cover'], [class*='poster'], [class*='thumb']");
         return {
           videoUrl,
           videoId: String(videoUrl.match(/\/video\/(\d+)/)?.[1] || ""),
           caption: caption || "抖音公开样本",
-          thumbnailUrl: pickFirstUrl(image?.currentSrc, image?.getAttribute("src"), image?.getAttribute("data-src")),
+          thumbnailUrl: pickFirstUrl(
+            image?.currentSrc,
+            image?.getAttribute("src"),
+            image?.getAttribute("data-src"),
+            extractBackgroundImageUrl(backgroundCoverNode)
+          ),
           durationSeconds: parseDuration(cardText),
           stats: parseDomStats(card, cardText)
         };
