@@ -29,7 +29,12 @@ export function createEmptyAccountTemplate() {
   };
 }
 
+function getDefaultVoiceLanguageForPlatform(platform = "tiktok") {
+  return normalizePlatform(platform) === "douyin" ? "中文" : "英文";
+}
+
 export function normalizeAccountTemplate(raw = {}) {
+  const platform = normalizePlatform(raw.platform || raw.profilePlatform || "tiktok");
   const sampleVideoUrls = Array.isArray(raw.sampleVideoUrls)
     ? raw.sampleVideoUrls.map((item) => String(item).trim()).filter(Boolean)
     : splitLines(raw.sampleVideoUrls);
@@ -38,7 +43,7 @@ export function normalizeAccountTemplate(raw = {}) {
   return {
     id: String(raw.id || safeSlug(name || `template-${Date.now()}`)).trim(),
     name,
-    platform: normalizePlatform(raw.platform || raw.profilePlatform || "tiktok"),
+    platform,
     accountHandle: String(raw.accountHandle || "").trim(),
     profileUrl: String(raw.profileUrl || "").trim(),
     contentPositioning: String(raw.contentPositioning || "").trim(),
@@ -52,7 +57,7 @@ export function normalizeAccountTemplate(raw = {}) {
     ctaStyle: String(raw.ctaStyle || "结尾轻转化，引导去评论区或主页").trim(),
     rewriteRules: String(raw.rewriteRules || "保留结构，不照抄人物、品牌、字幕和台词。").trim(),
     defaultDurationSeconds: Number(raw.defaultDurationSeconds || 30),
-    defaultVoiceLanguage: String(raw.defaultVoiceLanguage || "英文").trim(),
+    defaultVoiceLanguage: String(raw.defaultVoiceLanguage || getDefaultVoiceLanguageForPlatform(platform)).trim(),
     preferredModel: String(raw.preferredModel || "veo-3-fast").trim(),
     sampleVideoUrls
   };

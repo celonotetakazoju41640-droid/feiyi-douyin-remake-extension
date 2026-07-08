@@ -1571,13 +1571,13 @@ function buildDefaultTemplates() {
 
 function updatePlatformDependentUi() {
   const platform = nodes.templatePlatform.value || "tiktok";
+  const defaultVoiceLanguage = platform === "douyin" ? "中文" : "英文";
   nodes.scanProfileButton.textContent = `扫描${getPlatformLabel(platform)}主页并蒸馏`;
   nodes.scanProfileButton.disabled = !isProfileAutoScanSupported(platform);
   nodes.templateProfileUrl.placeholder =
     platform === "douyin" ? "https://www.douyin.com/user/xxxx" : "https://www.tiktok.com/@account_name";
-  if (!nodes.tiktokUrl.value.trim()) {
-    nodes.clipcatReferencePlatform.value = platform;
-  }
+  nodes.clipcatReferencePlatform.value = platform;
+  nodes.clipcatVoiceLanguage.value = defaultVoiceLanguage;
   nodes.tiktokUrl.placeholder =
     nodes.clipcatReferencePlatform.value === "douyin"
       ? "抖音视频链接"

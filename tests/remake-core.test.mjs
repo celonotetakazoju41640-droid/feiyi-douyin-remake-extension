@@ -37,6 +37,24 @@ test("normalizeAccountTemplate preserves profile url and sample urls", () => {
   assert.equal(template.sampleVideoUrls.length, 2);
 });
 
+test("normalizeAccountTemplate defaults TikTok templates to english prompts", () => {
+  const template = normalizeAccountTemplate({
+    name: "TikTok 模板",
+    platform: "tiktok"
+  });
+
+  assert.equal(template.defaultVoiceLanguage, "英文");
+});
+
+test("normalizeAccountTemplate defaults douyin templates to chinese prompts", () => {
+  const template = normalizeAccountTemplate({
+    name: "抖音模板",
+    platform: "douyin"
+  });
+
+  assert.equal(template.defaultVoiceLanguage, "中文");
+});
+
 test("buildSafeClipcatPrompt supports douyin wording", () => {
   const prompt = buildSafeClipcatPrompt({
     productName: "去污喷雾",
