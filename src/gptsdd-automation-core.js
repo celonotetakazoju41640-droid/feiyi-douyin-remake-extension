@@ -1,4 +1,6 @@
-export const gptsddImagePageUrl = "https://vip.gptsdd.com/user/#/image-video";
+import { gptsddImagePageUrl } from "./extension-config.js";
+
+export { gptsddImagePageUrl };
 
 export function classifyGptsddPageText(text) {
   const normalized = String(text || "").replace(/\s+/g, "");

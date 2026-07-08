@@ -759,20 +759,6 @@ textarea {
   color: #64748b;
 }
 
-.referenceReanalysisButton {
-  min-height: 30px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0 10px;
-  background: white;
-  color: var(--deep);
-  font-weight: 800;
-}
-
-.referenceReanalysisButton[hidden] {
-  display: none;
-}
-
 .referenceUploadIcon {
   display: grid;
   place-items: center;

@@ -6,11 +6,17 @@
   "permissions": [
     "activeTab",
     "downloads",
-    "scripting"
+    "scripting",
+    "storage"
   ],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
   "host_permissions": [
     "https://www.tiktok.com/*",
     "https://www.douyin.com/*",
+    "https://vip.gptsdd.com/*",
     "http://127.0.0.1:4328/*",
     "http://localhost:4328/*"
   ],

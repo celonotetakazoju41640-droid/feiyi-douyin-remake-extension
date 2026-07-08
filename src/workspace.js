@@ -19,13 +19,12 @@ import {
   splitLines,
   updateShot
 } from "./remake-core.js";
+import { batchServiceBaseUrl, batchServiceCommand } from "./extension-config.js";
 
 const storageKey = "feiyi-douyin-fuke-projects";
 const templateStorageKey = "feiyi-douyin-fuke-account-templates";
 const profileSampleSortStorageKey = "feiyi-douyin-fuke-profile-sample-sort";
 const profileSampleMinViewsStorageKey = "feiyi-douyin-fuke-profile-sample-min-views";
-const batchServiceBaseUrl = "http://127.0.0.1:4328";
-const batchServiceCommand = "node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs";
 
 const nodes = {
   serviceStatus: document.querySelector("#serviceStatus"),

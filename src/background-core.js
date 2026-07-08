@@ -1,7 +1,6 @@
-const defaultServiceBaseUrl = "http://127.0.0.1:4318";
-const gptsddImagePageUrl = "https://vip.gptsdd.com/user/#/image-video";
+import { batchServiceBaseUrl, gptsddImagePageUrl } from "./extension-config.js";
 
-export async function postCapturedPage({ capturedPage, fetchImpl = fetch, storage = chrome.storage.local, serviceBaseUrl = defaultServiceBaseUrl }) {
+export async function postCapturedPage({ capturedPage, fetchImpl = fetch, storage = chrome.storage.local, serviceBaseUrl = batchServiceBaseUrl }) {
   const response = await fetchImpl(`${serviceBaseUrl}/api/capture`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -16,7 +15,7 @@ export async function postCapturedPage({ capturedPage, fetchImpl = fetch, storag
   return summary;
 }
 
-export async function postTikTokViralScan({ scan, fetchImpl = fetch, storage = chrome.storage.local, serviceBaseUrl = defaultServiceBaseUrl }) {
+export async function postTikTokViralScan({ scan, fetchImpl = fetch, storage = chrome.storage.local, serviceBaseUrl = batchServiceBaseUrl }) {
   const response = await fetchImpl(`${serviceBaseUrl}/api/tiktok/viral-scans`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -31,7 +30,7 @@ export async function postTikTokViralScan({ scan, fetchImpl = fetch, storage = c
   return exported;
 }
 
-export function registerBackgroundHandlers({ chromeApi = chrome, fetchImpl = fetch, serviceBaseUrl = defaultServiceBaseUrl } = {}) {
+export function registerBackgroundHandlers({ chromeApi = chrome, fetchImpl = fetch, serviceBaseUrl = batchServiceBaseUrl } = {}) {
   chromeApi.runtime.onInstalled.addListener(() => {
     chromeApi.action.setBadgeText({ text: "" });
   });
@@ -103,7 +102,7 @@ export async function openRemakeWorkspace(chromeApi = chrome, url) {
   let workspaceUrl = "";
   if (targetUrl.startsWith(runtimeUrl)) {
     workspaceUrl = targetUrl;
-  } else if (targetUrl.startsWith(defaultServiceBaseUrl + "/remake")) {
+  } else if (targetUrl.startsWith(batchServiceBaseUrl + "/remake")) {
     const sourceParams = new URL(targetUrl).searchParams;
     const workspaceParams = new URLSearchParams();
     for (const key of ["video", "brief", "author", "thumbnail"]) {

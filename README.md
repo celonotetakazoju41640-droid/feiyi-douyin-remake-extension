@@ -216,17 +216,21 @@ tests/remake-core.test.mjs     核心逻辑测试
 - `activeTab`
 - `downloads`
 - `scripting`
+- `storage`
 
 当前页面权限：
 
 - `https://www.tiktok.com/*`
 - `https://www.douyin.com/*`
+- `https://vip.gptsdd.com/*`
 - `http://127.0.0.1:4328/*`
 - `http://localhost:4328/*`
 
 这意味着：
 
 - 可以在 TikTok / 抖音页面上执行公开样本抓取相关逻辑。
+- 旧的后台消息转发链路现在会正式挂到 MV3 service worker，不再只是代码在仓库里但实际没启动。
+- 如果需要走 GPTSDD 页面自动化，当前扩展有最小必要站点权限去打开和注入该页面。
 - 可以访问本地 `4328` 服务。
 - 当前仍不会用这些权限去抓登录态或私有内容。
 
@@ -238,6 +242,9 @@ tests/remake-core.test.mjs     核心逻辑测试
 node --check src/remake-core.js
 node --check src/workspace.js
 node --check src/popup.js
+node --check src/background.js
+node --check src/background-core.js
+node --test tests/extension-shell.test.mjs
 node --test tests/remake-core.test.mjs
 ```
 
@@ -246,7 +253,10 @@ node --test tests/remake-core.test.mjs
 - `src/remake-core.js`
 - `src/workspace.js`
 - `src/popup.js`
-- `tests/remake-core.test.mjs` 共 9 项通过
+- `src/background.js`
+- `src/background-core.js`
+- `tests/extension-shell.test.mjs`
+- `tests/remake-core.test.mjs`
 
 ## Git 信息
 

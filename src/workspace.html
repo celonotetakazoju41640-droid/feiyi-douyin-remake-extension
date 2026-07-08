@@ -49,7 +49,6 @@
               <strong id="videoHandle">参考短视频</strong>
               <small id="videoUrlText">用于拆钩子、节奏和转化结构</small>
             </div>
-            <a id="videoLink" class="referenceVideoOpenLink" href="#" target="_blank" rel="noreferrer" hidden>查看参考</a>
           </div>
           <p class="referenceVideoNote">先拆钩子、反转、商品植入和收口，再把每段改写成你的产品和角色；不照抄人物、台词、品牌、音乐和素材。</p>
           <label class="fieldBlock is-hiddenField">
@@ -75,8 +74,7 @@
               <input id="referenceVideoFile" type="file" accept="video/*" />
               <span class="referenceUploadIcon">＋</span>
               <strong id="referenceVideoFileName">请上传视频</strong>
-                <small id="referenceAnalysisStatus">未选择参考视频</small>
-                <button id="referenceReanalysisButton" class="referenceReanalysisButton" type="button" hidden>重新拆解参考视频</button>
+              <small id="referenceAnalysisStatus">未选择参考视频</small>
             </label>
           </section>
 
@@ -245,12 +243,6 @@
             <h2>复刻设置</h2>
             <div class="settingsGrid">
               <label class="fieldBlock">
-                视频比例
-                <select id="aspectRatio">
-                  <option value="9:16">9:16</option>
-                </select>
-              </label>
-              <label class="fieldBlock">
                 生成时长
                 <input id="targetDuration" type="hidden" value="45" />
                 <span id="targetDurationLabel" class="autoDurationLabel">等待视频</span>
@@ -264,7 +256,6 @@
                   <option value="东北话">东北话</option>
                 </select>
               </label>
-              <input id="copyLanguage" type="hidden" value="zh" />
               <label class="fieldBlock">
                 生成数量
                 <select id="generationCount">
