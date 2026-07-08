@@ -1,6 +1,7 @@
 import {
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
+  classifyTikTokProfilePageIssue,
   buildExportBundle,
   buildMarkdownFromPackage,
   buildRemakePackage,
@@ -1978,26 +1979,11 @@ function scrapeTikTokProfilePage(sampleLimit) {
     }
   };
   const getPageIssue = () => {
-    const title = normalizeText(document.title || "");
-    const text = normalizeText(document.body?.innerText || "");
-    const hasVideoLink = /tiktok\.com\/@[^/]+\/video\/\d+/i.test(document.body?.innerHTML || "");
-    if (/找不到此账号|couldn't find this account|account not found|unable to find this account/i.test(`${title} ${text}`)) {
-      return {
-        code: "not_found",
-        message: "这个 TikTok 主页当前显示为“找不到此账号”，请先确认主页链接没填错，或该账号仍对公开访问可见。"
-      };
-    }
-    if (
-      !hasVideoLink &&
-      /(?:^|\\s)(log in|sign up)(?:\\s|$)|登录|注册|扫码登录|continue with/i.test(text) &&
-      /推荐|探索|直播|主页|更多|tiktok/i.test(text)
-    ) {
-      return {
-        code: "login_wall",
-        message: "这个 TikTok 主页当前被登录页或访问限制拦住了，公开样本没有正常露出来。请先手动确认该主页在当前环境能直接打开。"
-      };
-    }
-    return null;
+    return classifyTikTokProfilePageIssue({
+      title: normalizeText(document.title || ""),
+      bodyText: normalizeText(document.body?.innerText || ""),
+      hasVideoLink: /tiktok\.com\/@[^/]+\/video\/\d+/i.test(document.body?.innerHTML || "")
+    });
   };
 
   const getStats = () => {

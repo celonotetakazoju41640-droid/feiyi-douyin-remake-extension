@@ -6,6 +6,7 @@ import {
   buildRemakePackage,
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
+  classifyTikTokProfilePageIssue,
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
   normalizeAccountTemplate,
@@ -240,4 +241,36 @@ test("createEmptyAccountTemplate returns editable blank shape", () => {
   assert.equal(template.antiPatterns, "");
   assert.equal(template.recentSignals, "");
   assert.equal(template.sampleVideoUrls.length, 0);
+});
+
+test("classifyTikTokProfilePageIssue identifies not found pages", () => {
+  const issue = classifyTikTokProfilePageIssue({
+    title: "无法找到此账号，请访问 TikTok 以发现更多热门创作者、话题标签和音乐。",
+    bodyText: "TikTok 找不到此账号 寻找视频？试试浏览我们的热门创作者 登录",
+    hasVideoLink: false
+  });
+
+  assert.equal(issue?.code, "not_found");
+  assert.match(issue?.message || "", /找不到此账号/);
+});
+
+test("classifyTikTokProfilePageIssue identifies login wall pages", () => {
+  const issue = classifyTikTokProfilePageIssue({
+    title: "TikTok - Make Your Day",
+    bodyText: "TikTok 搜索 推荐 探索 已关注 直播 上传 主页 更多 登录 公司 条款和政策 登录",
+    hasVideoLink: false
+  });
+
+  assert.equal(issue?.code, "login_wall");
+  assert.match(issue?.message || "", /登录页|访问限制|公开样本/);
+});
+
+test("classifyTikTokProfilePageIssue ignores normal public profile pages", () => {
+  const issue = classifyTikTokProfilePageIssue({
+    title: "Kitchen Lab (@kitchenlab) | TikTok",
+    bodyText: "Kitchen Lab 1.2M followers 24.5M likes Stop scrubbing like this Before and after stove degreaser demo",
+    hasVideoLink: true
+  });
+
+  assert.equal(issue, null);
 });
