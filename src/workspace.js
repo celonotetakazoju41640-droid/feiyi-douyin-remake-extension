@@ -1639,7 +1639,8 @@ async function scanTikTokProfile(profileUrl, sampleLimit) {
 }
 
 async function scanDouyinProfile(profileUrl, sampleLimit) {
-  return scanProfilePage(profileUrl, sampleLimit, "douyin", scrapeDouyinProfilePage);
+  const scan = await scanProfilePage(profileUrl, sampleLimit, "douyin", scrapeDouyinProfilePage);
+  return enrichDouyinProfileScan(scan);
 }
 
 async function scanProfileByPlatform(profileUrl, sampleLimit, platform) {
@@ -1647,6 +1648,71 @@ async function scanProfileByPlatform(profileUrl, sampleLimit, platform) {
     return scanDouyinProfile(profileUrl, sampleLimit);
   }
   return scanTikTokProfile(profileUrl, sampleLimit);
+}
+
+async function enrichDouyinProfileScan(scan) {
+  if (!scan?.videos?.length) return scan;
+  const candidates = scan.videos
+    .filter(
+      (video) =>
+        !Number(video.durationSeconds || 0) ||
+        !Number(video.stats?.comments || 0) ||
+        !Number(video.stats?.shares || 0)
+    )
+    .slice(0, Math.min(3, scan.videos.length));
+  if (!candidates.length) return scan;
+
+  const detailMap = new Map();
+  for (const video of candidates) {
+    try {
+      const detail = await scanDouyinVideoDetail(video.videoUrl);
+      if (detail?.videoUrl) {
+        detailMap.set(detail.videoUrl, mergeProfileVideoDetail(video, detail));
+      }
+    } catch {}
+  }
+  if (!detailMap.size) return scan;
+  return {
+    ...scan,
+    videos: scan.videos.map((video) => detailMap.get(video.videoUrl) || video)
+  };
+}
+
+function mergeProfileVideoDetail(base, detail) {
+  return {
+    ...base,
+    ...detail,
+    caption: detail.caption || base.caption || "",
+    thumbnailUrl: detail.thumbnailUrl || base.thumbnailUrl || "",
+    durationSeconds: Math.max(Number(base.durationSeconds || 0), Number(detail.durationSeconds || 0), 0),
+    stats: {
+      views: Math.max(Number(base.stats?.views || 0), Number(detail.stats?.views || 0), 0),
+      likes: Math.max(Number(base.stats?.likes || 0), Number(detail.stats?.likes || 0), 0),
+      comments: Math.max(Number(base.stats?.comments || 0), Number(detail.stats?.comments || 0), 0),
+      shares: Math.max(Number(base.stats?.shares || 0), Number(detail.stats?.shares || 0), 0)
+    }
+  };
+}
+
+async function scanDouyinVideoDetail(videoUrl) {
+  if (!globalThis.chrome?.tabs || !globalThis.chrome?.scripting) {
+    throw new Error("当前不是 Chrome 扩展环境，不能执行抖音详情抓取。");
+  }
+  const createdTab = await chrome.tabs.create({ url: videoUrl, active: false });
+  if (!createdTab.id) {
+    throw new Error("抖音详情页签打开失败。");
+  }
+  try {
+    await waitForTabComplete(createdTab.id, "douyin");
+    await delay(2400);
+    const [injection] = await chrome.scripting.executeScript({
+      target: { tabId: createdTab.id },
+      func: scrapeDouyinVideoDetailPage
+    });
+    return injection?.result || null;
+  } finally {
+    await chrome.tabs.remove(createdTab.id).catch(() => {});
+  }
 }
 
 async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
@@ -1738,6 +1804,66 @@ function scoreProfileScanQuality(scan) {
     if (Number(video.stats?.likes || 0) > 0) next += 1;
     return next;
   }, 0);
+}
+
+function scrapeDouyinVideoDetailPage() {
+  const normalizeText = (value = "") => String(value || "").replace(/\s+/g, " ").trim();
+  const normalizeUrl = (url = "") => {
+    try {
+      return new URL(url, location.origin).href.split("?")[0];
+    } catch {
+      return "";
+    }
+  };
+  const toNumber = (value = "") => {
+    const text = normalizeText(value).replace(/,/g, "").toUpperCase();
+    const match = text.match(/(\d+(?:\.\d+)?)([万亿WKM])?/);
+    if (!match) return 0;
+    const unitMap = { "万": 10000, "亿": 100000000, W: 10000, K: 1000, M: 1000000 };
+    return Math.round(Number(match[1]) * (unitMap[match[2] || ""] || 1));
+  };
+  const parseDuration = (value = "") => {
+    const match = normalizeText(value).match(/(\d{1,2}):(\d{2})/);
+    return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
+  };
+  const unique = (items) => [...new Set(items.filter(Boolean))];
+  const title = normalizeText(document.title.replace(/\s*-\s*抖音$/, ""));
+  const durationSeconds = Math.max(
+    parseDuration(document.querySelector(".time-duration")?.textContent || ""),
+    parseDuration(normalizeText(document.body?.innerText || "").match(/\d{1,2}:\d{2}\s*\/\s*(\d{1,2}:\d{2})/)?.[1] || "")
+  );
+  const thumbnailUrl =
+    normalizeUrl(document.querySelector('meta[property="og:image"]')?.getAttribute("content") || "") ||
+    normalizeUrl(document.querySelector("video")?.getAttribute("poster") || "") ||
+    normalizeUrl(document.querySelector("img")?.currentSrc || document.querySelector("img")?.getAttribute("src") || "");
+
+  const actionNumbers = unique(
+    Array.from(
+      document.querySelectorAll(
+        ".video-detail-container .o2tLobnl, .video-detail-container .bJX7d7PL, .video-detail-container [class*='action']"
+      )
+    )
+      .map((node) => normalizeText(node.textContent || ""))
+      .filter((text) => /^\d[\d.,万亿wWkKmM]*$/.test(text))
+  ).slice(0, 4);
+
+  const detailBody = normalizeText(document.body?.innerText || "");
+  const inlineMetricMatch = detailBody.match(/(\d[\d.,万亿wWkKmM]*)\s+(\d[\d.,万亿wWkKmM]*)\s+(\d[\d.,万亿wWkKmM]*)\s+(\d[\d.,万亿wWkKmM]*)\s+举报\s+发布时间/);
+  const fallbackNumbers = inlineMetricMatch ? inlineMetricMatch.slice(1, 5) : [];
+  const metrics = actionNumbers.length >= 4 ? actionNumbers : fallbackNumbers;
+
+  return {
+    videoUrl: normalizeUrl(location.href),
+    caption: title,
+    thumbnailUrl,
+    durationSeconds,
+    stats: {
+      views: 0,
+      likes: toNumber(metrics[0] || ""),
+      comments: toNumber(metrics[1] || ""),
+      shares: toNumber(metrics[3] || "")
+    }
+  };
 }
 
 function downloadBlob(filename, content, type) {
