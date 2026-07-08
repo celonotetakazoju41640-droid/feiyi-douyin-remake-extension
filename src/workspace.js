@@ -1667,6 +1667,11 @@ async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
     const attempts = platform === "douyin" ? 3 : 1;
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       if (attempt > 0) {
+        if (platform === "douyin") {
+          await chrome.tabs.reload(createdTab.id);
+          await waitForTabComplete(createdTab.id, platform);
+          await delay(2000 + attempt * 500);
+        }
         await delay(1200 * attempt);
       }
       const [injection] = await chrome.scripting.executeScript({
@@ -1679,7 +1684,11 @@ async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
       if (!result || scoreProfileScanQuality(nextResult) > scoreProfileScanQuality(result)) {
         result = nextResult;
       }
-      if (result.videos.length >= Math.min(Number(sampleLimit || 6), 3) && scoreProfileScanQuality(result) >= 8) {
+      if (
+        result.videos.length >= Math.min(Number(sampleLimit || 6), 3) &&
+        scoreProfileScanQuality(result) >= 8 &&
+        !result.serviceError
+      ) {
         break;
       }
     }
@@ -1938,6 +1947,15 @@ function scrapeDouyinProfilePage(sampleLimit) {
     }
   };
   const unique = (items) => [...new Set(items.filter(Boolean))];
+  const decodePercentText = (value = "") => {
+    const text = String(value || "").trim();
+    if (!text || !/%[0-9A-Fa-f]{2}/.test(text)) return text;
+    try {
+      return new URLSearchParams(`x=${text}`).get("x") || text;
+    } catch {
+      return text;
+    }
+  };
   const toNumber = (value = "") => {
     const text = normalizeText(value).replace(/,/g, "").toUpperCase();
     const match = text.match(/(\d+(?:\.\d+)?)([万亿WKM])?/);
@@ -1953,6 +1971,25 @@ function scrapeDouyinProfilePage(sampleLimit) {
   };
   const pickFirstText = (...values) => values.map((item) => normalizeText(item)).find(Boolean) || "";
   const pickFirstUrl = (...values) => values.map((item) => normalizeUrl(item)).find(Boolean) || "";
+  const dedupeRepeatedCaption = (value = "") => {
+    const text = normalizeCaption(value);
+    if (!text) return "";
+    const half = Math.floor(text.length / 2);
+    if (half >= 8) {
+      const left = text.slice(0, half).trim();
+      const right = text.slice(half).trim();
+      if (left && right && (left === right || left.startsWith(right) || right.startsWith(left))) {
+        return left.length >= right.length ? left : right;
+      }
+    }
+    return text;
+  };
+  const cleanDisplayPrefix = (value = "", displayName = "") => {
+    const text = normalizeCaption(value);
+    if (!text) return "";
+    if (!displayName) return text;
+    return normalizeCaption(text.replace(new RegExp(`^${escapeRegExp(displayName)}[:：]\\s*`), ""));
+  };
   const walk = (root, visitor) => {
     const stack = [root];
     while (stack.length) {
@@ -2034,20 +2071,50 @@ function scrapeDouyinProfilePage(sampleLimit) {
     const match = normalizeText(text).match(/(\d{1,2}):(\d{2})/);
     return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
   };
+  const extractTaggedMetric = (card, pattern) => {
+    const candidates = [
+      card?.querySelector('[class*="author-card-user-video-like"]'),
+      card?.querySelector('[class*="like"]'),
+      card?.querySelector('[class*="comment"]'),
+      card?.querySelector('[class*="share"]')
+    ].filter(Boolean);
+    for (const node of candidates) {
+      const text = normalizeText(node?.innerText || node?.textContent || "");
+      const match = text.match(pattern);
+      if (match?.[1]) {
+        return toNumber(match[1]);
+      }
+      if (/^\d/.test(text)) {
+        return toNumber(text);
+      }
+    }
+    return 0;
+  };
   const parseStatsFromText = (text = "") => ({
     views: toNumber(text.match(/(?:播放|次播放|播放量)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || ""),
     likes: toNumber(text.match(/(?:点赞|赞)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || ""),
     comments: toNumber(text.match(/(?:评论)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || ""),
     shares: toNumber(text.match(/(?:分享|转发)[:：]?\s*([\d.万亿wWkKmM]+)/)?.[1] || "")
   });
+  const parseDomStats = (card, cardText = "") => {
+    const textStats = parseStatsFromText(cardText);
+    const stats = {
+      views: textStats.views,
+      likes: textStats.likes,
+      comments: textStats.comments,
+      shares: textStats.shares
+    };
+    if (!stats.likes) {
+      stats.likes = extractTaggedMetric(card, /(\d[\d.,万亿wWkKmM]*)/);
+    }
+    return stats;
+  };
   const parseJsonBlob = (rawText = "") => {
     const text = String(rawText || "").trim();
     if (!text) return null;
     const candidates = [text];
     if (/%7B|%5B|%22/i.test(text)) {
-      try {
-        candidates.push(decodeURIComponent(text));
-      } catch {}
+      candidates.push(decodePercentText(text));
     }
     if ((text.startsWith("\"") && text.endsWith("\"")) || (text.startsWith("'") && text.endsWith("'"))) {
       try {
@@ -2067,6 +2134,31 @@ function scrapeDouyinProfilePage(sampleLimit) {
     }
     return null;
   };
+  const hasServiceError = () => /服务异常，重新刷新拉取数据/.test(bodyText());
+  const extractCardCaption = (anchor, card, image, displayName = "") => {
+    const cardText = normalizeText(card?.innerText || "");
+    const anchorText = normalizeText(anchor?.textContent || "");
+    const imageAlt = normalizeText(image?.getAttribute("alt") || "");
+    const titleNodeText = normalizeText(
+      card?.querySelector("[class*='title'], [class*='desc'], [class*='caption'], [data-e2e*='desc']")?.textContent || ""
+    );
+    const lines = cardText
+      .split(/\n+/)
+      .map((item) => normalizeText(item))
+      .filter(Boolean)
+      .filter((item) => !/^置顶$/.test(item))
+      .filter((item) => !/^\d[\d.,万亿wWkKmM]*$/.test(item));
+    const merged = dedupeRepeatedCaption(
+      pickFirstText(
+        cleanDisplayPrefix(titleNodeText, displayName),
+        cleanDisplayPrefix(imageAlt, displayName),
+        cleanDisplayPrefix(anchorText, displayName),
+        cleanDisplayPrefix(lines.join(" "), displayName)
+      )
+    );
+    return merged || "抖音公开样本";
+  };
+  const escapeRegExp = (value = "") => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
   const collectJsonCandidates = () => {
     const videosByUrl = new Map();
@@ -2196,23 +2288,14 @@ function scrapeDouyinProfilePage(sampleLimit) {
           anchor;
         const cardText = normalizeText(card?.innerText || anchor.textContent || "");
         const image = card?.querySelector("img") || anchor.querySelector("img");
-        const caption = normalizeCaption(
-          pickFirstText(
-            anchor.textContent,
-            image?.getAttribute("alt"),
-            cardText
-              .split(/(?=\d{1,2}:\d{2})/)
-              .map((item) => normalizeText(item))
-              .find((item) => item.length >= 8 && !/^[\d.万亿wWkKmM:]+$/.test(item))
-          )
-        );
+        const caption = extractCardCaption(anchor, card, image, getDisplayName());
         return {
           videoUrl,
           videoId: String(videoUrl.match(/\/video\/(\d+)/)?.[1] || ""),
           caption: caption || "抖音公开样本",
           thumbnailUrl: pickFirstUrl(image?.currentSrc, image?.getAttribute("src"), image?.getAttribute("data-src")),
           durationSeconds: parseDuration(cardText),
-          stats: parseStatsFromText(cardText)
+          stats: parseDomStats(card, cardText)
         };
       })
       .filter(Boolean);
@@ -2246,12 +2329,13 @@ function scrapeDouyinProfilePage(sampleLimit) {
           followers: Math.max(getStats().followers, jsonCandidates.profile.followers || 0),
           likes: Math.max(getStats().likes, jsonCandidates.profile.likes || 0)
         },
+        serviceError: hasServiceError(),
         videos
       };
       if (!bestSnapshot || scoreProfileScanQuality(snapshot) > scoreProfileScanQuality(bestSnapshot)) {
         bestSnapshot = snapshot;
       }
-      if (videos.length >= Math.min(limit, 3) && scoreProfileScanQuality(snapshot) >= 10) {
+      if (videos.length >= Math.min(limit, 3) && scoreProfileScanQuality(snapshot) >= 10 && !hasServiceError()) {
         break;
       }
     }
