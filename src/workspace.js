@@ -1827,6 +1827,10 @@ function scrapeDouyinVideoDetailPage() {
     return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
   };
   const unique = (items) => [...new Set(items.filter(Boolean))];
+  const extractMetricBySelector = (selector) => {
+    const text = normalizeText(document.querySelector(selector)?.textContent || "");
+    return /^\d[\d.,万亿wWkKmM]*$/.test(text) ? toNumber(text) : 0;
+  };
   const title = normalizeText(document.title.replace(/\s*-\s*抖音$/, ""));
   const durationSeconds = Math.max(
     parseDuration(document.querySelector(".time-duration")?.textContent || ""),
@@ -1851,6 +1855,13 @@ function scrapeDouyinVideoDetailPage() {
   const inlineMetricMatch = detailBody.match(/(\d[\d.,万亿wWkKmM]*)\s+(\d[\d.,万亿wWkKmM]*)\s+(\d[\d.,万亿wWkKmM]*)\s+(\d[\d.,万亿wWkKmM]*)\s+举报\s+发布时间/);
   const fallbackNumbers = inlineMetricMatch ? inlineMetricMatch.slice(1, 5) : [];
   const metrics = actionNumbers.length >= 4 ? actionNumbers : fallbackNumbers;
+  const likes = extractMetricBySelector("[data-e2e='video-player-digg'] [class*='Lr3l3ZEc']") || toNumber(metrics[0] || "");
+  const comments = extractMetricBySelector("[data-e2e='feed-comment-icon'] [class*='x6d7guxH']") || toNumber(metrics[1] || "");
+  const collects = extractMetricBySelector("[data-e2e='video-player-collect'] [class*='urITFwDq']");
+  const shares =
+    extractMetricBySelector("[data-e2e='video-player-share'] [class*='mvwEat0w']") ||
+    extractMetricBySelector("[data-e2e='video-share-icon-container'] [class*='sB3y0d3B']") ||
+    toNumber(metrics[3] || "");
 
   return {
     videoUrl: normalizeUrl(location.href),
@@ -1859,9 +1870,12 @@ function scrapeDouyinVideoDetailPage() {
     durationSeconds,
     stats: {
       views: 0,
-      likes: toNumber(metrics[0] || ""),
-      comments: toNumber(metrics[1] || ""),
-      shares: toNumber(metrics[3] || "")
+      likes,
+      comments,
+      shares
+    },
+    detailMetrics: {
+      collects
     }
   };
 }
