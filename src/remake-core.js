@@ -979,7 +979,7 @@ export function parseTikTokProfileIdentityText(text = "") {
 export function normalizeTikTokDurationSeconds(value = 0) {
   const number = Number(value || 0);
   if (!Number.isFinite(number) || number <= 0) return 0;
-  if (number >= 1000) return Math.max(1, Math.round(number / 1000));
+  if (number >= 10_000) return Math.max(1, Math.round(number / 1000));
   return Math.round(number);
 }
 
