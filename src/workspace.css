@@ -2397,6 +2397,25 @@ h1 {
   box-shadow: 0 22px 48px rgba(22, 35, 56, 0.14);
 }
 
+.heroCopy {
+  display: grid;
+  gap: 8px;
+}
+
+.heroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 5px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: rgba(226, 238, 249, 0.78);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .consumerHero strong,
 .consumerHero p,
 .consumerHero .badge {
@@ -2482,6 +2501,10 @@ h1 {
   letter-spacing: -0.02em;
 }
 
+.stepSummaryText {
+  flex: 1;
+}
+
 .stepSummaryText strong {
   font-size: 18px;
 }
@@ -2492,6 +2515,27 @@ h1 {
 .referenceCard small,
 .projectHeroCard p {
   color: #72685d;
+}
+
+.stepLead {
+  margin: 0;
+  color: #66758a;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.stepStatusBadge {
+  margin-left: auto;
+}
+
+#stepTemplateCard,
+#stepAssetsCard {
+  align-self: stretch;
+}
+
+#stepTemplateCard .flowStepBody,
+#stepAssetsCard .flowStepBody {
+  align-content: start;
 }
 
 .fieldBlock {
