@@ -106,6 +106,11 @@ const nodes = {
   copyClipcatPromptButton: document.querySelector("#copyClipcatPromptButton"),
   copyBatchTasksButton: document.querySelector("#copyBatchTasksButton"),
   sendBatchTasksButton: document.querySelector("#sendBatchTasksButton"),
+  wizardPrevButton: document.querySelector("#wizardPrevButton"),
+  wizardNextButton: document.querySelector("#wizardNextButton"),
+  wizardStepTag: document.querySelector("#wizardStepTag"),
+  wizardStepTitle: document.querySelector("#wizardStepTitle"),
+  wizardStepDescription: document.querySelector("#wizardStepDescription"),
   actionFeedback: document.querySelector("#actionFeedback"),
   remakeButton: document.querySelector("#remakeButton"),
   seriesCount: document.querySelector("#seriesCount"),
@@ -135,6 +140,7 @@ let profileSampleSortMode = loadProfileSampleSortMode();
 let profileMinViewsFilter = loadProfileSampleMinViewsFilter();
 let pinnedProfileVideoUrls = [];
 let excludedProfileVideoUrls = new Set();
+let currentWizardStep = 1;
 
 init();
 
@@ -155,13 +161,14 @@ function init() {
   updateActionFeedback();
   refreshBatchServiceHealth();
   syncFlowStepState();
+  renderWizardStep();
 }
 
 function bindEvents() {
   nodes.modelImageFile?.addEventListener("change", handleModelImageChange);
   nodes.referenceVideoFile.addEventListener("change", handleReferenceVideoChange);
   nodes.productImages.addEventListener("change", handleProductImagesChange);
-  nodes.remakeButton.addEventListener("click", handleGenerate);
+  nodes.remakeButton?.addEventListener("click", handleGenerate);
   nodes.downloadJsonButton.addEventListener("click", () => downloadCurrent("json"));
   nodes.downloadMarkdownButton.addEventListener("click", () => downloadCurrent("md"));
   nodes.clearProjectsButton.addEventListener("click", clearProjects);
@@ -170,6 +177,11 @@ function bindEvents() {
   nodes.copyClipcatPromptButton.addEventListener("click", copyClipcatPrompt);
   nodes.copyBatchTasksButton.addEventListener("click", copyBatchTasks);
   nodes.sendBatchTasksButton.addEventListener("click", sendBatchTasksToService);
+  nodes.wizardPrevButton?.addEventListener("click", handleWizardPrev);
+  nodes.wizardNextButton?.addEventListener("click", handleWizardNext);
+  document.querySelectorAll("[data-step-nav]").forEach((button) => {
+    button.addEventListener("click", () => setWizardStep(Number(button.dataset.stepNav)));
+  });
   nodes.accountTemplateSelect.addEventListener("change", handleTemplateSelectionChange);
   nodes.templatePlatform.addEventListener("change", handleTemplatePlatformChange);
   nodes.templateProfileUrl.addEventListener("input", syncFlowStepState);
@@ -324,6 +336,7 @@ async function handleGenerate() {
   updateResultButtons();
   setActionFeedback(`已生成 ${currentPackage.batchVideoTasks?.length || 0} 条可直接去跑的提示词任务。`);
   syncFlowStepState();
+  setWizardStep(4);
 }
 
 function renderProjects() {
@@ -796,7 +809,9 @@ function applyTemplateToGenerationFields() {
   nodes.hookStyle.value = template.hookStyle || nodes.hookStyle.value;
   nodes.ctaText.value = template.ctaStyle || nodes.ctaText.value;
   nodes.targetDuration.value = String(template.defaultDurationSeconds || 30);
-  nodes.targetDurationLabel.textContent = `${template.defaultDurationSeconds || 30} 秒`;
+  if (nodes.targetDurationLabel) {
+    nodes.targetDurationLabel.textContent = `${template.defaultDurationSeconds || 30} 秒`;
+  }
   nodes.clipcatReferencePlatform.value = template.platform || "tiktok";
   nodes.clipcatVoiceLanguage.value = template.defaultVoiceLanguage || "英文";
   nodes.clipcatExtraRules.value = template.rewriteRules || "";
@@ -1491,7 +1506,9 @@ function applyDistilledTemplateToForm(scan) {
   nodes.hookStyle.value = distilled.hookStyle || nodes.hookStyle.value;
   nodes.templateRhythm.value = distilled.rhythm || "";
   nodes.targetDuration.value = String(distilled.defaultDurationSeconds || 30);
-  nodes.targetDurationLabel.textContent = `${distilled.defaultDurationSeconds || 30} 秒`;
+  if (nodes.targetDurationLabel) {
+    nodes.targetDurationLabel.textContent = `${distilled.defaultDurationSeconds || 30} 秒`;
+  }
   nodes.clipcatVoiceLanguage.value = distilled.defaultVoiceLanguage || "英文";
   nodes.templatePreferredModel.value = distilled.preferredModel || "veo-3-fast";
   nodes.templateStructure.value = distilled.structure || "";
@@ -1592,7 +1609,9 @@ function syncFormWithCurrentPackage() {
   nodes.visualStyle.value = currentPackage.project.visualStyle || "";
   nodes.ctaText.value = currentPackage.project.cta || "";
   nodes.targetDuration.value = currentPackage.project.durationSeconds || 30;
-  nodes.targetDurationLabel.textContent = `${currentPackage.project.durationSeconds || 30} 秒`;
+  if (nodes.targetDurationLabel) {
+    nodes.targetDurationLabel.textContent = `${currentPackage.project.durationSeconds || 30} 秒`;
+  }
   nodes.voiceDialect.value = currentPackage.project.voiceDialect || "普通话";
   nodes.generationCount.value = String(currentPackage.project.generationCount || 3);
   nodes.tiktokUrl.value = currentPackage.project.clipcatConfig?.tiktokUrl || "";
@@ -1674,6 +1693,89 @@ function syncFlowStepState() {
   if (nodes.stepTemplateCard) {
     nodes.stepTemplateCard.open = hasProfileUrl;
   }
+}
+
+function getWizardStepConfig(step) {
+  return {
+    1: {
+      title: "基础信息",
+      description: "先选平台。如果有对标主页，这一步顺手贴上即可。",
+      nextLabel: "下一步"
+    },
+    2: {
+      title: "上传素材",
+      description: "先传产品图。模特图只是可选参考，不需要时可以跳过。",
+      nextLabel: "下一步"
+    },
+    3: {
+      title: "生成要求",
+      description: "补一句创作要求，确认自动拆出的卖点，然后直接生成。",
+      nextLabel: "生成提示词"
+    },
+    4: {
+      title: "结果与提交",
+      description: "任务已经生成完成。这里直接复制提示词或提交去跑视频。",
+      nextLabel: "已完成"
+    }
+  }[step];
+}
+
+function renderWizardStep() {
+  const config = getWizardStepConfig(currentWizardStep);
+  if (!config) return;
+
+  if (nodes.wizardStepTag) nodes.wizardStepTag.textContent = `步骤 ${currentWizardStep} / 4`;
+  if (nodes.wizardStepTitle) nodes.wizardStepTitle.textContent = config.title;
+  if (nodes.wizardStepDescription) nodes.wizardStepDescription.textContent = config.description;
+
+  document.querySelectorAll("[data-step-panel]").forEach((panel) => {
+    const step = Number(panel.dataset.stepPanel);
+    const active = step === currentWizardStep;
+    panel.hidden = !active;
+    panel.classList.toggle("is-active", active);
+  });
+
+  document.querySelectorAll("[data-step-nav]").forEach((button) => {
+    const step = Number(button.dataset.stepNav);
+    button.classList.toggle("is-active", step === currentWizardStep);
+    button.classList.toggle("is-complete", step < currentWizardStep);
+  });
+
+  if (nodes.wizardPrevButton) {
+    nodes.wizardPrevButton.hidden = currentWizardStep === 1;
+  }
+  if (nodes.wizardNextButton) {
+    nodes.wizardNextButton.textContent = config.nextLabel;
+    nodes.wizardNextButton.disabled = currentWizardStep === 4;
+  }
+}
+
+function setWizardStep(step) {
+  const hasProductImage = Boolean(nodes.productImages.files?.length);
+  if (step >= 3 && !hasProductImage) {
+    setActionFeedback("还没上传产品图。你可以先看后面的结构，但正式生成前需要先补产品图。", true);
+  }
+  if (step === 4 && !currentPackage) {
+    setActionFeedback("还没生成结果。第四步现在先给你看完成页结构，真正结果要在第三步点击生成提示词后出现。");
+  }
+  currentWizardStep = Math.min(4, Math.max(1, step));
+  renderWizardStep();
+}
+
+function handleWizardPrev() {
+  setWizardStep(currentWizardStep - 1);
+}
+
+async function handleWizardNext() {
+  if (currentWizardStep === 2 && !nodes.productImages.files?.length) {
+    setActionFeedback("第二步至少需要上传 1 张产品图。", true);
+    return;
+  }
+  if (currentWizardStep === 3) {
+    await handleGenerate();
+    return;
+  }
+  setWizardStep(currentWizardStep + 1);
 }
 
 function setActionFeedback(message, isError = false) {

@@ -22,10 +22,12 @@ test("workspace shell no longer exposes disconnected draft controls", () => {
 
 test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /id="modelImageFile"/);
-  assert.match(workspaceHtml, /上传素材，生成可投放视频提示词/);
-  assert.match(workspaceHtml, /可选参考/);
-  assert.match(workspaceHtml, /生成条数/);
-  assert.match(workspaceHtml, /一键提交去跑视频/);
+  assert.match(workspaceHtml, /创建复刻任务/);
+  assert.match(workspaceHtml, /基础信息/);
+  assert.match(workspaceHtml, /上传素材/);
+  assert.match(workspaceHtml, /生成要求/);
+  assert.match(workspaceHtml, /结果与提交/);
+  assert.match(workspaceHtml, /下一步/);
   assert.match(workspaceHtml, /官方高级后台/);
-  assert.match(workspaceHtml, /系统会按平台自动切换中英文提示词/);
+  assert.match(workspaceHtml, /左侧步骤/);
 });
