@@ -111,6 +111,9 @@ const nodes = {
   wizardStepTag: document.querySelector("#wizardStepTag"),
   wizardStepTitle: document.querySelector("#wizardStepTitle"),
   wizardStepDescription: document.querySelector("#wizardStepDescription"),
+  currentTaskStatusBadge: document.querySelector("#currentTaskStatusBadge"),
+  currentTaskUnitLabel: document.querySelector("#currentTaskUnitLabel"),
+  currentTaskHint: document.querySelector("#currentTaskHint"),
   actionFeedback: document.querySelector("#actionFeedback"),
   remakeButton: document.querySelector("#remakeButton"),
   seriesCount: document.querySelector("#seriesCount"),
@@ -343,20 +346,29 @@ function renderProjects() {
   ensureCurrentProject();
   nodes.seriesCount.textContent = `${projects.length} 个项目`;
   nodes.seriesStats.innerHTML = `
-    <div class="badge">最近生成 ${projects.length} 次</div>
+    <div class="badge">当前沉淀 ${projects.length} 个任务</div>
     <div class="badge">已沉淀模板 ${accountTemplates.length} 个</div>
-    <div class="badge">输出：提示词 / 提交入口 / 历史回看</div>
+    <div class="badge">输出：提示词 / 提交入口 / 镜头微调</div>
   `;
 
   if (projects.length === 0) {
     currentProjectId = null;
     currentPackage = null;
-    nodes.projectDetailPanel.innerHTML = "";
+    nodes.currentTaskStatusBadge.textContent = "等待生成";
+    nodes.currentTaskUnitLabel.textContent = "第 1 条";
+    nodes.currentTaskHint.textContent = "上传素材并填写要求后，点击生成提示词，当前任务会显示在这里。";
+    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有任务详情</strong><p>生成后，这里会显示项目摘要、提示词、批量任务和镜头细节。</p></div>`;
     nodes.shotEditorPanel.innerHTML = "";
-    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有生成结果</strong><p>先上传产品图，再补一句要求；如果你有对标主页，也可以顺手贴上。</p></div>`;
+    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有任务结果</strong><p>先上传产品图，再补一句要求。生成后，这里会保留最近任务和第一条提示词预览。</p></div>`;
     updateResultButtons();
     return;
   }
+
+  nodes.currentTaskStatusBadge.textContent = "可提交";
+  nodes.currentTaskUnitLabel.textContent = `第 1 条 / 共 ${currentPackage?.batchVideoTasks?.length || 1} 条`;
+  nodes.currentTaskHint.textContent = currentPackage
+    ? `当前项目：${currentPackage.project.projectName}。先检查摘要和提示词，再决定复制、提交或微调镜头。`
+    : "当前任务已准备好，可以继续处理。";
 
   nodes.seriesList.innerHTML = projects
     .slice(0, 6)
@@ -365,23 +377,27 @@ function renderProjects() {
       const firstPrompt = pkg.prompts.videoShots[0];
       const isActive = item.id === currentProjectId;
       return `
-        <article class="panel projectListCard ${isActive ? "is-active" : ""}">
-          <div class="panelHead">
+        <article class="panel projectListCard wizardQueueCard ${isActive ? "is-active" : ""}">
+          <div class="panelHead wizardQueueHead">
             <div class="projectListMeta">
               <strong>${escapeHtml(pkg.project.projectName)}</strong>
-              <span class="countBadge">${pkg.shots.length} 个镜头</span>
-              <span class="countBadge">${escapeHtml(pkg.project.accountTemplate?.name || "未选模板")}</span>
+              <div class="wizardQueueBadges">
+                <span class="countBadge">${pkg.shots.length} 个镜头</span>
+                <span class="countBadge">${pkg.batchVideoTasks?.length || 0} 条任务</span>
+                <span class="countBadge">${escapeHtml(pkg.project.accountTemplate?.name || "未选模板")}</span>
+              </div>
             </div>
             <div class="projectListActions">
-              <button class="ghostButton projectListButton" type="button" data-project-select="${item.id}">${isActive ? "当前项目" : "切换到这里"}</button>
+              <button class="ghostButton projectListButton" type="button" data-project-select="${item.id}">${isActive ? "当前任务" : "切换到这里"}</button>
               <button class="ghostButton projectListDeleteButton" type="button" data-project-delete="${item.id}">删除</button>
             </div>
           </div>
-          <p>${escapeHtml(pkg.project.referenceSummary)}</p>
-          <p><strong>商品：</strong>${escapeHtml(pkg.project.productName)}</p>
-          <p><strong>模板：</strong>${escapeHtml(pkg.project.accountTemplate?.name || "未填写")}</p>
-          <p><strong>提示词数量：</strong>${pkg.batchVideoTasks?.length || 0}</p>
-          <details>
+          <div class="wizardQueueBody">
+            <p>${escapeHtml(pkg.project.referenceSummary)}</p>
+            <p><strong>商品：</strong>${escapeHtml(pkg.project.productName)}</p>
+            <p><strong>当前重点：</strong>${escapeHtml(pkg.project.sellingPoints?.[0] || "按当前项目主卖点执行")}</p>
+          </div>
+          <details class="wizardQueuePrompt">
             <summary>查看第一条提示词</summary>
             <pre>${escapeHtml(pkg.batchVideoTasks?.[0]?.prompt || firstPrompt)}</pre>
           </details>
@@ -398,7 +414,7 @@ function renderProjects() {
 
 function renderProjectDetail() {
   if (!currentPackage) {
-    nodes.projectDetailPanel.innerHTML = "";
+    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有任务详情</strong><p>生成后，这里会显示项目摘要、提示词、批量任务和镜头细节。</p></div>`;
     return;
   }
 

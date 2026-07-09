@@ -234,30 +234,47 @@
                       </div>
                       <span id="seriesCount" class="countBadge">0 个项目</span>
                     </div>
-                    <div id="seriesStats" class="projectStatsGrid wizardResultStats" aria-label="剧集生产统计"></div>
-                    <div class="resultActions consumerResultActions wizardResultActions">
-                      <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>一键提交去跑视频</button>
-                      <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
-                      <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
-                      <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
-                    </div>
-                    <div class="wizardResultHistory">
-                      <div class="panelHead">
-                        <div>
-                          <strong>最近生成</strong>
-                          <p>这里只保留最近项目和第一条提示词预览。</p>
-                        </div>
-                        <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
+                <div id="seriesStats" class="projectStatsGrid wizardResultStats" aria-label="剧集生产统计"></div>
+                <div class="resultActions consumerResultActions wizardResultActions">
+                  <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>一键提交去跑视频</button>
+                  <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
+                  <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
+                  <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
+                </div>
+                <div class="wizardResultWorkspace">
+                  <section class="wizardTaskStageCard">
+                    <div class="wizardTaskStageHead">
+                      <div>
+                        <span class="wizardResultTag">当前任务工作区</span>
+                        <strong>先看当前项目，再决定复制、提交还是微调</strong>
+                        <p id="currentTaskHint">生成完成后，当前项目的摘要、提示词和镜头会显示在这里。</p>
                       </div>
-                      <div id="seriesList" class="seriesList"></div>
+                      <div class="wizardTaskStageMeta">
+                        <span id="currentTaskStatusBadge" class="countBadge">等待生成</span>
+                        <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
+                      </div>
                     </div>
-                    <details class="advancedPanel wizardResultAdvanced">
-                      <summary>展开详细结果、本地服务和历史导入</summary>
-                      <div class="advancedPanelBody">
-                        <div class="resultActions">
-                          <label class="ghostButton importButton">
-                            导入 JSON
-                            <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                    <div id="projectDetailPanel" class="projectDetailPanel"></div>
+                  </section>
+
+                  <section class="wizardResultHistory">
+                    <div class="panelHead">
+                      <div>
+                        <strong>最近任务队列</strong>
+                        <p>这里切换最近项目，默认保留第一条提示词预览和基础状态。</p>
+                      </div>
+                      <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
+                    </div>
+                    <div id="seriesList" class="seriesList"></div>
+                  </section>
+                </div>
+                <details class="advancedPanel wizardResultAdvanced">
+                  <summary>展开镜头微调、本地服务和历史导入</summary>
+                  <div class="advancedPanelBody">
+                    <div class="resultActions">
+                      <label class="ghostButton importButton">
+                        导入 JSON
+                        <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
                           </label>
                           <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
                         </div>
@@ -275,7 +292,6 @@
                             <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
                           </div>
                         </div>
-                        <div id="projectDetailPanel" class="projectDetailPanel"></div>
                         <div id="shotEditorPanel" class="shotEditorPanel"></div>
                       </div>
                     </details>

@@ -3197,10 +3197,10 @@ body {
 .wizardSidebar,
 .wizardCard,
 .officialBackstagePanel {
-  border: 1px solid rgba(228, 220, 205, 0.12);
+  border: 1px solid rgba(139, 151, 140, 0.12);
   border-radius: 24px;
-  background: #121513;
-  box-shadow: 0 18px 44px rgba(12, 14, 13, 0.28);
+  background: #2f372f;
+  box-shadow: 0 18px 44px rgba(28, 32, 29, 0.18);
 }
 
 .wizardSidebar {
@@ -3209,9 +3209,9 @@ body {
   display: grid;
   gap: 14px;
   padding: 16px;
-  border-color: rgba(255, 255, 255, 0.06);
-  background: linear-gradient(180deg, #111814 0%, #1a241d 100%);
-  box-shadow: 0 18px 44px rgba(11, 16, 13, 0.28);
+  border-color: rgba(241, 236, 225, 0.08);
+  background: linear-gradient(180deg, #304036 0%, #263129 100%);
+  box-shadow: 0 18px 44px rgba(34, 40, 36, 0.16);
 }
 
 .wizardEyebrow {
@@ -3250,16 +3250,16 @@ body {
   gap: 12px;
   width: 100%;
   padding: 12px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(244, 239, 228, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 252, 246, 0.04);
   color: #eef2ec;
   text-align: left;
 }
 
 .wizardStepItem.is-active {
-  border-color: rgba(178, 214, 184, 0.28);
-  background: linear-gradient(135deg, rgba(165, 201, 171, 0.16), rgba(255, 255, 255, 0.08));
+  border-color: rgba(220, 197, 132, 0.34);
+  background: linear-gradient(135deg, rgba(210, 191, 138, 0.18), rgba(255, 252, 246, 0.08));
 }
 
 .wizardStepItem.is-complete {
@@ -3295,9 +3295,9 @@ body {
 
 .wizardSidebarTips {
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(244, 239, 228, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 252, 246, 0.04);
 }
 
 .wizardSidebarTips strong {
@@ -3311,9 +3311,9 @@ body {
 }
 
 .wizardBackstageEntry {
-  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border: 1px dashed rgba(244, 239, 228, 0.12);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 252, 246, 0.03);
 }
 
 .wizardBackstageEntry summary {
@@ -3344,8 +3344,8 @@ body {
   gap: 18px;
   padding: 20px;
   background:
-    radial-gradient(circle at top right, rgba(192, 159, 62, 0.16), transparent 22%),
-    linear-gradient(180deg, #151917 0%, #0f1211 100%);
+    radial-gradient(circle at top right, rgba(213, 191, 137, 0.14), transparent 22%),
+    linear-gradient(180deg, #39443b 0%, #313a33 100%);
 }
 
 .wizardCardHead {
@@ -3353,7 +3353,7 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(246, 241, 231, 0.08);
 }
 
 .wizardCardTag {
@@ -3361,9 +3361,9 @@ body {
   align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(196, 168, 83, 0.24);
-  background: rgba(211, 180, 74, 0.12);
-  color: #e9d08c;
+  border: 1px solid rgba(225, 210, 168, 0.22);
+  background: rgba(247, 241, 226, 0.08);
+  color: #f1e4bd;
   font-size: 12px;
   font-weight: 800;
 }
@@ -3376,7 +3376,7 @@ body {
 
 .wizardCardHead p {
   font-size: 13px;
-  color: rgba(231, 228, 219, 0.68);
+  color: rgba(242, 237, 227, 0.74);
 }
 
 .wizardPanel {
@@ -3397,10 +3397,10 @@ body {
 .wizardInfoBlock,
 .wizardOptionalBox,
 .wizardUploadCard {
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(247, 242, 232, 0.08);
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  background: linear-gradient(180deg, rgba(255, 252, 246, 0.07), rgba(255, 252, 246, 0.04));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .wizardInfoBlock {
@@ -3423,8 +3423,8 @@ body {
 .wizardCard .fieldBlock input,
 .wizardCard .fieldBlock textarea,
 .wizardCard .fieldBlock select {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 252, 246, 0.08);
+  border: 1px solid rgba(248, 243, 233, 0.1);
+  background: rgba(255, 250, 243, 0.1);
   color: #f7f2e7;
   box-shadow: none;
 }
@@ -3437,8 +3437,8 @@ body {
 .wizardCard .fieldBlock input:focus,
 .wizardCard .fieldBlock textarea:focus,
 .wizardCard .fieldBlock select:focus {
-  border-color: rgba(226, 193, 99, 0.44);
-  box-shadow: 0 0 0 4px rgba(214, 180, 83, 0.08);
+  border-color: rgba(225, 205, 152, 0.5);
+  box-shadow: 0 0 0 4px rgba(231, 214, 171, 0.1);
 }
 
 .wizardInfoBlock small,
@@ -3507,8 +3507,8 @@ body {
   min-height: 168px;
   height: 168px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(180deg, rgba(244, 238, 226, 0.08), rgba(244, 238, 226, 0.03));
+  border: 1px solid rgba(248, 243, 233, 0.08);
+  background: linear-gradient(180deg, rgba(252, 248, 239, 0.1), rgba(252, 248, 239, 0.04));
 }
 
 .wizardUploadTile {
@@ -3518,8 +3518,8 @@ body {
   display: grid;
   place-items: center;
   border-radius: 20px;
-  border: 1.5px dashed rgba(214, 179, 76, 0.34);
-  background: linear-gradient(180deg, rgba(196, 165, 78, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1.5px dashed rgba(212, 194, 144, 0.36);
+  background: linear-gradient(180deg, rgba(244, 234, 208, 0.1), rgba(255, 255, 255, 0.04));
 }
 
 .wizardUploadTile strong {
@@ -3527,7 +3527,7 @@ body {
   height: auto;
   border: 0;
   font-size: 18px;
-  color: #f2e5b4;
+  color: #f5e8be;
   font-weight: 800;
 }
 
@@ -3537,16 +3537,16 @@ body {
 }
 
 .wizardInlineDetails {
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(247, 242, 232, 0.08);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 252, 246, 0.04);
 }
 
 .wizardInlineDetails summary {
   padding: 12px 14px;
   cursor: pointer;
   list-style: none;
-  color: #efe1a4;
+  color: #f2e5bc;
   font-weight: 800;
 }
 
@@ -3583,12 +3583,12 @@ body {
   display: grid;
   gap: 14px;
   padding: 16px;
-  border: 1px solid rgba(214, 181, 84, 0.14);
+  border: 1px solid rgba(212, 199, 162, 0.16);
   border-radius: 20px;
   background:
-    radial-gradient(circle at top right, rgba(210, 173, 65, 0.16), transparent 30%),
-    linear-gradient(180deg, rgba(34, 37, 34, 0.96), rgba(20, 22, 20, 0.96));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    radial-gradient(circle at top right, rgba(224, 210, 174, 0.14), transparent 30%),
+    linear-gradient(180deg, rgba(67, 77, 68, 0.98), rgba(54, 62, 55, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .wizardActionHero {
@@ -3596,8 +3596,8 @@ body {
   gap: 8px;
   padding: 16px;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(212, 178, 73, 0.18), rgba(212, 178, 73, 0.08));
-  border: 1px solid rgba(216, 186, 96, 0.26);
+  background: linear-gradient(180deg, rgba(233, 224, 197, 0.16), rgba(233, 224, 197, 0.08));
+  border: 1px solid rgba(232, 222, 193, 0.22);
 }
 
 .wizardActionEyebrow {
@@ -3605,20 +3605,20 @@ body {
   width: fit-content;
   padding: 5px 9px;
   border-radius: 999px;
-  background: rgba(15, 18, 16, 0.34);
-  color: #f3df9b;
+  background: rgba(255, 250, 240, 0.12);
+  color: #f4e6bc;
   font-size: 12px;
   font-weight: 800;
 }
 
 .wizardActionHero strong {
-  color: #fff3c8;
+  color: #fff7df;
   font-size: 24px;
   line-height: 1.1;
 }
 
 .wizardActionHero p {
-  color: rgba(255, 245, 211, 0.76);
+  color: rgba(252, 245, 225, 0.8);
   font-size: 13px;
 }
 
@@ -3627,9 +3627,9 @@ body {
   display: grid;
   gap: 10px;
   padding: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(247, 242, 232, 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 252, 246, 0.05);
 }
 
 .wizardActionMetaRow {
@@ -3670,16 +3670,16 @@ body {
 
 .wizardDockActions .primaryButton {
   min-height: 64px;
-  border: 1px solid rgba(227, 194, 93, 0.6);
-  background: linear-gradient(180deg, #ddc15e 0%, #c5a43f 100%);
-  color: #272112;
-  box-shadow: 0 16px 36px rgba(190, 154, 53, 0.28);
+  border: 1px solid rgba(230, 214, 173, 0.72);
+  background: linear-gradient(180deg, #ead7a1 0%, #d7bb72 100%);
+  color: #3b311d;
+  box-shadow: 0 14px 28px rgba(182, 156, 86, 0.2);
 }
 
 .wizardDockActions .ghostButton {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.05);
-  color: #f1ead7;
+  border-color: rgba(248, 243, 233, 0.1);
+  background: rgba(255, 252, 246, 0.08);
+  color: #f5efdf;
 }
 
 .wizardResultPanel {
@@ -3695,9 +3695,9 @@ body {
   justify-content: space-between;
   gap: 14px;
   padding: 20px;
-  border: 1px solid rgba(214, 181, 84, 0.18);
+  border: 1px solid rgba(232, 220, 189, 0.16);
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(217, 186, 93, 0.16), rgba(255, 255, 255, 0.04));
+  background: linear-gradient(135deg, rgba(241, 231, 203, 0.12), rgba(255, 255, 255, 0.04));
 }
 
 .wizardResultTag {
@@ -3706,8 +3706,8 @@ body {
   width: fit-content;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(214, 183, 89, 0.14);
-  color: #f2dc9a;
+  background: rgba(246, 239, 223, 0.08);
+  color: #f3e3b4;
   font-size: 12px;
   font-weight: 800;
 }
@@ -3732,13 +3732,103 @@ body {
   gap: 12px;
 }
 
+.wizardResultWorkspace {
+  display: grid;
+  gap: 16px;
+}
+
+.wizardTaskStageCard {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid rgba(247, 242, 232, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 252, 246, 0.06), rgba(255, 252, 246, 0.03));
+}
+
+.wizardTaskStageHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.wizardTaskStageHead strong {
+  display: block;
+  margin-top: 10px;
+  color: #f4eee0;
+  font-size: 22px;
+}
+
+.wizardTaskStageHead p {
+  margin-top: 6px;
+  color: rgba(232, 226, 213, 0.72);
+}
+
+.wizardTaskStageMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .wizardResultHistory {
   display: grid;
   gap: 14px;
   padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(247, 242, 232, 0.08);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 252, 246, 0.04);
+}
+
+.wizardQueueCard {
+  border-radius: 18px;
+  border: 1px solid rgba(247, 242, 232, 0.08);
+  background: rgba(255, 252, 246, 0.05);
+  padding: 16px;
+}
+
+.wizardQueueCard.is-active {
+  border-color: rgba(229, 214, 174, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(232, 220, 189, 0.08);
+}
+
+.wizardQueueHead {
+  gap: 14px;
+}
+
+.wizardQueueBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.wizardQueueBody {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  color: rgba(240, 235, 224, 0.76);
+}
+
+.wizardQueuePrompt {
+  margin-top: 12px;
+}
+
+.wizardQueuePrompt summary {
+  cursor: pointer;
+  color: #f0e1b0;
+  font-weight: 800;
+}
+
+.wizardQueuePrompt pre {
+  margin: 10px 0 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(10, 12, 11, 0.22);
+  color: #f5efe0;
+  white-space: pre-wrap;
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .wizardResultAdvanced {
