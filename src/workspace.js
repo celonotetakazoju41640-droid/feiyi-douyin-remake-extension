@@ -26,11 +26,13 @@ const storageKey = "feiyi-douyin-fuke-projects";
 const templateStorageKey = "feiyi-douyin-fuke-account-templates";
 const profileSampleSortStorageKey = "feiyi-douyin-fuke-profile-sample-sort";
 const profileSampleMinViewsStorageKey = "feiyi-douyin-fuke-profile-sample-min-views";
+const onboardingSeenStorageKey = "feiyi-douyin-fuke-onboarding-seen";
 
 const nodes = {
   serviceStatus: document.querySelector("#serviceStatus"),
   startServiceButton: document.querySelector("#startServiceButton"),
   refreshButton: document.querySelector("#refreshButton"),
+  openOnboardingButton: document.querySelector("#openOnboardingButton"),
   serviceHelpPanel: document.querySelector("#serviceHelpPanel"),
   copyStartCommandButton: document.querySelector("#copyStartCommandButton"),
   retryHealthButton: document.querySelector("#retryHealthButton"),
@@ -116,6 +118,7 @@ const nodes = {
   currentTaskHint: document.querySelector("#currentTaskHint"),
   actionFeedback: document.querySelector("#actionFeedback"),
   remakeButton: document.querySelector("#remakeButton"),
+  reopenOnboardingDockButton: document.querySelector("#reopenOnboardingDockButton"),
   seriesCount: document.querySelector("#seriesCount"),
   seriesStats: document.querySelector("#seriesStats"),
   seriesList: document.querySelector("#seriesList"),
@@ -125,7 +128,12 @@ const nodes = {
   downloadBundleButton: document.querySelector("#downloadBundleButton"),
   downloadJsonButton: document.querySelector("#downloadJsonButton"),
   downloadMarkdownButton: document.querySelector("#downloadMarkdownButton"),
-  clearProjectsButton: document.querySelector("#clearProjectsButton")
+  clearProjectsButton: document.querySelector("#clearProjectsButton"),
+  onboardingModal: document.querySelector("#onboardingModal"),
+  onboardingBackdrop: document.querySelector("#onboardingBackdrop"),
+  closeOnboardingButton: document.querySelector("#closeOnboardingButton"),
+  dismissOnboardingButton: document.querySelector("#dismissOnboardingButton"),
+  acknowledgeOnboardingButton: document.querySelector("#acknowledgeOnboardingButton")
 };
 
 let currentPackage = null;
@@ -144,6 +152,7 @@ let profileMinViewsFilter = loadProfileSampleMinViewsFilter();
 let pinnedProfileVideoUrls = [];
 let excludedProfileVideoUrls = new Set();
 let currentWizardStep = 1;
+let onboardingVisible = false;
 
 init();
 
@@ -165,6 +174,7 @@ function init() {
   refreshBatchServiceHealth();
   syncFlowStepState();
   renderWizardStep();
+  maybeShowOnboarding();
 }
 
 function bindEvents() {
@@ -182,6 +192,13 @@ function bindEvents() {
   nodes.sendBatchTasksButton.addEventListener("click", sendBatchTasksToService);
   nodes.wizardPrevButton?.addEventListener("click", handleWizardPrev);
   nodes.wizardNextButton?.addEventListener("click", handleWizardNext);
+  nodes.openOnboardingButton?.addEventListener("click", openOnboarding);
+  nodes.reopenOnboardingDockButton?.addEventListener("click", openOnboarding);
+  nodes.closeOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
+  nodes.dismissOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
+  nodes.acknowledgeOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
+  nodes.onboardingBackdrop?.addEventListener("click", () => closeOnboarding(true));
+  document.addEventListener("keydown", handleDocumentKeydown);
   document.querySelectorAll("[data-step-nav]").forEach((button) => {
     button.addEventListener("click", () => setWizardStep(Number(button.dataset.stepNav)));
   });
@@ -1799,6 +1816,36 @@ function setActionFeedback(message, isError = false) {
   nodes.actionFeedback.style.color = isError ? "#f08d78" : "rgba(234, 229, 216, 0.78)";
 }
 
+function handleDocumentKeydown(event) {
+  if (event.key === "Escape" && onboardingVisible) {
+    closeOnboarding(true);
+  }
+}
+
+function maybeShowOnboarding() {
+  if (loadOnboardingSeenState()) return;
+  window.requestAnimationFrame(() => {
+    openOnboarding();
+  });
+}
+
+function openOnboarding() {
+  if (!nodes.onboardingModal) return;
+  onboardingVisible = true;
+  nodes.onboardingModal.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeOnboarding(markSeen = true) {
+  if (!nodes.onboardingModal) return;
+  onboardingVisible = false;
+  nodes.onboardingModal.hidden = true;
+  document.body.classList.remove("modal-open");
+  if (markSeen) {
+    saveOnboardingSeenState(true);
+  }
+}
+
 function buildDefaultTemplates() {
   return [
     normalizeAccountTemplate({
@@ -1885,6 +1932,22 @@ function loadProjects() {
     return JSON.parse(localStorage.getItem(storageKey) || "[]");
   } catch {
     return [];
+  }
+}
+
+function loadOnboardingSeenState() {
+  try {
+    return localStorage.getItem(onboardingSeenStorageKey) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveOnboardingSeenState(seen) {
+  try {
+    localStorage.setItem(onboardingSeenStorageKey, seen ? "1" : "0");
+  } catch {
+    // 忽略本地存储异常，避免影响主流程。
   }
 }
 

@@ -19,6 +19,7 @@
         <div class="wizardTopMeta">
           <span class="wizardTopMetaLabel">任务向导</span>
           <span id="serviceStatus" class="statusBadge">检测中</span>
+          <button id="openOnboardingButton" class="ghostButton" type="button">使用要点</button>
           <button id="startServiceButton" class="startButton" type="button" hidden>启动服务</button>
           <button id="refreshButton" class="ghostButton" type="button" hidden>刷新</button>
         </div>
@@ -315,6 +316,7 @@
                     <strong>优先复用模板，没有再自动提炼</strong>
                   </div>
                 </div>
+                <button id="reopenOnboardingDockButton" class="wizardHelpButton" type="button">查看开始前要点</button>
                 <div class="wizardActionFeedbackCard">
                   <span class="miniLabel">当前提示</span>
                   <strong>操作反馈</strong>
@@ -534,6 +536,50 @@
         </section>
       </section>
     </main>
+    <div id="onboardingModal" class="onboardingModal" hidden>
+      <div id="onboardingBackdrop" class="onboardingBackdrop"></div>
+      <section class="onboardingDialog" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+        <button id="closeOnboardingButton" class="onboardingCloseButton" type="button" aria-label="关闭使用要点">×</button>
+        <div class="onboardingHead">
+          <span class="wizardEyebrow">开始前先看</span>
+          <h2 id="onboardingTitle">这 6 条会直接影响复刻结果</h2>
+          <p>这不是教程页，只是把最容易踩坑的规则提前讲清楚。看完再开始，生成结果会稳很多。</p>
+        </div>
+        <div class="onboardingRuleGrid">
+          <article class="onboardingRuleCard">
+            <strong>1. 产品图一定要单独传</strong>
+            <p>想控制商品外观、材质和包装，就传清晰产品图。不要把细节拼成一张长图。</p>
+          </article>
+          <article class="onboardingRuleCard">
+            <strong>2. 模特图只在要固定人物时才传</strong>
+            <p>不需要固定人物时可以不传，避免系统把注意力分散到角色而不是商品卖点。</p>
+          </article>
+          <article class="onboardingRuleCard">
+            <strong>3. 主页参考是辅助，不是硬依赖</strong>
+            <p>有对标主页就贴，没有也能直接生成。系统会先复用现成模板，没有再自动提炼。</p>
+          </article>
+          <article class="onboardingRuleCard">
+            <strong>4. 平台语言已经自动切好</strong>
+            <p>TikTok 默认出英文提示词，抖音默认中文。普通使用不用自己再切语言开关。</p>
+          </article>
+          <article class="onboardingRuleCard">
+            <strong>5. 如果已有脚本，要写明不要改动</strong>
+            <p>把“不要改动脚本，只补镜头和表达”直接写进创作要求，避免系统帮你重写结构。</p>
+          </article>
+          <article class="onboardingRuleCard">
+            <strong>6. 这里生成的是任务，不是直接成片</strong>
+            <p>第四步会给你提示词和提交入口。真正在视频工具里跑的时候，参考图也要继续带上。</p>
+          </article>
+        </div>
+        <div class="onboardingFooter">
+          <p>记不住也没关系，右上角和右侧操作区都能随时再打开这份要点。</p>
+          <div class="wizardFooterActions onboardingActions">
+            <button id="dismissOnboardingButton" class="ghostButton" type="button">稍后再看</button>
+            <button id="acknowledgeOnboardingButton" class="primaryButton" type="button">知道了，开始创建</button>
+          </div>
+        </div>
+      </section>
+    </div>
     <script type="module" src="./workspace.js"></script>
   </body>
 </html>
