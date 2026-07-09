@@ -92,204 +92,224 @@
                 <p id="wizardStepDescription">先选平台。如果有对标主页，这一步顺手贴上即可。</p>
               </div>
             </header>
-
-            <section class="wizardPanel is-active" data-step-panel="1">
-              <div class="wizardFormGrid">
-                <label class="fieldBlock">
-                  发布平台
-                  <select id="templatePlatform">
-                    <option value="tiktok">TikTok</option>
-                    <option value="douyin">抖音</option>
-                  </select>
-                </label>
-                <div class="wizardInfoBlock">
-                  <span class="miniLabel">系统语言</span>
-                  <strong>系统会按平台自动切换中英文提示词</strong>
-                  <small>TikTok 默认英文，抖音默认中文。</small>
-                  <select id="clipcatVoiceLanguage" hidden>
-                    <option value="英文">英文</option>
-                    <option value="中文">中文</option>
-                  </select>
-                </div>
-                <div class="wizardInfoBlock">
-                  <span class="miniLabel">主页参考</span>
-                  <strong id="profileScanStatus">系统自动</strong>
-                  <small>有主页就尽量参考，没有就走默认模板。</small>
-                  <input id="targetDuration" type="hidden" value="45" />
-                </div>
-              </div>
-
-              <div class="wizardOptionalBox">
-                <div class="wizardOptionalHead">
-                  <strong>可选参考</strong>
-                  <small>有对标账号或主页时再填</small>
-                </div>
-                <label class="fieldBlock">
-                  对标主页链接
-                  <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了会自动参考该主页风格" />
-                </label>
-                <p class="wizardHintText">系统会优先复用现成模板；没有现成模板时，再尝试自动提炼主页风格。</p>
-              </div>
-            </section>
-
-            <section class="wizardPanel" data-step-panel="2" hidden>
-              <div class="wizardUploadGrid">
-                <section class="wizardUploadCard">
-                  <div class="panelHead">
-                    <div>
-                      <strong>产品图</strong>
-                      <p>必填。上传后自动提炼商品名、卖点和提示词草稿。</p>
+            <div class="wizardStage">
+              <div class="wizardStageMain">
+                <section class="wizardPanel is-active" data-step-panel="1">
+                  <div class="wizardFormGrid">
+                    <label class="fieldBlock">
+                      发布平台
+                      <select id="templatePlatform">
+                        <option value="tiktok">TikTok</option>
+                        <option value="douyin">抖音</option>
+                      </select>
+                    </label>
+                    <div class="wizardInfoBlock">
+                      <span class="miniLabel">系统语言</span>
+                      <strong>系统会按平台自动切换中英文提示词</strong>
+                      <small>TikTok 默认英文，抖音默认中文。</small>
+                      <select id="clipcatVoiceLanguage" hidden>
+                        <option value="英文">英文</option>
+                        <option value="中文">中文</option>
+                      </select>
+                    </div>
+                    <div class="wizardInfoBlock">
+                      <span class="miniLabel">主页参考</span>
+                      <strong id="profileScanStatus">系统自动</strong>
+                      <small>有主页就尽量参考，没有就走默认模板。</small>
+                      <input id="targetDuration" type="hidden" value="45" />
                     </div>
                   </div>
-                  <div class="wizardPreviewRow">
-                    <div id="productPreviewItem" class="productPreviewItem wizardPreviewFrame">
-                      <div id="productHeroTile" class="productHeroTile wizardPreviewTile">
-                        <span id="productHeroBadge">示例</span>
-                        <div id="sampleProduct" class="sampleProduct"></div>
-                        <img id="productHeroImage" alt="商品图预览" hidden />
-                      </div>
+
+                  <div class="wizardOptionalBox">
+                    <div class="wizardOptionalHead">
+                      <strong>可选参考</strong>
+                      <small>有对标账号或主页时再填</small>
                     </div>
-                    <label class="uploadTile wizardUploadTile">
-                      <input id="productImages" type="file" accept="image/*" multiple />
-                      <strong>上传产品图</strong>
-                      <small>支持多张，至少放 1 张</small>
+                    <label class="fieldBlock">
+                      对标主页链接
+                      <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了会自动参考该主页风格" />
                     </label>
+                    <p class="wizardHintText">系统会优先复用现成模板；没有现成模板时，再尝试自动提炼主页风格。</p>
                   </div>
                 </section>
 
-                <section class="wizardUploadCard">
-                  <div class="panelHead">
-                    <div>
-                      <strong>模特图 / 人物参考</strong>
-                      <p>可选。需要固定人物风格时再上传。</p>
-                    </div>
-                  </div>
-                  <div class="wizardPreviewRow">
-                    <div class="productPreviewItem wizardPreviewFrame">
-                      <div class="productHeroTile wizardPreviewTile">
-                        <span>模特图</span>
-                        <div id="sampleModel" class="sampleProduct"></div>
-                        <img id="modelHeroImage" alt="模特图预览" hidden />
-                      </div>
-                    </div>
-                    <label class="uploadTile wizardUploadTile">
-                      <input id="modelImageFile" type="file" accept="image/*" />
-                      <strong>上传模特图</strong>
-                      <small>不传也可以直接生成</small>
-                    </label>
-                  </div>
-                </section>
-              </div>
-            </section>
-
-            <section class="wizardPanel" data-step-panel="3" hidden>
-              <div class="wizardFormGrid">
-                <label class="fieldBlock">
-                  当前商品名
-                  <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
-                </label>
-                <label class="fieldBlock">
-                  生成条数
-                  <select id="generationCount">
-                    <option value="1">1 条</option>
-                    <option value="2">2 条</option>
-                    <option value="3">3 条</option>
-                    <option value="4">4 条</option>
-                    <option value="5">5 条</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="wizardTextareaStack">
-                <label class="fieldBlock">
-                  你的创作要求
-                  <textarea
-                    id="referenceBrief"
-                    rows="5"
-                    placeholder="写你想要的内容风格、场景、开场方式和核心卖点。比如：模特在厨房里先闻到异味，再拿出产品，30 秒内做前后对比。"
-                  ></textarea>
-                </label>
-                <details class="wizardInlineDetails">
-                  <summary>展开自动拆出的卖点</summary>
-                  <label class="fieldBlock">
-                    自动拆出的卖点
-                    <textarea
-                      id="productNotes"
-                      rows="4"
-                      placeholder="上传产品图后，这里会自动拆一版卖点。你也可以自己补充，比如：去异味快 / 不靠香精遮味 / 适合夏天冰箱。"
-                    ></textarea>
-                  </label>
-                </details>
-              </div>
-            </section>
-
-            <section class="wizardPanel" data-step-panel="4" hidden>
-              <section class="projectPanel wizardResultPanel">
-                <div class="wizardResultHero">
-                  <div>
-                    <span class="wizardResultTag">完成并提交</span>
-                    <strong>结果与提交</strong>
-                    <p>先复制提示词或直接提交去跑视频。更细的结果和本地服务放在下方折叠区。</p>
-                  </div>
-                  <span id="seriesCount" class="countBadge">0 个项目</span>
-                </div>
-                <div id="seriesStats" class="projectStatsGrid wizardResultStats" aria-label="剧集生产统计"></div>
-                <div class="resultActions consumerResultActions wizardResultActions">
-                  <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>一键提交去跑视频</button>
-                  <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
-                  <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
-                  <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
-                </div>
-                <div class="wizardResultHistory">
-                  <div class="panelHead">
-                    <div>
-                      <strong>最近生成</strong>
-                      <p>这里只保留最近项目和第一条提示词预览。</p>
-                    </div>
-                    <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
-                  </div>
-                  <div id="seriesList" class="seriesList"></div>
-                </div>
-                <details class="advancedPanel wizardResultAdvanced">
-                  <summary>展开详细结果、本地服务和历史导入</summary>
-                  <div class="advancedPanelBody">
-                    <div class="resultActions">
-                      <label class="ghostButton importButton">
-                        导入 JSON
-                        <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
-                      </label>
-                      <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
-                    </div>
-                    <div id="batchServicePanel" class="batchServicePanel">
+                <section class="wizardPanel" data-step-panel="2" hidden>
+                  <div class="wizardUploadGrid">
+                    <section class="wizardUploadCard">
                       <div class="panelHead">
                         <div>
-                          <strong>本地视频任务服务</strong>
-                          <p>这里负责接住批量短视频任务，并读取你本机已有的 Packy / Gemini 配置。</p>
+                          <strong>产品图</strong>
+                          <p>必填。上传后自动提炼商品名、卖点和提示词草稿。</p>
                         </div>
-                        <span id="batchServiceStatus" class="statusBadge">未检测</span>
                       </div>
-                      <code id="batchServiceCommand">node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs</code>
-                      <div class="resultActions">
-                        <button id="copyBatchServiceCommandButton" class="ghostButton" type="button">复制启动命令</button>
-                        <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
+                      <div class="wizardPreviewRow">
+                        <div id="productPreviewItem" class="productPreviewItem wizardPreviewFrame">
+                          <div id="productHeroTile" class="productHeroTile wizardPreviewTile">
+                            <span id="productHeroBadge">示例</span>
+                            <div id="sampleProduct" class="sampleProduct"></div>
+                            <img id="productHeroImage" alt="商品图预览" hidden />
+                          </div>
+                        </div>
+                        <label class="uploadTile wizardUploadTile">
+                          <input id="productImages" type="file" accept="image/*" multiple />
+                          <strong>上传产品图</strong>
+                          <small>支持多张，至少放 1 张</small>
+                        </label>
                       </div>
-                    </div>
-                    <div id="projectDetailPanel" class="projectDetailPanel"></div>
-                    <div id="shotEditorPanel" class="shotEditorPanel"></div>
-                  </div>
-                </details>
-              </section>
-            </section>
+                    </section>
 
-            <footer class="wizardFooter">
-              <div class="wizardFooterLeft">
-                <span id="actionFeedback">先完成基础信息，再按下一步继续。</span>
+                    <section class="wizardUploadCard">
+                      <div class="panelHead">
+                        <div>
+                          <strong>模特图 / 人物参考</strong>
+                          <p>可选。需要固定人物风格时再上传。</p>
+                        </div>
+                      </div>
+                      <div class="wizardPreviewRow">
+                        <div class="productPreviewItem wizardPreviewFrame">
+                          <div class="productHeroTile wizardPreviewTile">
+                            <span>模特图</span>
+                            <div id="sampleModel" class="sampleProduct"></div>
+                            <img id="modelHeroImage" alt="模特图预览" hidden />
+                          </div>
+                        </div>
+                        <label class="uploadTile wizardUploadTile">
+                          <input id="modelImageFile" type="file" accept="image/*" />
+                          <strong>上传模特图</strong>
+                          <small>不传也可以直接生成</small>
+                        </label>
+                      </div>
+                    </section>
+                  </div>
+                </section>
+
+                <section class="wizardPanel" data-step-panel="3" hidden>
+                  <div class="wizardFormGrid">
+                    <label class="fieldBlock">
+                      当前商品名
+                      <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
+                    </label>
+                    <label class="fieldBlock">
+                      生成条数
+                      <select id="generationCount">
+                        <option value="1">1 条</option>
+                        <option value="2">2 条</option>
+                        <option value="3">3 条</option>
+                        <option value="4">4 条</option>
+                        <option value="5">5 条</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="wizardTextareaStack">
+                    <label class="fieldBlock">
+                      你的创作要求
+                      <textarea
+                        id="referenceBrief"
+                        rows="5"
+                        placeholder="写你想要的内容风格、场景、开场方式和核心卖点。比如：模特在厨房里先闻到异味，再拿出产品，30 秒内做前后对比。"
+                      ></textarea>
+                    </label>
+                    <details class="wizardInlineDetails">
+                      <summary>展开自动拆出的卖点</summary>
+                      <label class="fieldBlock">
+                        自动拆出的卖点
+                        <textarea
+                          id="productNotes"
+                          rows="4"
+                          placeholder="上传产品图后，这里会自动拆一版卖点。你也可以自己补充，比如：去异味快 / 不靠香精遮味 / 适合夏天冰箱。"
+                        ></textarea>
+                      </label>
+                    </details>
+                  </div>
+                </section>
+
+                <section class="wizardPanel" data-step-panel="4" hidden>
+                  <section class="projectPanel wizardResultPanel">
+                    <div class="wizardResultHero">
+                      <div>
+                        <span class="wizardResultTag">完成并提交</span>
+                        <strong>结果与提交</strong>
+                        <p>先复制提示词或直接提交去跑视频。更细的结果和本地服务放在下方折叠区。</p>
+                      </div>
+                      <span id="seriesCount" class="countBadge">0 个项目</span>
+                    </div>
+                    <div id="seriesStats" class="projectStatsGrid wizardResultStats" aria-label="剧集生产统计"></div>
+                    <div class="resultActions consumerResultActions wizardResultActions">
+                      <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>一键提交去跑视频</button>
+                      <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
+                      <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
+                      <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
+                    </div>
+                    <div class="wizardResultHistory">
+                      <div class="panelHead">
+                        <div>
+                          <strong>最近生成</strong>
+                          <p>这里只保留最近项目和第一条提示词预览。</p>
+                        </div>
+                        <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
+                      </div>
+                      <div id="seriesList" class="seriesList"></div>
+                    </div>
+                    <details class="advancedPanel wizardResultAdvanced">
+                      <summary>展开详细结果、本地服务和历史导入</summary>
+                      <div class="advancedPanelBody">
+                        <div class="resultActions">
+                          <label class="ghostButton importButton">
+                            导入 JSON
+                            <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                          </label>
+                          <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+                        </div>
+                        <div id="batchServicePanel" class="batchServicePanel">
+                          <div class="panelHead">
+                            <div>
+                              <strong>本地视频任务服务</strong>
+                              <p>这里负责接住批量短视频任务，并读取你本机已有的 Packy / Gemini 配置。</p>
+                            </div>
+                            <span id="batchServiceStatus" class="statusBadge">未检测</span>
+                          </div>
+                          <code id="batchServiceCommand">node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs</code>
+                          <div class="resultActions">
+                            <button id="copyBatchServiceCommandButton" class="ghostButton" type="button">复制启动命令</button>
+                            <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
+                          </div>
+                        </div>
+                        <div id="projectDetailPanel" class="projectDetailPanel"></div>
+                        <div id="shotEditorPanel" class="shotEditorPanel"></div>
+                      </div>
+                    </details>
+                  </section>
+                </section>
               </div>
-              <div class="wizardFooterActions">
-                <button id="wizardPrevButton" class="ghostButton" type="button">上一步</button>
-                <button id="wizardNextButton" class="primaryButton" type="button">下一步</button>
-              </div>
-            </footer>
+
+              <aside class="wizardActionDock">
+                <div class="wizardActionHero">
+                  <span class="wizardActionEyebrow">当前任务</span>
+                  <strong>按当前一步推进</strong>
+                  <p>先完成当前输入，再点下一步或直接生成。系统会自动处理语言和模板参考。</p>
+                </div>
+                <div class="wizardActionMeta">
+                  <div class="wizardActionMetaRow">
+                    <span>默认语言</span>
+                    <strong>TikTok 英文 / 抖音中文</strong>
+                  </div>
+                  <div class="wizardActionMetaRow">
+                    <span>参考方式</span>
+                    <strong>优先复用模板，没有再自动提炼</strong>
+                  </div>
+                </div>
+                <div class="wizardActionFeedbackCard">
+                  <span class="miniLabel">当前提示</span>
+                  <strong>操作反馈</strong>
+                  <p id="actionFeedback">先完成基础信息，再按下一步继续。</p>
+                </div>
+                <div class="wizardFooterActions wizardDockActions">
+                  <button id="wizardPrevButton" class="ghostButton" type="button">上一步</button>
+                  <button id="wizardNextButton" class="primaryButton" type="button">下一步</button>
+                </div>
+              </aside>
+            </div>
           </article>
 
           <details class="advancedPanel officialBackstagePanel">

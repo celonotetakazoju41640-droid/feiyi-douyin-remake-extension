@@ -1780,7 +1780,7 @@ async function handleWizardNext() {
 
 function setActionFeedback(message, isError = false) {
   nodes.actionFeedback.textContent = message;
-  nodes.actionFeedback.style.color = isError ? "#b42318" : "#475467";
+  nodes.actionFeedback.style.color = isError ? "#f08d78" : "rgba(234, 229, 216, 0.78)";
 }
 
 function buildDefaultTemplates() {

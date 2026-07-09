@@ -3135,15 +3135,15 @@ body {
 }
 
 .workspaceWizardShell {
-  width: min(1260px, calc(100vw - 28px));
-  padding: 14px 0 24px;
+  width: min(1320px, calc(100vw - 28px));
+  padding: 12px 0 24px;
   gap: 12px;
 }
 
 .wizardTopBar,
 .wizardLayout,
 .serviceHelpPanel {
-  width: min(1240px, 100%);
+  width: min(1300px, 100%);
   margin: 0 auto;
 }
 
@@ -3152,11 +3152,11 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 18px;
-  border: 1px solid #e3dccf;
-  border-radius: 16px;
-  background: rgba(255, 251, 244, 0.94);
-  box-shadow: 0 12px 38px rgba(43, 36, 26, 0.06);
+  padding: 10px 16px;
+  border: 1px solid rgba(42, 50, 44, 0.2);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(254, 252, 248, 0.98), rgba(247, 242, 232, 0.98));
+  box-shadow: 0 10px 28px rgba(21, 24, 22, 0.08);
 }
 
 .wizardTopBar .brandBlock img {
@@ -3171,7 +3171,7 @@ body {
 .wizardTopBar p {
   margin-top: 2px;
   font-size: 13px;
-  color: #727767;
+  color: #6f6d67;
 }
 
 .wizardTopMeta {
@@ -3182,25 +3182,25 @@ body {
 }
 
 .wizardTopMetaLabel {
-  color: #657060;
+  color: #625f58;
   font-size: 12px;
   font-weight: 700;
 }
 
 .wizardLayout {
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 236px minmax(0, 1fr);
+  gap: 16px;
   align-items: start;
 }
 
 .wizardSidebar,
 .wizardCard,
 .officialBackstagePanel {
-  border: 1px solid #e3dccf;
-  border-radius: 20px;
-  background: rgba(255, 252, 247, 0.96);
-  box-shadow: 0 14px 38px rgba(52, 44, 29, 0.06);
+  border: 1px solid rgba(228, 220, 205, 0.12);
+  border-radius: 24px;
+  background: #121513;
+  box-shadow: 0 18px 44px rgba(12, 14, 13, 0.28);
 }
 
 .wizardSidebar {
@@ -3209,7 +3209,7 @@ body {
   display: grid;
   gap: 14px;
   padding: 16px;
-  border-color: #19241c;
+  border-color: rgba(255, 255, 255, 0.06);
   background: linear-gradient(180deg, #111814 0%, #1a241d 100%);
   box-shadow: 0 18px 44px rgba(11, 16, 13, 0.28);
 }
@@ -3342,14 +3342,18 @@ body {
 .wizardCard {
   display: grid;
   gap: 18px;
-  padding: 18px;
-  background: linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(250, 246, 238, 0.98));
+  padding: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(192, 159, 62, 0.16), transparent 22%),
+    linear-gradient(180deg, #151917 0%, #0f1211 100%);
 }
 
 .wizardCardHead {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .wizardCardTag {
@@ -3357,21 +3361,22 @@ body {
   align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #eef2eb;
-  color: #3c5641;
+  border: 1px solid rgba(196, 168, 83, 0.24);
+  background: rgba(211, 180, 74, 0.12);
+  color: #e9d08c;
   font-size: 12px;
   font-weight: 800;
 }
 
 .wizardCardHead h2 {
   margin: 8px 0 4px;
-  font-size: 24px;
-  color: #213225;
+  font-size: 28px;
+  color: #f4efe4;
 }
 
 .wizardCardHead p {
   font-size: 13px;
-  color: #6d7567;
+  color: rgba(231, 228, 219, 0.68);
 }
 
 .wizardPanel {
@@ -3386,15 +3391,16 @@ body {
 .wizardFormGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .wizardInfoBlock,
 .wizardOptionalBox,
 .wizardUploadCard {
-  border: 1px solid #e6dece;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 18px;
-  background: #fbf7ef;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .wizardInfoBlock {
@@ -3404,8 +3410,43 @@ body {
 }
 
 .wizardInfoBlock strong {
-  color: #253528;
+  color: #f4eee0;
   font-size: 15px;
+}
+
+.wizardCard .fieldBlock,
+.wizardCard .panelHead p,
+.wizardCard .panelHead strong {
+  color: #f3ecdf;
+}
+
+.wizardCard .fieldBlock input,
+.wizardCard .fieldBlock textarea,
+.wizardCard .fieldBlock select {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 252, 246, 0.08);
+  color: #f7f2e7;
+  box-shadow: none;
+}
+
+.wizardCard .fieldBlock input::placeholder,
+.wizardCard .fieldBlock textarea::placeholder {
+  color: rgba(233, 227, 214, 0.42);
+}
+
+.wizardCard .fieldBlock input:focus,
+.wizardCard .fieldBlock textarea:focus,
+.wizardCard .fieldBlock select:focus {
+  border-color: rgba(226, 193, 99, 0.44);
+  box-shadow: 0 0 0 4px rgba(214, 180, 83, 0.08);
+}
+
+.wizardInfoBlock small,
+.wizardUploadCard .panelHead p,
+.wizardUploadTile small,
+.wizardHintText,
+.wizardOptionalHead small {
+  color: rgba(225, 221, 211, 0.62);
 }
 
 .wizardOptionalBox {
@@ -3421,18 +3462,13 @@ body {
   gap: 12px;
 }
 
-.wizardOptionalHead small,
-.wizardHintText {
-  color: #71796b;
-}
-
 .wizardHintText {
   margin: 0;
 }
 
 .wizardUploadGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 14px;
 }
 
@@ -3442,16 +3478,20 @@ body {
   padding: 14px;
 }
 
+.wizardUploadCard .panelHead strong {
+  font-size: 18px;
+}
+
 .wizardPreviewRow {
   display: grid;
-  grid-template-columns: 132px minmax(0, 1fr);
+  grid-template-columns: 168px minmax(0, 1fr);
   gap: 12px;
   align-items: stretch;
 }
 
 .wizardPreviewFrame {
-  width: 132px;
-  min-width: 132px;
+  width: 168px;
+  min-width: 168px;
 }
 
 .wizardPreviewRow .productPreviewItem,
@@ -3463,35 +3503,32 @@ body {
 }
 
 .wizardPreviewTile {
-  width: 132px;
-  min-height: 144px;
-  height: 144px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #fffdf8 0%, #f2ebdf 100%);
+  width: 168px;
+  min-height: 168px;
+  height: 168px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(244, 238, 226, 0.08), rgba(244, 238, 226, 0.03));
 }
 
 .wizardUploadTile {
   width: 100%;
-  min-height: 144px;
-  height: 144px;
+  min-height: 168px;
+  height: 168px;
   display: grid;
   place-items: center;
-  border-radius: 18px;
-  border: 1.5px dashed #a9b89e;
-  background: #f7f4ec;
+  border-radius: 20px;
+  border: 1.5px dashed rgba(214, 179, 76, 0.34);
+  background: linear-gradient(180deg, rgba(196, 165, 78, 0.08), rgba(255, 255, 255, 0.03));
 }
 
 .wizardUploadTile strong {
   width: auto;
   height: auto;
   border: 0;
-  font-size: 17px;
+  font-size: 18px;
+  color: #f2e5b4;
   font-weight: 800;
-}
-
-.wizardUploadTile small {
-  margin-top: 0;
-  color: #707867;
 }
 
 .wizardTextareaStack {
@@ -3500,16 +3537,16 @@ body {
 }
 
 .wizardInlineDetails {
-  border: 1px solid #e5ddcf;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 16px;
-  background: #fbf7ef;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .wizardInlineDetails summary {
   padding: 12px 14px;
   cursor: pointer;
   list-style: none;
-  color: #304235;
+  color: #efe1a4;
   font-weight: 800;
 }
 
@@ -3521,24 +3558,128 @@ body {
   padding: 0 14px 14px;
 }
 
-.wizardFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 14px;
-  border-top: 1px solid #efe7da;
-}
-
-.wizardFooterLeft {
-  min-width: 0;
-}
-
 .wizardFooterActions {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.wizardStage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 288px;
+  gap: 18px;
+  align-items: start;
+}
+
+.wizardStageMain {
+  display: grid;
+  gap: 18px;
+}
+
+.wizardActionDock {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(214, 181, 84, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(210, 173, 65, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(34, 37, 34, 0.96), rgba(20, 22, 20, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.wizardActionHero {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(212, 178, 73, 0.18), rgba(212, 178, 73, 0.08));
+  border: 1px solid rgba(216, 186, 96, 0.26);
+}
+
+.wizardActionEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(15, 18, 16, 0.34);
+  color: #f3df9b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.wizardActionHero strong {
+  color: #fff3c8;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.wizardActionHero p {
+  color: rgba(255, 245, 211, 0.76);
+  font-size: 13px;
+}
+
+.wizardActionMeta,
+.wizardActionFeedbackCard {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.wizardActionMetaRow {
+  display: grid;
+  gap: 4px;
+}
+
+.wizardActionMetaRow span,
+.wizardActionFeedbackCard .miniLabel {
+  color: rgba(222, 217, 204, 0.58);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wizardActionMetaRow strong,
+.wizardActionFeedbackCard strong {
+  color: #f4eee0;
+  font-size: 14px;
+}
+
+.wizardActionFeedbackCard p {
+  margin: 0;
+  color: rgba(234, 229, 216, 0.74);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.wizardDockActions {
+  display: grid;
+  gap: 10px;
+}
+
+.wizardDockActions .ghostButton,
+.wizardDockActions .primaryButton {
+  width: 100%;
+  justify-content: center;
+}
+
+.wizardDockActions .primaryButton {
+  min-height: 64px;
+  border: 1px solid rgba(227, 194, 93, 0.6);
+  background: linear-gradient(180deg, #ddc15e 0%, #c5a43f 100%);
+  color: #272112;
+  box-shadow: 0 16px 36px rgba(190, 154, 53, 0.28);
+}
+
+.wizardDockActions .ghostButton {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1ead7;
 }
 
 .wizardResultPanel {
@@ -3554,9 +3695,9 @@ body {
   justify-content: space-between;
   gap: 14px;
   padding: 20px;
-  border: 1px solid #e4dccd;
+  border: 1px solid rgba(214, 181, 84, 0.18);
   border-radius: 18px;
-  background: linear-gradient(135deg, #fbf8f1, #f3ecdf);
+  background: linear-gradient(135deg, rgba(217, 186, 93, 0.16), rgba(255, 255, 255, 0.04));
 }
 
 .wizardResultTag {
@@ -3565,8 +3706,8 @@ body {
   width: fit-content;
   padding: 6px 10px;
   border-radius: 999px;
-  background: #e8f0e6;
-  color: #406046;
+  background: rgba(214, 183, 89, 0.14);
+  color: #f2dc9a;
   font-size: 12px;
   font-weight: 800;
 }
@@ -3575,12 +3716,12 @@ body {
   display: block;
   margin-top: 10px;
   font-size: 24px;
-  color: #203024;
+  color: #f3ecdf;
 }
 
 .wizardResultHero p {
   margin-top: 6px;
-  color: #6d7567;
+  color: rgba(232, 226, 213, 0.68);
 }
 
 .wizardResultStats {
@@ -3595,9 +3736,9 @@ body {
   display: grid;
   gap: 14px;
   padding: 20px;
-  border: 1px solid #e4dccd;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 18px;
-  background: rgba(255, 253, 249, 0.86);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .wizardResultAdvanced {
@@ -3612,21 +3753,29 @@ body {
   .wizardSidebar {
     position: static;
   }
+
+  .wizardStage {
+    grid-template-columns: 1fr;
+  }
+
+  .wizardActionDock {
+    position: static;
+  }
 }
 
 @media (max-width: 820px) {
   .wizardFormGrid,
-  .wizardUploadGrid,
   .wizardPreviewRow {
     grid-template-columns: 1fr;
   }
 
-  .wizardResultHero {
-    flex-direction: column;
+  .wizardPreviewFrame,
+  .wizardPreviewTile {
+    width: 100%;
+    min-width: 0;
   }
 
-  .wizardFooter {
+  .wizardResultHero {
     flex-direction: column;
-    align-items: stretch;
   }
 }
