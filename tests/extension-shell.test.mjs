@@ -22,8 +22,8 @@ test("workspace shell no longer exposes disconnected draft controls", () => {
 
 test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /id="modelImageFile"/);
-  assert.match(workspaceHtml, /主页链接/);
+  assert.match(workspaceHtml, /对标主页链接/);
   assert.match(workspaceHtml, /生成几条提示词/);
-  assert.match(workspaceHtml, /高级设置/);
+  assert.match(workspaceHtml, /官方高级后台/);
   assert.match(workspaceHtml, /提示词语言（跟平台自动）/);
 });

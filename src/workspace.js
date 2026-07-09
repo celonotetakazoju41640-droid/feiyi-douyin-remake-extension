@@ -270,14 +270,14 @@ function handleProductImagesChange() {
   syncFlowStepState();
 }
 
-function handleGenerate() {
+async function handleGenerate() {
+  const template = await prepareTemplateForGeneration();
   const productName = nodes.productName.value.trim();
   const referenceSummary = nodes.referenceBrief.value.trim();
   const sellingPoints = splitLines(nodes.productNotes.value);
-  const template = getSelectedTemplate();
 
   if (!template) {
-    setActionFeedback("请先选择或新建一个对标账户模板。", true);
+    setActionFeedback("当前还没有可用模板，请补一个对标链接或稍后再试。", true);
     return;
   }
   if (!productName) {
@@ -339,7 +339,7 @@ function renderProjects() {
     currentPackage = null;
     nodes.projectDetailPanel.innerHTML = "";
     nodes.shotEditorPanel.innerHTML = "";
-    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有生成结果</strong><p>先填主页链接生成模板，再上传模特图或产品图，最后点“生成提示词”。</p></div>`;
+    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有生成结果</strong><p>先上传产品图，再补一句要求；如果你有对标主页，也可以顺手贴上。</p></div>`;
     updateResultButtons();
     return;
   }
@@ -671,8 +671,8 @@ function handleTemplatePlatformChange() {
   renderProfileScanState();
   setActionFeedback(
     nodes.templatePlatform.value === "douyin"
-      ? "已切到抖音模式，默认会生成中文提示词。"
-      : "已切到 TikTok 模式，默认会生成英文提示词。"
+      ? "已切到抖音模式。系统会默认用中文提示词，并优先匹配抖音模板。"
+      : "已切到 TikTok 模式。系统会默认用英文提示词，并优先匹配 TikTok 模板。"
   );
   syncFlowStepState();
 }
@@ -802,6 +802,64 @@ function applyTemplateToGenerationFields() {
   updatePlatformDependentUi();
 }
 
+async function prepareTemplateForGeneration() {
+  const platform = nodes.templatePlatform.value || "tiktok";
+  const profileUrl = nodes.templateProfileUrl.value.trim();
+  const preferredTemplate = pickPreferredTemplateForPlatform(platform, profileUrl);
+
+  if (preferredTemplate) {
+    selectedTemplateId = preferredTemplate.id;
+    renderTemplateOptions();
+    syncTemplateForm();
+    applyTemplateToGenerationFields();
+  }
+
+  if (!profileUrl) {
+    return getSelectedTemplate();
+  }
+
+  if (!isProfileAutoScanSupported(platform) || !isSupportedProfileUrl(profileUrl, platform)) {
+    setActionFeedback("已跳过主页智能参考，当前按平台默认模板继续生成。");
+    return getSelectedTemplate();
+  }
+
+  const existingTemplate = accountTemplates.find((item) => item.profileUrl === profileUrl);
+  if (existingTemplate) {
+    selectedTemplateId = existingTemplate.id;
+    renderTemplateOptions();
+    syncTemplateForm();
+    applyTemplateToGenerationFields();
+    setActionFeedback("已直接使用这个主页对应的现成模板。");
+    return getSelectedTemplate();
+  }
+
+  setActionFeedback("正在智能参考对标主页风格，完成后会继续生成。");
+  try {
+    const scan = await scanProfileByPlatform(profileUrl, Number(nodes.profileSampleLimit.value || 6), platform);
+    currentProfileScan = scan;
+    selectedProfileVideoUrls = new Set(scan.videos.map((item) => item.videoUrl));
+    pinnedProfileVideoUrls = [];
+    excludedProfileVideoUrls = new Set();
+    applyDistilledTemplateToForm(scan);
+    upsertTemplateFromScan(scan);
+    renderProfileScanState();
+    return getSelectedTemplate();
+  } catch (error) {
+    setActionFeedback(
+      `对标主页暂时没参考成功，已自动退回平台默认模板继续生成。${error instanceof Error ? ` ${error.message}` : ""}`.trim()
+    );
+    return getSelectedTemplate();
+  }
+}
+
+function pickPreferredTemplateForPlatform(platform, profileUrl = "") {
+  if (profileUrl) {
+    const exactTemplate = accountTemplates.find((item) => item.profileUrl === profileUrl);
+    if (exactTemplate) return exactTemplate;
+  }
+  return accountTemplates.find((item) => item.platform === platform) || accountTemplates[0] || null;
+}
+
 function autoFillProductInsightsFromImage(file) {
   const template = getSelectedTemplate() || {};
   const result = inferProductInsightsFromAsset({
@@ -841,9 +899,9 @@ function renderProfileScanState() {
 
   if (!currentProfileScan) {
     if (canAutoScan) {
-      nodes.profileScanStatus.textContent = "未扫描";
+      nodes.profileScanStatus.textContent = "系统自动";
       nodes.profileScanStatus.classList.remove("is-ok", "is-error");
-      nodes.profileScanResult.textContent = "还没有主页扫描结果。扫完后会自动命名并加入模板列表。";
+      nodes.profileScanResult.textContent = "普通用户默认不需要手动蒸馏。你贴对标主页后，系统会在生成时自动尽量参考该风格。";
     } else {
       nodes.profileScanStatus.textContent = "手动模式";
       nodes.profileScanStatus.classList.add("is-error");
@@ -878,7 +936,7 @@ function renderProfileScanState() {
 
   nodes.profileSampleSort.value = profileSampleSortMode;
   nodes.profileMinViewsFilter.value = String(profileMinViewsFilter);
-  nodes.profileScanStatus.textContent = "已蒸馏";
+  nodes.profileScanStatus.textContent = "已参考";
   nodes.profileScanStatus.classList.add("is-ok");
   nodes.profileScanStatus.classList.remove("is-error");
   nodes.profileScanResult.textContent = buildProfileScanResultText();
@@ -1588,22 +1646,22 @@ function updateActionFeedback() {
   const hasImages = Boolean(nodes.productImages.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
   if (!hasTemplate && !hasImages && !hasModelImage && !hasPrompt) {
-    setActionFeedback("先填主页链接提炼模板。");
+    setActionFeedback("先上传产品图。对标链接不填也能直接生成。");
     return;
   }
   if (!hasImages && !hasModelImage && !hasPrompt) {
-    setActionFeedback("先填主页链接生成模板，再上传模特图、产品图和提示词。");
+    setActionFeedback("先上传产品图和模特图；如果你有对标主页，也可以顺手贴上。");
     return;
   }
   if (!hasImages) {
-    setActionFeedback("提示词和模板已准备，再补产品图就能生成。");
+    setActionFeedback("风格和要求已准备，再补产品图就能生成。");
     return;
   }
   if (!hasPrompt) {
-    setActionFeedback("素材已准备，再写一句创作提示词就能生成。");
+    setActionFeedback("素材已准备，再补一句你想要的风格就能生成。");
     return;
   }
-  setActionFeedback(hasModelImage ? "模板、模特图、产品图和提示词都已准备，可以直接生成。" : "模板、产品图和提示词都已准备，可以直接生成。");
+  setActionFeedback(hasModelImage ? "素材和要求都已准备，系统会自动处理模板，可以直接生成。" : "产品图和要求都已准备，可以直接生成。");
 }
 
 function syncFlowStepState() {
