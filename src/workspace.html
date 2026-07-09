@@ -23,19 +23,6 @@
         </div>
       </header>
 
-      <section class="consumerHero">
-        <div class="heroCopy">
-          <span class="heroEyebrow">Premium Remake Workflow</span>
-          <strong>给普通用户的首页，只做一件事：传图，出提示词</strong>
-          <p>蒸馏模板、筛样本、调结构这些复杂动作默认交给系统。你只需要上传素材、可选贴一个对标链接，然后直接生成。</p>
-        </div>
-        <div class="consumerHeroBadges">
-          <span class="badge">系统自动参考风格</span>
-          <span class="badge">默认 TikTok 英文 / 抖音中文</span>
-          <span class="badge">复杂模板能力已后置</span>
-        </div>
-      </section>
-
       <section id="serviceHelpPanel" class="serviceHelpPanel" hidden>
         <div>
           <strong>当前工作台说明</strong>
@@ -60,13 +47,12 @@
             <summary class="flowStepSummary">
               <span class="stepBadge">步骤 1</span>
               <div class="stepSummaryText">
-                <strong>选择平台和参考风格</strong>
-                <p>对标链接不是必填。填了以后，系统会自动参考它的风格。</p>
+                <strong>平台和参考链接</strong>
+                <p>可选贴链接</p>
               </div>
               <span id="profileScanStatus" class="statusBadge stepStatusBadge">系统自动</span>
             </summary>
             <div class="flowStepBody">
-            <p class="stepLead">普通用户不用先理解模板。你只要选平台，可选贴一个主页链接，系统会自动匹配或准备风格模板。</p>
             <div class="settingsGrid simpleSettingsGrid">
               <label class="fieldBlock">
                 平台
@@ -83,7 +69,6 @@
             <details class="advancedPanel">
               <summary>官方高级后台（模板 / 蒸馏）</summary>
               <div class="advancedPanelBody">
-                <p class="stepLead">这部分更适合你们官方运营或高级用户。普通用户默认不用碰。</p>
                 <div class="resultActions">
                   <button id="scanProfileButton" class="primaryButton" type="button">立即蒸馏主页模板</button>
                 </div>
@@ -197,11 +182,10 @@
               <span class="stepBadge">步骤 2</span>
               <div class="stepSummaryText">
                 <strong>上传素材</strong>
-                <p>传完产品图会自动提炼一版卖点草稿。</p>
+                <p>传图后自动草拟</p>
               </div>
             </summary>
             <div class="flowStepBody">
-            <p class="stepLead">模特图用于人物风格，产品图用于商品展示。上传产品图后会先生成一版草稿。</p>
             <div class="dualUploadGrid">
               <section class="uploadPanel simpleUploadPanel">
                 <div class="panelHead">
@@ -289,11 +273,10 @@
               <span class="stepBadge">步骤 3</span>
               <div class="stepSummaryText">
                 <strong>补一句要求</strong>
-                <p>系统会先自动草拟卖点，你只需要补一句想要的风格。</p>
+                <p>你只补一句风格</p>
               </div>
             </summary>
             <div class="flowStepBody">
-            <p class="stepLead">这里保留普通用户最容易理解的输入：商品名、你的要求、补充说明和生成条数。</p>
             <div class="settingsGrid simpleSettingsGrid">
               <label class="fieldBlock">
                 当前商品名
@@ -394,11 +377,10 @@
               <span class="stepBadge">步骤 4</span>
               <div class="stepSummaryText">
                 <strong>生成提示词</strong>
-                <p>素材和要求齐了以后，系统自动出结果。</p>
+                <p>系统自动出结果</p>
               </div>
             </summary>
             <div class="flowStepBody">
-            <p class="stepLead">如果你贴了对标链接，系统会先尽量参考它的风格；失败时会自动退回平台默认模板，不会卡住生成。</p>
             <footer class="actionBar simpleActionBar">
               <span id="actionFeedback">先填主页链接，生成模板后再上传素材。</span>
               <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>

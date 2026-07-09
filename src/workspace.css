@@ -2324,7 +2324,6 @@ body {
 
 .topBar,
 .stageGrid,
-.consumerHero,
 .projectPanel {
   width: min(1080px, 100%);
 }
@@ -2387,57 +2386,6 @@ h1 {
   line-height: 1.5;
 }
 
-.consumerHero {
-  padding: 18px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at top right, rgba(117, 167, 204, 0.22), transparent 24%),
-    linear-gradient(135deg, #132033 0%, #1b2940 55%, #253754 100%);
-  box-shadow: 0 22px 48px rgba(22, 35, 56, 0.14);
-}
-
-.heroCopy {
-  display: grid;
-  gap: 8px;
-}
-
-.heroEyebrow {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  color: rgba(226, 238, 249, 0.78);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.consumerHero strong,
-.consumerHero p,
-.consumerHero .badge {
-  color: #f6efe5;
-}
-
-.consumerHero strong {
-  margin-bottom: 10px;
-  font-size: 22px;
-  letter-spacing: -0.04em;
-}
-
-.consumerHero p {
-  max-width: 700px;
-  color: rgba(246, 239, 229, 0.74);
-  font-size: 13px;
-}
-
-.consumerHeroBadges {
-  gap: 10px;
-}
-
 .badge,
 .countBadge,
 .statusBadge {
@@ -2447,11 +2395,6 @@ h1 {
   color: #46586e;
   font-size: 11px;
   font-weight: 700;
-}
-
-.consumerHero .badge {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.08);
 }
 
 .flowStepCard,
@@ -2515,13 +2458,6 @@ h1 {
 .referenceCard small,
 .projectHeroCard p {
   color: #72685d;
-}
-
-.stepLead {
-  margin: 0;
-  color: #66758a;
-  font-size: 13px;
-  line-height: 1.55;
 }
 
 .stepStatusBadge {
@@ -2669,16 +2605,11 @@ h1 {
   }
 
   .topBar,
-  .consumerHero,
   .projectPanel {
     border-radius: 20px;
   }
 
   h1 {
     font-size: 22px;
-  }
-
-  .consumerHero strong {
-    font-size: 20px;
   }
 }
