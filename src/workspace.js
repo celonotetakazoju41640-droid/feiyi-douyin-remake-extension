@@ -363,9 +363,9 @@ function renderProjects() {
   ensureCurrentProject();
   nodes.seriesCount.textContent = `${projects.length} 个项目`;
   nodes.seriesStats.innerHTML = `
-    <div class="badge">当前沉淀 ${projects.length} 个任务</div>
-    <div class="badge">已沉淀模板 ${accountTemplates.length} 个</div>
-    <div class="badge">输出：提示词 / 提交入口 / 镜头微调</div>
+    <div class="badge">最近沉淀 ${projects.length} 个结果</div>
+    <div class="badge">可选蒸馏模型 ${accountTemplates.length} 个</div>
+    <div class="badge">输出：提示词 / 提交入口 / 导出</div>
   `;
 
   if (projects.length === 0) {
@@ -373,10 +373,10 @@ function renderProjects() {
     currentPackage = null;
     nodes.currentTaskStatusBadge.textContent = "等待生成";
     nodes.currentTaskUnitLabel.textContent = "第 1 条";
-    nodes.currentTaskHint.textContent = "上传素材并填写要求后，点击生成提示词，当前任务会显示在这里。";
-    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有任务详情</strong><p>生成后，这里会显示项目摘要、提示词、批量任务和镜头细节。</p></div>`;
+    nodes.currentTaskHint.textContent = "上传产品图并补一句要求后，这里会显示当前提示词和摘要。";
+    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有生成结果</strong><p>生成后，这里会显示提示词、摘要、批量任务和镜头细节。</p></div>`;
     nodes.shotEditorPanel.innerHTML = "";
-    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有任务结果</strong><p>先上传产品图，再补一句要求。生成后，这里会保留最近任务和第一条提示词预览。</p></div>`;
+    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近记录</strong><p>先上传产品图，再补一句要求。生成后，这里会保留最近结果和第一条提示词预览。</p></div>`;
     updateResultButtons();
     return;
   }
@@ -1699,7 +1699,7 @@ function updateActionFeedback() {
   const hasImages = Boolean(nodes.productImages.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
   if (!hasTemplate && !hasImages && !hasModelImage && !hasPrompt) {
-    setActionFeedback("先上传产品图。对标链接不填也能直接生成。");
+    setActionFeedback("先选蒸馏模型，再上传产品图。主页链接不填也能直接生成。");
     return;
   }
   if (!hasImages && !hasModelImage && !hasPrompt) {
@@ -1723,6 +1723,9 @@ function updateActionFeedback() {
 
 function syncFlowStepState() {
   const hasProfileUrl = Boolean(nodes.templateProfileUrl.value.trim());
+  if (nodes.profileScanStatus) {
+    nodes.profileScanStatus.textContent = hasProfileUrl ? "主页参考：已填写" : "主页参考：系统自动";
+  }
   if (nodes.stepTemplateCard) {
     nodes.stepTemplateCard.open = hasProfileUrl;
   }
@@ -1813,7 +1816,7 @@ async function handleWizardNext() {
 
 function setActionFeedback(message, isError = false) {
   nodes.actionFeedback.textContent = message;
-  nodes.actionFeedback.style.color = isError ? "#f08d78" : "rgba(234, 229, 216, 0.78)";
+  nodes.actionFeedback.style.color = isError ? "#b42318" : "#4b5b50";
 }
 
 function handleDocumentKeydown(event) {

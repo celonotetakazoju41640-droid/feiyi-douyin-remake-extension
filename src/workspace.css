@@ -4002,3 +4002,236 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+.textLayout {
+  width: min(980px, 100%);
+  margin: 0 auto;
+}
+
+.textConsole {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid rgba(42, 50, 44, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(254, 252, 248, 0.98), rgba(247, 242, 232, 0.98));
+  box-shadow: 0 16px 42px rgba(21, 24, 22, 0.08);
+}
+
+.wizardTopBar .brandBlock h1,
+.wizardTopBar .brandBlock p {
+  color: #2a342d;
+}
+
+.textConsoleHead {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(42, 50, 44, 0.08);
+}
+
+.textConsoleHead h2 {
+  margin: 8px 0 4px;
+  color: #243127;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.textConsoleHead p {
+  color: #5d655d;
+}
+
+.textConsoleMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statusLine,
+.textInlineHint {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid rgba(94, 109, 98, 0.18);
+  border-radius: 999px;
+  background: #fff;
+  color: #4e5d53;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.textFormSection,
+.textResultSection,
+.officialBackstagePanel {
+  display: grid;
+  gap: 12px;
+  padding: 14px 4px 0;
+  border: 0;
+  border-top: 1px solid rgba(42, 50, 44, 0.08);
+  border-radius: 0;
+  background: transparent;
+}
+
+.textSectionHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.textSectionHead strong {
+  color: #253328;
+  font-size: 16px;
+}
+
+.textSectionHead p {
+  margin-top: 4px;
+  color: #667167;
+}
+
+.textFormRow {
+  display: grid;
+  gap: 12px;
+}
+
+.textFormRowCompact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.textUploadRow {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.textInlineHintRow,
+.textActionRow,
+.textResultHistoryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.textLinkButton {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.textPreviewRow {
+  display: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.textPreviewRow:has(img:not([hidden])) {
+  display: grid;
+}
+
+.textPreviewItem {
+  display: none;
+  gap: 8px;
+  min-height: 84px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(94, 109, 98, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.textPreviewItem:has(img:not([hidden])) {
+  display: grid;
+}
+
+.textPreviewItem strong {
+  color: #334238;
+  font-size: 13px;
+}
+
+.textPreviewItem img {
+  width: 100%;
+  max-height: 96px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #f5f7fb;
+}
+
+.textPreviewItem .sampleProduct {
+  width: 34px;
+  height: 34px;
+  box-shadow: 15px 12px 0 -10px #c8835e, -11px 14px 0 -10px #e6b799;
+}
+
+.textDetails {
+  border: 1px solid rgba(42, 50, 44, 0.08);
+  border-radius: 12px;
+  background: #fbfbf8;
+}
+
+.textDetails summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  color: #425145;
+  font-weight: 700;
+}
+
+.textDetails .fieldBlock {
+  padding: 0 14px 14px;
+}
+
+#actionFeedback {
+  margin: 0;
+  color: #4b5b50;
+}
+
+.textResultMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.simpleResultStats {
+  padding: 0;
+}
+
+.simpleResultActions {
+  gap: 10px;
+}
+
+.textResultAdvanced {
+  margin-top: 4px;
+}
+
+.officialBackstagePanel summary {
+  cursor: pointer;
+  color: #243127;
+  font-weight: 800;
+}
+
+.officialBackstagePanel .fieldBlock,
+.officialBackstagePanel .panelHead p,
+.officialBackstagePanel .panelHead strong {
+  color: var(--ink);
+}
+
+.officialBackstagePanel .fieldBlock input,
+.officialBackstagePanel .fieldBlock textarea,
+.officialBackstagePanel .fieldBlock select {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .textFormRowCompact,
+  .textUploadRow,
+  .textPreviewRow {
+    grid-template-columns: 1fr;
+  }
+
+  .textSectionHead {
+    flex-direction: column;
+  }
+}
