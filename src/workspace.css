@@ -2297,3 +2297,342 @@ textarea {
     align-items: flex-start;
   }
 }
+
+/* Premium refresh */
+:root {
+  --bg: #f5f1e8;
+  --panel: rgba(255, 252, 247, 0.9);
+  --ink: #161514;
+  --muted: #6f675d;
+  --line: #e7ddd0;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(226, 214, 197, 0.44), transparent 28%),
+    radial-gradient(circle at top right, rgba(210, 224, 230, 0.34), transparent 26%),
+    linear-gradient(180deg, #f8f4ee 0%, #f3efe7 52%, #efeae1 100%);
+  font-family: "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+.workspaceShell {
+  gap: 18px;
+  width: min(1360px, calc(100vw - 36px));
+  padding: 14px 0 48px;
+}
+
+.topBar,
+.stageGrid,
+.consumerHero,
+.projectPanel {
+  width: min(1180px, 100%);
+}
+
+.topBar,
+.projectPanel {
+  border: 1px solid rgba(114, 98, 78, 0.12);
+  border-radius: 26px;
+  background: rgba(255, 251, 246, 0.8);
+  box-shadow: 0 24px 60px rgba(36, 31, 24, 0.07);
+  backdrop-filter: blur(16px);
+}
+
+.topBar {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 22px;
+  background:
+    radial-gradient(circle at top right, rgba(211, 227, 232, 0.4), transparent 28%),
+    linear-gradient(135deg, #161514 0%, #26211d 52%, #332c26 100%);
+}
+
+.topBar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent 26%, transparent 74%, rgba(255, 255, 255, 0.03)),
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.12), transparent 16%);
+  pointer-events: none;
+}
+
+.brandBlock {
+  position: relative;
+  z-index: 1;
+  gap: 16px;
+}
+
+.brandBlock img {
+  width: 62px;
+  height: 62px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+h1 {
+  color: #fbf7f1;
+  font-family: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.brandBlock p {
+  color: rgba(248, 241, 233, 0.78);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.consumerHero {
+  padding: 22px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(195, 220, 231, 0.18), transparent 24%),
+    linear-gradient(135deg, #1a1715 0%, #201c18 55%, #2c241d 100%);
+  box-shadow: 0 28px 64px rgba(35, 30, 24, 0.14);
+}
+
+.consumerHero strong,
+.consumerHero p,
+.consumerHero .badge {
+  color: #f6efe5;
+}
+
+.consumerHero strong {
+  margin-bottom: 10px;
+  font-size: 26px;
+  letter-spacing: -0.04em;
+}
+
+.consumerHero p {
+  max-width: 760px;
+  color: rgba(246, 239, 229, 0.74);
+  font-size: 15px;
+}
+
+.consumerHeroBadges {
+  gap: 10px;
+}
+
+.badge,
+.countBadge,
+.statusBadge {
+  padding: 8px 12px;
+  border: 1px solid rgba(96, 84, 69, 0.08);
+  background: rgba(125, 108, 88, 0.08);
+  color: #4c443c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.consumerHero .badge {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.flowStepCard,
+.emptyStateCard {
+  border: 1px solid rgba(114, 98, 78, 0.12);
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.92), rgba(252, 247, 240, 0.88));
+  box-shadow: 0 22px 54px rgba(40, 33, 25, 0.07);
+}
+
+.flowStepCardAccent {
+  background:
+    radial-gradient(circle at top right, rgba(214, 225, 230, 0.38), transparent 28%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(248, 242, 233, 0.94));
+}
+
+.flowStepSummary {
+  align-items: center;
+}
+
+.flowStepSummary::after {
+  content: "展开";
+  margin-left: auto;
+  color: #8a7f72;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.flowStepCompact[open] > .flowStepSummary::after {
+  content: "收起";
+}
+
+.stepBadge {
+  min-width: 56px;
+  padding: 7px 12px;
+  border: 1px solid rgba(34, 29, 24, 0.06);
+  background: #f1e6d8;
+  color: #2a241f;
+}
+
+.stepSummaryText strong,
+.panelHead strong {
+  color: #1f1a16;
+  font-family: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.stepSummaryText strong {
+  font-size: 20px;
+}
+
+.stepSummaryText p,
+.panelHead p,
+.fieldBlock,
+.referenceCard small,
+.projectHeroCard p {
+  color: #72685d;
+}
+
+.fieldBlock {
+  gap: 8px;
+  font-weight: 600;
+}
+
+.fieldBlock input,
+.fieldBlock textarea,
+.fieldBlock select,
+.autoDurationLabel {
+  border: 1px solid #e8ddd0;
+  border-radius: 16px;
+  padding: 13px 14px;
+  background: rgba(255, 250, 244, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.fieldBlock input:focus,
+.fieldBlock textarea:focus,
+.fieldBlock select:focus {
+  outline: none;
+  border-color: #191715;
+  box-shadow: 0 0 0 4px rgba(28, 24, 20, 0.07);
+}
+
+.primaryButton,
+.ghostButton,
+.importButton {
+  min-height: 48px;
+  border-radius: 16px;
+  font-weight: 700;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.primaryButton {
+  border: 1px solid #191715;
+  background: linear-gradient(180deg, #23201d, #13110f);
+  color: #fbf6ef;
+  box-shadow: 0 18px 34px rgba(27, 23, 19, 0.18);
+}
+
+.primaryButton:hover,
+.ghostButton:hover,
+.importButton:hover {
+  transform: translateY(-1px);
+}
+
+.ghostButton,
+.importButton {
+  border: 1px solid #e3d7c8;
+  background: rgba(255, 250, 244, 0.88);
+  color: #201b17;
+}
+
+.projectListDeleteButton {
+  background: rgba(255, 242, 239, 0.9);
+  border-color: #f0ccc6;
+}
+
+.advancedPanel {
+  border: 1px dashed #dbcdbd;
+  border-radius: 18px;
+  background: rgba(249, 244, 236, 0.68);
+}
+
+.advancedPanel summary {
+  padding: 14px 16px;
+  color: #2d2721;
+}
+
+.uploadPanel,
+.productPreviewItem,
+.referenceVideoDropTile,
+.referenceCard,
+.detailContent,
+.shotCard,
+.batchServicePanel {
+  border-color: #e7ddd0;
+  border-radius: 20px;
+}
+
+.productHeroTile,
+.uploadTile {
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffaf4, #f5ede3);
+}
+
+.uploadTile {
+  border-style: dashed;
+  border-color: #cbbca9;
+}
+
+.projectPanel {
+  gap: 14px;
+  padding: 18px;
+}
+
+.projectStatsGrid .badge,
+.seriesStats .badge {
+  background: rgba(60, 54, 47, 0.06);
+}
+
+.projectListCard {
+  border: 1px solid #eadfce;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffaf4, #f7f0e5);
+}
+
+.projectListCard.is-active {
+  border-color: #bda88e;
+  background: linear-gradient(180deg, #fff8ef, #f4eadc);
+}
+
+.emptyStateCard {
+  border-style: dashed;
+  background: linear-gradient(180deg, rgba(255, 251, 245, 0.88), rgba(247, 239, 228, 0.84));
+}
+
+#actionFeedback {
+  max-width: 720px;
+  color: #5f564c;
+  font-size: 14px;
+}
+
+@media (max-width: 820px) {
+  .workspaceShell {
+    width: min(100vw - 20px, 1360px);
+    padding-bottom: 28px;
+  }
+
+  .topBar,
+  .consumerHero,
+  .projectPanel {
+    border-radius: 22px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .consumerHero strong {
+    font-size: 22px;
+  }
+}
