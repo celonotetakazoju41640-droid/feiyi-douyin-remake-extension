@@ -108,6 +108,10 @@ button:disabled {
   padding: 10px 14px;
 }
 
+.statusGroup {
+  display: none;
+}
+
 .brandBlock img {
   width: 52px;
   height: 52px;
@@ -2037,5 +2041,218 @@ textarea {
   .profileSampleThumb {
     width: 100%;
     height: 180px;
+  }
+}
+
+.consumerHero {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 18px 20px;
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fffdf8, #eff6ff 55%, #f5fffb);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+}
+
+.consumerHero strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 18px;
+}
+
+.consumerHero p {
+  color: var(--muted);
+}
+
+.consumerHeroBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+  justify-content: flex-end;
+}
+
+.consumerFlow {
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.flowStepCard {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #dbe3f0;
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+}
+
+.flowStepCardAccent {
+  border-color: #bfdbfe;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+}
+
+.stepBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.simpleSettingsGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.flowWideField {
+  grid-column: 1 / -1;
+}
+
+.dualUploadGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.simpleUploadPanel {
+  grid-template-columns: 1fr;
+}
+
+.advancedPanel {
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.advancedPanel summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 14px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.advancedPanel summary::-webkit-details-marker {
+  display: none;
+}
+
+.advancedPanelBody {
+  display: grid;
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.smartHintBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.subtleActionBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.simpleActionBar {
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+.projectStatsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.projectListCard {
+  border-radius: 16px;
+  padding: 16px;
+  background: linear-gradient(180deg, #fff, #fbfdff);
+}
+
+.projectListMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.projectListActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.projectListButton,
+.projectListDeleteButton {
+  min-height: 38px;
+}
+
+.autoDurationLabel {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+  font-weight: 700;
+}
+
+.is-hiddenField {
+  display: none;
+}
+
+.emptyStateCard {
+  padding: 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff, #f8fbff);
+}
+
+.compactReferenceCard {
+  height: 280px;
+}
+
+#sampleModel {
+  background:
+    radial-gradient(circle at 48% 28%, #f8fafc 0 18%, transparent 19%),
+    radial-gradient(circle at 50% 64%, #f8fafc 0 26%, transparent 27%),
+    linear-gradient(135deg, #c7d2fe, #fbcfe8);
+}
+
+.referencePanel[hidden] {
+  display: none;
+}
+
+.stageGrid {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 820px) {
+  .consumerHero {
+    flex-direction: column;
+  }
+
+  .dualUploadGrid,
+  .simpleSettingsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .simpleActionBar {
+    align-items: flex-start;
   }
 }

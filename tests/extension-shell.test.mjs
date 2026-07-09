@@ -19,3 +19,10 @@ test("workspace shell no longer exposes disconnected draft controls", () => {
   assert.doesNotMatch(workspaceHtml, /id="aspectRatio"/);
   assert.doesNotMatch(workspaceHtml, /id="copyLanguage"/);
 });
+
+test("workspace shell exposes a simplified consumer flow", () => {
+  assert.match(workspaceHtml, /id="modelImageFile"/);
+  assert.match(workspaceHtml, /主页链接/);
+  assert.match(workspaceHtml, /生成几条提示词/);
+  assert.match(workspaceHtml, /高级设置/);
+});

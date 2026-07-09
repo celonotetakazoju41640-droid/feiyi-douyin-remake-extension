@@ -38,6 +38,8 @@ const nodes = {
   thumbnailFallback: document.querySelector("#thumbnailFallback"),
   videoHandle: document.querySelector("#videoHandle"),
   videoUrlText: document.querySelector("#videoUrlText"),
+  modelImageFile: document.querySelector("#modelImageFile"),
+  modelHeroImage: document.querySelector("#modelHeroImage"),
   referenceBrief: document.querySelector("#referenceBrief"),
   referenceVideoFile: document.querySelector("#referenceVideoFile"),
   referenceVideoFileName: document.querySelector("#referenceVideoFileName"),
@@ -117,6 +119,7 @@ let currentPackage = null;
 let projects = loadProjects();
 let accountTemplates = loadAccountTemplates();
 let selectedTemplateId = accountTemplates[0]?.id || "";
+let modelPreviewUrl = "";
 let productPreviewUrl = "";
 let referencePreviewUrl = "";
 let activeDetailTab = "summary";
@@ -133,7 +136,7 @@ init();
 function init() {
   nodes.serviceStatus.textContent = "本地可用";
   nodes.serviceStatus.classList.add("is-ok");
-  nodes.serviceHelpPanel.hidden = false;
+  nodes.serviceHelpPanel.hidden = true;
   nodes.startServiceButton.hidden = true;
   nodes.refreshButton.hidden = true;
   nodes.copyStartCommandButton.textContent = "复制使用说明";
@@ -149,6 +152,7 @@ function init() {
 }
 
 function bindEvents() {
+  nodes.modelImageFile?.addEventListener("change", handleModelImageChange);
   nodes.referenceVideoFile.addEventListener("change", handleReferenceVideoChange);
   nodes.productImages.addEventListener("change", handleProductImagesChange);
   nodes.remakeButton.addEventListener("click", handleGenerate);
@@ -194,6 +198,23 @@ function bindEvents() {
   nodes.retryHealthButton.addEventListener("click", () => {
     setActionFeedback("这是本地静态工作台，不需要额外启动服务。");
   });
+}
+
+function handleModelImageChange() {
+  const file = nodes.modelImageFile?.files?.[0];
+  if (modelPreviewUrl) {
+    URL.revokeObjectURL(modelPreviewUrl);
+    modelPreviewUrl = "";
+  }
+  if (!file) {
+    nodes.modelHeroImage.hidden = true;
+    return;
+  }
+
+  modelPreviewUrl = URL.createObjectURL(file);
+  nodes.modelHeroImage.src = modelPreviewUrl;
+  nodes.modelHeroImage.hidden = false;
+  updateActionFeedback();
 }
 
 function handleReferenceVideoChange() {
@@ -256,11 +277,7 @@ function handleGenerate() {
     return;
   }
   if (!referenceSummary) {
-    setActionFeedback("请先填写参考视频摘要。", true);
-    return;
-  }
-  if (sellingPoints.length === 0) {
-    setActionFeedback("请至少写一条商品卖点，每行一条。", true);
+    setActionFeedback("请先填写你的创作提示词。", true);
     return;
   }
 
@@ -268,7 +285,7 @@ function handleGenerate() {
     projectName: `${productName}-${template.name}-复刻包`,
     referenceSummary,
     productName,
-    sellingPoints,
+    sellingPoints: sellingPoints.length ? sellingPoints : ["按当前商品图生成更适合直接投放的短视频提示词"],
     hookStyle: nodes.hookStyle.value,
     visualStyle: nodes.visualStyle.value,
     cta: nodes.ctaText.value,
@@ -296,16 +313,16 @@ function handleGenerate() {
   renderShotEditor();
   renderProjectDetail();
   updateResultButtons();
-  setActionFeedback("复刻包已生成，已带出蒸馏摘要和批量视频任务。");
+  setActionFeedback(`已生成 ${currentPackage.batchVideoTasks?.length || 0} 条可直接去跑的提示词任务。`);
 }
 
 function renderProjects() {
   ensureCurrentProject();
   nodes.seriesCount.textContent = `${projects.length} 个项目`;
   nodes.seriesStats.innerHTML = `
-    <div class="badge">本地项目：${projects.length}</div>
-    <div class="badge">模板数量：${accountTemplates.length}</div>
-    <div class="badge">输出内容：镜头表 / 候选版本 / 批量视频任务</div>
+    <div class="badge">最近生成：${projects.length}</div>
+    <div class="badge">已生成模板：${accountTemplates.length}</div>
+    <div class="badge">输出：提示词 / 下载文件 / 历史回看</div>
   `;
 
   if (projects.length === 0) {
@@ -313,12 +330,13 @@ function renderProjects() {
     currentPackage = null;
     nodes.projectDetailPanel.innerHTML = "";
     nodes.shotEditorPanel.innerHTML = "";
-    nodes.seriesList.innerHTML = `<div class="panel"><strong>还没有生成结果</strong><p>先选对标模板，再填好左侧信息，点“拆解复刻”即可生成项目。</p></div>`;
+    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有生成结果</strong><p>先填主页链接生成模板，再上传模特图或产品图，最后点“生成提示词”。</p></div>`;
     updateResultButtons();
     return;
   }
 
   nodes.seriesList.innerHTML = projects
+    .slice(0, 6)
     .map((item) => {
       const pkg = item.package;
       const firstPrompt = pkg.prompts.videoShots[0];
@@ -339,9 +357,9 @@ function renderProjects() {
           <p>${escapeHtml(pkg.project.referenceSummary)}</p>
           <p><strong>商品：</strong>${escapeHtml(pkg.project.productName)}</p>
           <p><strong>模板：</strong>${escapeHtml(pkg.project.accountTemplate?.name || "未填写")}</p>
-          <p><strong>任务数：</strong>${pkg.batchVideoTasks?.length || 0}</p>
+          <p><strong>提示词数量：</strong>${pkg.batchVideoTasks?.length || 0}</p>
           <details>
-            <summary>查看首条批量视频任务</summary>
+            <summary>查看第一条提示词</summary>
             <pre>${escapeHtml(pkg.batchVideoTasks?.[0]?.prompt || firstPrompt)}</pre>
           </details>
         </article>
@@ -617,7 +635,6 @@ async function refreshBatchServiceHealth() {
     nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可转发" : "队列模式";
     nodes.batchServiceStatus.classList.add("is-ok");
     nodes.batchServiceStatus.classList.remove("is-error");
-    setActionFeedback(`本地视频任务服务可用，当前队列 ${data.queueSize || 0} 条。`);
   } catch {
     nodes.batchServiceStatus.textContent = "未连接";
     nodes.batchServiceStatus.classList.add("is-error");
@@ -643,7 +660,11 @@ function handleTemplateSelectionChange() {
 function handleTemplatePlatformChange() {
   updatePlatformDependentUi();
   renderProfileScanState();
-  setActionFeedback(nodes.templatePlatform.value === "douyin" ? "已切到抖音模板口径，可继续做公开主页蒸馏。" : "已切到 TikTok 模板口径。");
+  setActionFeedback(
+    nodes.templatePlatform.value === "douyin"
+      ? "已切到抖音模式，默认会生成中文提示词。"
+      : "已切到 TikTok 模式，默认会生成英文提示词。"
+  );
 }
 
 function saveCurrentTemplate() {
@@ -720,7 +741,7 @@ function createNewTemplate() {
   renderTemplateOptions();
   syncTemplateForm();
   renderProfileScanState();
-  setActionFeedback("已新建空模板。");
+  setActionFeedback("已新建空模板，你也可以直接提炼主页模板自动生成。");
 }
 
 function renderTemplateOptions() {
@@ -792,7 +813,7 @@ function renderProfileScanState() {
     if (canAutoScan) {
       nodes.profileScanStatus.textContent = "未扫描";
       nodes.profileScanStatus.classList.remove("is-ok", "is-error");
-      nodes.profileScanResult.textContent = "还没有主页扫描结果。";
+      nodes.profileScanResult.textContent = "还没有主页扫描结果。扫完后会自动命名并加入模板列表。";
     } else {
       nodes.profileScanStatus.textContent = "手动模式";
       nodes.profileScanStatus.classList.add("is-error");
@@ -868,7 +889,7 @@ async function handleProfileScan() {
   nodes.profileScanStatus.textContent = "扫描中";
   nodes.profileScanStatus.classList.remove("is-ok", "is-error");
   nodes.profileScanResult.textContent = `正在打开${getPlatformLabel(platform)}主页并抓公开样本，请等页面加载完成。`;
-  setActionFeedback("正在抓取对标主页的公开样本并蒸馏模板。");
+  setActionFeedback("正在抓取主页公开内容，完成后会自动生成模板并加入模板列表。");
 
   try {
     const scan = await scanProfileByPlatform(profileUrl, Number(nodes.profileSampleLimit.value || 6), platform);
@@ -877,12 +898,13 @@ async function handleProfileScan() {
     pinnedProfileVideoUrls = [];
     excludedProfileVideoUrls = new Set();
     applyDistilledTemplateToForm(scan);
+    upsertTemplateFromScan(scan);
     renderProfileScanState();
     const coveredCount = scan.videos.filter((item) => item.thumbnailUrl).length;
     const withViewsCount = scan.videos.filter((item) => Number(item.stats?.views || 0) > 0).length;
     const withDurationCount = scan.videos.filter((item) => Number(item.durationSeconds || 0) > 0).length;
     setActionFeedback(
-      `主页蒸馏完成，已抓到 ${scan.videos.length} 条样本；其中 ${coveredCount} 条有封面，${withViewsCount} 条带播放数据，${withDurationCount} 条带时长。`
+      `模板已生成并加入列表，当前抓到 ${scan.videos.length} 条公开样本；其中 ${coveredCount} 条有封面，${withViewsCount} 条带播放数据，${withDurationCount} 条带时长。`
     );
   } catch (error) {
     currentProfileScan = null;
@@ -897,6 +919,32 @@ async function handleProfileScan() {
   } finally {
     nodes.scanProfileButton.disabled = false;
   }
+}
+
+function upsertTemplateFromScan(scan) {
+  const distilled = distillAccountTemplateFromProfileScan(scan, {
+    name: nodes.templateName.value.trim() || undefined
+  });
+  const existing = accountTemplates.find(
+    (item) =>
+      item.profileUrl === distilled.profileUrl ||
+      (item.platform === distilled.platform && item.accountHandle === distilled.accountHandle)
+  );
+  const template = normalizeAccountTemplate({
+    ...distilled,
+    id: existing?.id || `template-${Date.now()}`
+  });
+  const index = accountTemplates.findIndex((item) => item.id === template.id);
+  if (index === -1) {
+    accountTemplates.unshift(template);
+  } else {
+    accountTemplates[index] = template;
+  }
+  selectedTemplateId = template.id;
+  saveAccountTemplates();
+  renderTemplateOptions();
+  syncTemplateForm();
+  applyTemplateToGenerationFields();
 }
 
 function renderProfileSampleList() {
@@ -1504,21 +1552,27 @@ function updateResultButtons() {
 }
 
 function updateActionFeedback() {
-  const hasVideo = Boolean(nodes.referenceVideoFile.files?.length);
+  const hasTemplate = Boolean(getSelectedTemplate());
+  const hasModelImage = Boolean(nodes.modelImageFile?.files?.length);
   const hasImages = Boolean(nodes.productImages.files?.length);
-  if (!hasVideo && !hasImages) {
-    setActionFeedback("先选对标模板，再上传参考视频和商品图片。");
+  const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
+  if (!hasTemplate && !hasImages && !hasModelImage && !hasPrompt) {
+    setActionFeedback("先填主页链接提炼模板。");
     return;
   }
-  if (!hasVideo) {
-    setActionFeedback("已上传商品图片，再补参考视频就能生成蒸馏项目。");
+  if (!hasImages && !hasModelImage && !hasPrompt) {
+    setActionFeedback("先填主页链接生成模板，再上传模特图、产品图和提示词。");
     return;
   }
   if (!hasImages) {
-    setActionFeedback("已上传参考视频，再补商品图片就能生成蒸馏项目。");
+    setActionFeedback("提示词和模板已准备，再补产品图就能生成。");
     return;
   }
-  setActionFeedback("素材已准备，补完文字信息后可以直接拆解复刻。");
+  if (!hasPrompt) {
+    setActionFeedback("素材已准备，再写一句创作提示词就能生成。");
+    return;
+  }
+  setActionFeedback(hasModelImage ? "模板、模特图、产品图和提示词都已准备，可以直接生成。" : "模板、产品图和提示词都已准备，可以直接生成。");
 }
 
 function setActionFeedback(message, isError = false) {
