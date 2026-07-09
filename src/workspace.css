@@ -2300,51 +2300,51 @@ textarea {
 
 /* Premium refresh */
 :root {
-  --bg: #f5f1e8;
-  --panel: rgba(255, 252, 247, 0.9);
-  --ink: #161514;
-  --muted: #6f675d;
-  --line: #e7ddd0;
+  --bg: #eef3f7;
+  --panel: rgba(250, 253, 255, 0.9);
+  --ink: #111827;
+  --muted: #66758a;
+  --line: #d7e2ec;
 }
 
 body {
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(226, 214, 197, 0.44), transparent 28%),
-    radial-gradient(circle at top right, rgba(210, 224, 230, 0.34), transparent 26%),
-    linear-gradient(180deg, #f8f4ee 0%, #f3efe7 52%, #efeae1 100%);
+    radial-gradient(circle at top left, rgba(207, 224, 236, 0.42), transparent 28%),
+    radial-gradient(circle at top right, rgba(221, 230, 243, 0.52), transparent 26%),
+    linear-gradient(180deg, #f6f9fc 0%, #eef3f8 52%, #e7edf4 100%);
   font-family: "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
 }
 
 .workspaceShell {
-  gap: 18px;
-  width: min(1360px, calc(100vw - 36px));
-  padding: 14px 0 48px;
+  gap: 14px;
+  width: min(1240px, calc(100vw - 28px));
+  padding: 10px 0 36px;
 }
 
 .topBar,
 .stageGrid,
 .consumerHero,
 .projectPanel {
-  width: min(1180px, 100%);
+  width: min(1080px, 100%);
 }
 
 .topBar,
 .projectPanel {
-  border: 1px solid rgba(114, 98, 78, 0.12);
-  border-radius: 26px;
-  background: rgba(255, 251, 246, 0.8);
-  box-shadow: 0 24px 60px rgba(36, 31, 24, 0.07);
+  border: 1px solid rgba(109, 132, 160, 0.12);
+  border-radius: 22px;
+  background: rgba(249, 252, 255, 0.82);
+  box-shadow: 0 18px 42px rgba(25, 41, 61, 0.08);
   backdrop-filter: blur(16px);
 }
 
 .topBar {
   position: relative;
   overflow: hidden;
-  padding: 18px 22px;
+  padding: 16px 18px;
   background:
-    radial-gradient(circle at top right, rgba(211, 227, 232, 0.4), transparent 28%),
-    linear-gradient(135deg, #161514 0%, #26211d 52%, #332c26 100%);
+    radial-gradient(circle at top right, rgba(90, 132, 171, 0.32), transparent 28%),
+    linear-gradient(135deg, #101826 0%, #172235 52%, #22314a 100%);
 }
 
 .topBar::after {
@@ -2364,37 +2364,37 @@ body {
 }
 
 .brandBlock img {
-  width: 62px;
-  height: 62px;
-  padding: 8px;
+  width: 56px;
+  height: 56px;
+  padding: 7px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 18px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
 }
 
 h1 {
-  color: #fbf7f1;
+  color: #f7fbff;
   font-family: "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.03em;
 }
 
 .brandBlock p {
-  color: rgba(248, 241, 233, 0.78);
-  font-size: 16px;
+  color: rgba(232, 241, 251, 0.78);
+  font-size: 14px;
   line-height: 1.5;
 }
 
 .consumerHero {
-  padding: 22px 24px;
+  padding: 18px 20px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 26px;
+  border-radius: 22px;
   background:
-    radial-gradient(circle at top right, rgba(195, 220, 231, 0.18), transparent 24%),
-    linear-gradient(135deg, #1a1715 0%, #201c18 55%, #2c241d 100%);
-  box-shadow: 0 28px 64px rgba(35, 30, 24, 0.14);
+    radial-gradient(circle at top right, rgba(117, 167, 204, 0.22), transparent 24%),
+    linear-gradient(135deg, #132033 0%, #1b2940 55%, #253754 100%);
+  box-shadow: 0 22px 48px rgba(22, 35, 56, 0.14);
 }
 
 .consumerHero strong,
@@ -2405,14 +2405,14 @@ h1 {
 
 .consumerHero strong {
   margin-bottom: 10px;
-  font-size: 26px;
+  font-size: 22px;
   letter-spacing: -0.04em;
 }
 
 .consumerHero p {
-  max-width: 760px;
+  max-width: 700px;
   color: rgba(246, 239, 229, 0.74);
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .consumerHeroBadges {
@@ -2422,11 +2422,11 @@ h1 {
 .badge,
 .countBadge,
 .statusBadge {
-  padding: 8px 12px;
-  border: 1px solid rgba(96, 84, 69, 0.08);
-  background: rgba(125, 108, 88, 0.08);
-  color: #4c443c;
-  font-size: 12px;
+  padding: 7px 11px;
+  border: 1px solid rgba(100, 127, 155, 0.1);
+  background: rgba(123, 150, 181, 0.08);
+  color: #46586e;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -2437,21 +2437,22 @@ h1 {
 
 .flowStepCard,
 .emptyStateCard {
-  border: 1px solid rgba(114, 98, 78, 0.12);
-  border-radius: 26px;
+  border: 1px solid rgba(109, 132, 160, 0.12);
+  border-radius: 22px;
   background:
-    linear-gradient(180deg, rgba(255, 252, 247, 0.92), rgba(252, 247, 240, 0.88));
-  box-shadow: 0 22px 54px rgba(40, 33, 25, 0.07);
+    linear-gradient(180deg, rgba(252, 254, 255, 0.94), rgba(244, 248, 252, 0.9));
+  box-shadow: 0 16px 36px rgba(29, 46, 69, 0.07);
 }
 
 .flowStepCardAccent {
   background:
-    radial-gradient(circle at top right, rgba(214, 225, 230, 0.38), transparent 28%),
-    linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(248, 242, 233, 0.94));
+    radial-gradient(circle at top right, rgba(196, 222, 239, 0.38), transparent 28%),
+    linear-gradient(180deg, rgba(252, 254, 255, 0.98), rgba(241, 247, 253, 0.94));
 }
 
 .flowStepSummary {
   align-items: center;
+  min-height: 58px;
 }
 
 .flowStepSummary::after {
@@ -2467,11 +2468,11 @@ h1 {
 }
 
 .stepBadge {
-  min-width: 56px;
-  padding: 7px 12px;
-  border: 1px solid rgba(34, 29, 24, 0.06);
-  background: #f1e6d8;
-  color: #2a241f;
+  min-width: 52px;
+  padding: 6px 10px;
+  border: 1px solid rgba(67, 99, 129, 0.08);
+  background: #eaf3fb;
+  color: #1f4970;
 }
 
 .stepSummaryText strong,
@@ -2482,7 +2483,7 @@ h1 {
 }
 
 .stepSummaryText strong {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .stepSummaryText p,
@@ -2496,16 +2497,17 @@ h1 {
 .fieldBlock {
   gap: 8px;
   font-weight: 600;
+  font-size: 13px;
 }
 
 .fieldBlock input,
 .fieldBlock textarea,
 .fieldBlock select,
 .autoDurationLabel {
-  border: 1px solid #e8ddd0;
-  border-radius: 16px;
-  padding: 13px 14px;
-  background: rgba(255, 250, 244, 0.96);
+  border: 1px solid #d8e3ed;
+  border-radius: 14px;
+  padding: 11px 12px;
+  background: rgba(252, 254, 255, 0.98);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
@@ -2520,17 +2522,17 @@ h1 {
 .primaryButton,
 .ghostButton,
 .importButton {
-  min-height: 48px;
-  border-radius: 16px;
+  min-height: 42px;
+  border-radius: 14px;
   font-weight: 700;
   transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease, background 120ms ease;
 }
 
 .primaryButton {
-  border: 1px solid #191715;
-  background: linear-gradient(180deg, #23201d, #13110f);
-  color: #fbf6ef;
-  box-shadow: 0 18px 34px rgba(27, 23, 19, 0.18);
+  border: 1px solid #17324f;
+  background: linear-gradient(180deg, #284d73, #17314d);
+  color: #f8fbff;
+  box-shadow: 0 12px 24px rgba(31, 63, 98, 0.18);
 }
 
 .primaryButton:hover,
@@ -2541,20 +2543,20 @@ h1 {
 
 .ghostButton,
 .importButton {
-  border: 1px solid #e3d7c8;
-  background: rgba(255, 250, 244, 0.88);
-  color: #201b17;
+  border: 1px solid #d6e0ea;
+  background: rgba(249, 252, 255, 0.92);
+  color: #203246;
 }
 
 .projectListDeleteButton {
   background: rgba(255, 242, 239, 0.9);
-  border-color: #f0ccc6;
+  border-color: #f0d1cc;
 }
 
 .advancedPanel {
-  border: 1px dashed #dbcdbd;
-  border-radius: 18px;
-  background: rgba(249, 244, 236, 0.68);
+  border: 1px dashed #d7e2ec;
+  border-radius: 16px;
+  background: rgba(244, 248, 252, 0.72);
 }
 
 .advancedPanel summary {
@@ -2569,24 +2571,24 @@ h1 {
 .detailContent,
 .shotCard,
 .batchServicePanel {
-  border-color: #e7ddd0;
-  border-radius: 20px;
+  border-color: #dce6ef;
+  border-radius: 18px;
 }
 
 .productHeroTile,
 .uploadTile {
-  border-radius: 20px;
-  background: linear-gradient(180deg, #fffaf4, #f5ede3);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fcfeff, #f1f6fb);
 }
 
 .uploadTile {
   border-style: dashed;
-  border-color: #cbbca9;
+  border-color: #bfd0df;
 }
 
 .projectPanel {
   gap: 14px;
-  padding: 18px;
+  padding: 16px;
 }
 
 .projectStatsGrid .badge,
@@ -2595,14 +2597,14 @@ h1 {
 }
 
 .projectListCard {
-  border: 1px solid #eadfce;
-  border-radius: 20px;
-  background: linear-gradient(180deg, #fffaf4, #f7f0e5);
+  border: 1px solid #dde7f0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fcfeff, #f4f8fc);
 }
 
 .projectListCard.is-active {
-  border-color: #bda88e;
-  background: linear-gradient(180deg, #fff8ef, #f4eadc);
+  border-color: #9eb8cf;
+  background: linear-gradient(180deg, #fafdff, #edf4fb);
 }
 
 .emptyStateCard {
@@ -2625,14 +2627,14 @@ h1 {
   .topBar,
   .consumerHero,
   .projectPanel {
-    border-radius: 22px;
+    border-radius: 20px;
   }
 
   h1 {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .consumerHero strong {
-    font-size: 22px;
+    font-size: 20px;
   }
 }
