@@ -9,6 +9,7 @@ import {
   classifyTikTokProfilePageIssue,
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
+  inferProductInsightsFromAsset,
   mergeTikTokProfileVideoCandidates,
   normalizeAccountTemplate,
   normalizeTikTokDurationSeconds,
@@ -21,6 +22,21 @@ import {
 
 test("splitLines removes blanks and trims whitespace", () => {
   assert.deepEqual(splitLines("  第一条 \n\n 第二条  \n"), ["第一条", "第二条"]);
+});
+
+test("inferProductInsightsFromAsset auto-suggests selling points for cleaning products", () => {
+  const result = inferProductInsightsFromAsset({
+    fileName: "kitchen-cleaner-spray.png",
+    template: {
+      platform: "tiktok",
+      contentPositioning: "家清去污，痛点冲突强"
+    }
+  });
+
+  assert.match(result.suggestedProductName, /kitchen cleaner spray/i);
+  assert.equal(result.sellingPoints.length, 4);
+  assert.match(result.sellingPoints[0], /前后对比|见效快/);
+  assert.match(result.suggestedPrompt, /short|30秒|前后对比|problem/i);
 });
 
 test("normalizeAccountTemplate preserves profile url and sample urls", () => {

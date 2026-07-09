@@ -2078,6 +2078,7 @@ textarea {
 .consumerFlow {
   display: grid;
   gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 0;
   border: 0;
   background: transparent;
@@ -2091,6 +2092,45 @@ textarea {
   border-radius: 20px;
   background: #ffffff;
   box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
+}
+
+.flowWideCard {
+  grid-column: 1 / -1;
+}
+
+.flowStepCompact[open] {
+  padding-bottom: 20px;
+}
+
+.flowStepSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.flowStepSummary::-webkit-details-marker {
+  display: none;
+}
+
+.stepSummaryText {
+  display: grid;
+  gap: 2px;
+}
+
+.stepSummaryText strong {
+  font-size: 16px;
+}
+
+.stepSummaryText p {
+  color: var(--muted);
+}
+
+.flowStepBody {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
 }
 
 .flowStepCardAccent {
@@ -2248,7 +2288,8 @@ textarea {
   }
 
   .dualUploadGrid,
-  .simpleSettingsGrid {
+  .simpleSettingsGrid,
+  .consumerFlow {
     grid-template-columns: 1fr;
   }
 

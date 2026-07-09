@@ -14,6 +14,7 @@ import {
   buildSafeClipcatPrompt,
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
+  inferProductInsightsFromAsset,
   normalizeAccountTemplate,
   regeneratePrompts,
   splitLines,
@@ -40,6 +41,10 @@ const nodes = {
   videoUrlText: document.querySelector("#videoUrlText"),
   modelImageFile: document.querySelector("#modelImageFile"),
   modelHeroImage: document.querySelector("#modelHeroImage"),
+  stepTemplateCard: document.querySelector("#stepTemplateCard"),
+  stepAssetsCard: document.querySelector("#stepAssetsCard"),
+  stepPromptCard: document.querySelector("#stepPromptCard"),
+  stepGenerateCard: document.querySelector("#stepGenerateCard"),
   referenceBrief: document.querySelector("#referenceBrief"),
   referenceVideoFile: document.querySelector("#referenceVideoFile"),
   referenceVideoFileName: document.querySelector("#referenceVideoFileName"),
@@ -149,6 +154,7 @@ function init() {
   renderProjects();
   updateActionFeedback();
   refreshBatchServiceHealth();
+  syncFlowStepState();
 }
 
 function bindEvents() {
@@ -259,7 +265,9 @@ function handleProductImagesChange() {
   nodes.productHeroImage.hidden = false;
   nodes.sampleProduct.hidden = true;
   nodes.productHeroBadge.textContent = "主图";
+  autoFillProductInsightsFromImage(file);
   updateActionFeedback();
+  syncFlowStepState();
 }
 
 function handleGenerate() {
@@ -314,6 +322,7 @@ function handleGenerate() {
   renderProjectDetail();
   updateResultButtons();
   setActionFeedback(`已生成 ${currentPackage.batchVideoTasks?.length || 0} 条可直接去跑的提示词任务。`);
+  syncFlowStepState();
 }
 
 function renderProjects() {
@@ -665,6 +674,7 @@ function handleTemplatePlatformChange() {
       ? "已切到抖音模式，默认会生成中文提示词。"
       : "已切到 TikTok 模式，默认会生成英文提示词。"
   );
+  syncFlowStepState();
 }
 
 function saveCurrentTemplate() {
@@ -790,6 +800,26 @@ function applyTemplateToGenerationFields() {
   nodes.clipcatVoiceLanguage.value = template.defaultVoiceLanguage || "英文";
   nodes.clipcatExtraRules.value = template.rewriteRules || "";
   updatePlatformDependentUi();
+}
+
+function autoFillProductInsightsFromImage(file) {
+  const template = getSelectedTemplate() || {};
+  const result = inferProductInsightsFromAsset({
+    fileName: file?.name || "",
+    productName: nodes.productName.value.trim(),
+    template
+  });
+
+  if (!nodes.productName.value.trim() && result.suggestedProductName && result.suggestedProductName !== "当前商品") {
+    nodes.productName.value = result.suggestedProductName;
+  }
+  if (!splitLines(nodes.productNotes.value).length) {
+    nodes.productNotes.value = result.sellingPoints.join("\n");
+  }
+  if (!nodes.referenceBrief.value.trim()) {
+    nodes.referenceBrief.value = result.suggestedPrompt;
+  }
+  setActionFeedback("产品图已上传，已自动提炼一版商品名、卖点和提示词草稿。");
 }
 
 function renderProfileScanState() {
@@ -1522,6 +1552,7 @@ function syncFormWithCurrentPackage() {
   saveAccountTemplates();
   renderTemplateOptions();
   syncTemplateForm();
+  syncFlowStepState();
 }
 
 function ensureCurrentProject() {
@@ -1575,6 +1606,26 @@ function updateActionFeedback() {
   setActionFeedback(hasModelImage ? "模板、模特图、产品图和提示词都已准备，可以直接生成。" : "模板、产品图和提示词都已准备，可以直接生成。");
 }
 
+function syncFlowStepState() {
+  const hasProfileUrl = Boolean(nodes.templateProfileUrl.value.trim());
+  const hasTemplate = Boolean(getSelectedTemplate());
+  const hasProductImage = Boolean(nodes.productImages.files?.length);
+  const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
+
+  if (nodes.stepTemplateCard) {
+    nodes.stepTemplateCard.open = true;
+  }
+  if (nodes.stepAssetsCard) {
+    nodes.stepAssetsCard.open = !hasProductImage || (!hasPrompt && (hasTemplate || hasProfileUrl));
+  }
+  if (nodes.stepPromptCard) {
+    nodes.stepPromptCard.open = hasProductImage || hasPrompt;
+  }
+  if (nodes.stepGenerateCard) {
+    nodes.stepGenerateCard.open = hasProductImage && hasPrompt;
+  }
+}
+
 function setActionFeedback(message, isError = false) {
   nodes.actionFeedback.textContent = message;
   nodes.actionFeedback.style.color = isError ? "#b42318" : "#475467";
@@ -1626,16 +1677,39 @@ function buildDefaultTemplates() {
 function updatePlatformDependentUi() {
   const platform = nodes.templatePlatform.value || "tiktok";
   const defaultVoiceLanguage = platform === "douyin" ? "中文" : "英文";
-  nodes.scanProfileButton.textContent = `扫描${getPlatformLabel(platform)}主页并蒸馏`;
+  nodes.scanProfileButton.textContent = `提炼${getPlatformLabel(platform)}主页模板`;
   nodes.scanProfileButton.disabled = !isProfileAutoScanSupported(platform);
   nodes.templateProfileUrl.placeholder =
     platform === "douyin" ? "https://www.douyin.com/user/xxxx" : "https://www.tiktok.com/@account_name";
   nodes.clipcatReferencePlatform.value = platform;
   nodes.clipcatVoiceLanguage.value = defaultVoiceLanguage;
+  nodes.clipcatVoiceLanguage.disabled = true;
+  renderVoiceDialectOptions(platform);
   nodes.tiktokUrl.placeholder =
     nodes.clipcatReferencePlatform.value === "douyin"
       ? "抖音视频链接"
       : "https://www.tiktok.com/@xxx/video/xxxx 或抖音视频链接";
+}
+
+function renderVoiceDialectOptions(platform) {
+  const isDouyin = platform === "douyin";
+  const options = isDouyin
+    ? [
+        ["普通话", "普通话"],
+        ["四川话", "四川话"],
+        ["粤语", "粤语"],
+        ["东北话", "东北话"]
+      ]
+    : [
+        ["English", "English"],
+        ["American English", "American English"],
+        ["British English", "British English"]
+      ];
+  const currentValue = nodes.voiceDialect.value;
+  nodes.voiceDialect.innerHTML = options
+    .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
+    .join("");
+  nodes.voiceDialect.value = options.some(([value]) => value === currentValue) ? currentValue : options[0][0];
 }
 
 function loadProjects() {

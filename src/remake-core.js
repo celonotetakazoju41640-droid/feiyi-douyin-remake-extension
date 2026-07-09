@@ -5,6 +5,78 @@ export function splitLines(value = "") {
     .filter(Boolean);
 }
 
+export function inferProductInsightsFromAsset({
+  fileName = "",
+  productName = "",
+  template = {}
+} = {}) {
+  const normalizedFileName = String(fileName || "")
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
+  const normalizedProductName = String(productName || "").trim();
+  const platform = normalizePlatform(template.platform || "tiktok");
+  const sourceText = `${normalizedFileName} ${normalizedProductName} ${template.contentPositioning || ""}`.toLowerCase();
+
+  const categories = [
+    {
+      key: "cleaning",
+      match: /(清洁|去污|除霉|除味|洗衣|油污|clean|cleaner|detergent|spray|degreaser|odor)/i,
+      sellingPoints: ["见效快，前后对比明显", "使用动作简单，镜头好证明", "适合厨房/卫生间/家务场景", "结果型表达比讲参数更容易转化"],
+      prompt: "先用脏污或异味场景开场，再让人物拿出产品，30秒内完成前后对比证明。"
+    },
+    {
+      key: "beauty",
+      match: /(面膜|精华|口红|粉底|护肤|防晒|lip|serum|cream|beauty|skin|makeup)/i,
+      sellingPoints: ["上脸前后差异要清楚", "突出肤感/妆感/自然度", "适合通勤、出门、约会等生活场景", "镜头重点放在使用前后变化和人物反应"],
+      prompt: "先抛出人物出门前的困扰，再快速展示上脸过程和使用后状态，让结果比参数更先被看懂。"
+    },
+    {
+      key: "fashion",
+      match: /(衣|裙|裤|鞋|包|穿搭|dress|shirt|shoe|bag|fashion|outfit)/i,
+      sellingPoints: ["上身/上脚效果要直接", "突出显瘦显高或百搭", "适合通勤、约会、出街等场景", "材质和细节特写要配合人物动作"],
+      prompt: "先给换装前后的落差，再让人物自然走动或转身，用上身效果带出购买理由。"
+    },
+    {
+      key: "food",
+      match: /(咖啡|零食|饮料|茶|食品|coffee|snack|drink|tea|food)/i,
+      sellingPoints: ["第一口或冲泡瞬间有记忆点", "口感和方便性好表达", "适合居家/办公室/通勤场景", "人物即时反应容易带转化"],
+      prompt: "先用嘴馋、提神或加班场景开场，再展示冲泡/开袋/入口瞬间，让人物反应接住卖点。"
+    },
+    {
+      key: "digital",
+      match: /(手机|支架|灯|耳机|充电|数码|phone|tripod|light|earbud|charger|digital|tech)/i,
+      sellingPoints: ["功能点可以直接演示", "上手门槛低，镜头好做对比", "适合桌面/通勤/拍摄场景", "强调效率提升比空讲配置更有效"],
+      prompt: "先给出一个低效或麻烦的瞬间，再让产品出场解决问题，用操作过程直接证明价值。"
+    }
+  ];
+
+  const matched = categories.find((item) => item.match.test(sourceText));
+  const fallbackName = normalizedProductName || normalizedFileName || "当前商品";
+  const cleanName = fallbackName
+    .replace(/\s+/g, " ")
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .trim();
+  const suggestedProductName = cleanName || "当前商品";
+
+  if (!matched) {
+    return {
+      suggestedProductName,
+      sellingPoints: ["使用场景要一眼看懂", "核心效果最好能直接证明", "人物反应和前后变化优先", "少讲参数，多讲结果"],
+      suggestedPrompt:
+        platform === "douyin"
+          ? `围绕${suggestedProductName}做一个生活化短视频，先抛出问题，再用产品解决，最后给出直观看得懂的结果。`
+          : `Build a short lifestyle video around ${suggestedProductName}: open with a clear problem, show the product solving it, then land on a visual proof result.`
+    };
+  }
+
+  return {
+    suggestedProductName,
+    sellingPoints: matched.sellingPoints,
+    suggestedPrompt: platform === "douyin" ? `围绕${suggestedProductName}：${matched.prompt}` : `${suggestedProductName}: ${matched.prompt}`
+  };
+}
+
 export function createEmptyAccountTemplate() {
   return {
     id: "",

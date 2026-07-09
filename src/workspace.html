@@ -55,8 +55,15 @@
         </aside>
 
         <section class="controlPanel consumerFlow">
-          <section class="flowStepCard">
-            <div class="stepBadge">步骤 1</div>
+          <details id="stepTemplateCard" class="flowStepCard flowStepCompact" open>
+            <summary class="flowStepSummary">
+              <span class="stepBadge">步骤 1</span>
+              <div class="stepSummaryText">
+                <strong>主页链接提炼模板</strong>
+                <p>扫完后自动命名并加入模板列表。</p>
+              </div>
+            </summary>
+            <div class="flowStepBody">
             <div class="panelHead">
               <div>
                 <strong>填主页链接，自动提炼模板</strong>
@@ -185,10 +192,18 @@
                 <div id="profileSampleList" class="profileSampleList"></div>
               </div>
             </details>
-          </section>
+            </div>
+          </details>
 
-          <section class="flowStepCard">
-            <div class="stepBadge">步骤 2</div>
+          <details id="stepAssetsCard" class="flowStepCard flowStepCompact" open>
+            <summary class="flowStepSummary">
+              <span class="stepBadge">步骤 2</span>
+              <div class="stepSummaryText">
+                <strong>上传素材</strong>
+                <p>传完产品图会自动提炼一版卖点草稿。</p>
+              </div>
+            </summary>
+            <div class="flowStepBody">
             <div class="panelHead">
               <div>
                 <strong>上传模特图和产品图</strong>
@@ -222,7 +237,7 @@
                 <div class="panelHead">
                   <div>
                     <strong>产品图</strong>
-                    <p>必填。至少放一张产品图，系统会按你的商品来改写。</p>
+                    <p>必填。至少放一张产品图，上传后会自动提炼商品名、卖点和提示词草稿。</p>
                   </div>
                 </div>
                 <div class="uploadGrid">
@@ -274,10 +289,18 @@
               <input id="videoUrl" type="url" placeholder="本地参考视频或可选参考来源" />
             </label>
             <input id="thumbnailUrl" type="hidden" />
-          </section>
+            </div>
+          </details>
 
-          <section class="flowStepCard">
-            <div class="stepBadge">步骤 3</div>
+          <details id="stepPromptCard" class="flowStepCard flowStepCompact flowWideCard" open>
+            <summary class="flowStepSummary">
+              <span class="stepBadge">步骤 3</span>
+              <div class="stepSummaryText">
+                <strong>补一句要求</strong>
+                <p>卖点会自动草拟，你只需要再补一句想要的风格。</p>
+              </div>
+            </summary>
+            <div class="flowStepBody">
             <div class="panelHead">
               <div>
                 <strong>填写提示词和生成要求</strong>
@@ -308,7 +331,7 @@
                 </select>
               </label>
               <label class="fieldBlock">
-                提示词语言
+                提示词语言（跟平台自动）
                 <select id="clipcatVoiceLanguage">
                   <option value="英文">英文</option>
                   <option value="中文">中文</option>
@@ -330,7 +353,7 @@
               <div class="advancedPanelBody">
                 <div class="settingsGrid">
                   <label class="fieldBlock">
-                    口播语种 / 方言
+                    口播风格 / 口音
                     <select id="voiceDialect">
                       <option value="普通话">普通话</option>
                       <option value="四川话">四川话</option>
@@ -376,10 +399,18 @@
                 </div>
               </div>
             </details>
-          </section>
+            </div>
+          </details>
 
-          <section class="flowStepCard flowStepCardAccent">
-            <div class="stepBadge">步骤 4</div>
+          <details id="stepGenerateCard" class="flowStepCard flowStepCardAccent flowStepCompact flowWideCard" open>
+            <summary class="flowStepSummary">
+              <span class="stepBadge">步骤 4</span>
+              <div class="stepSummaryText">
+                <strong>生成提示词</strong>
+                <p>素材和要求齐了以后直接出结果。</p>
+              </div>
+            </summary>
+            <div class="flowStepBody">
             <div class="panelHead">
               <div>
                 <strong>生成提示词</strong>
@@ -390,7 +421,8 @@
               <span id="actionFeedback">先填主页链接，生成模板后再上传素材。</span>
               <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>
             </footer>
-          </section>
+            </div>
+          </details>
         </section>
       </section>
 
