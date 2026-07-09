@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="./workspace.css" />
   </head>
   <body>
-    <main class="workspaceShell">
-      <header class="topBar">
+    <main class="workspaceShell workspaceShellConsumer">
+      <header class="topBar consumerTopBar">
         <div class="brandBlock">
           <img src="../images/feiyi-logo.png" alt="飞蚁" />
           <div>
@@ -17,7 +17,6 @@
           </div>
         </div>
         <div class="statusGroup">
-          <span id="serviceStatus" class="statusBadge">检测中</span>
           <button id="startServiceButton" class="startButton" type="button" hidden>启动服务</button>
           <button id="refreshButton" class="ghostButton" type="button" hidden>刷新</button>
         </div>
@@ -26,119 +25,340 @@
       <section id="serviceHelpPanel" class="serviceHelpPanel" hidden>
         <div>
           <strong>当前工作台说明</strong>
-          <p>这版先做模板蒸馏、复刻包和批量任务整理。当前已支持 TikTok / 抖音公开主页蒸馏；仍不会自动实跑视频。</p>
+          <p>这版前台只保留上传和生成。模板蒸馏、样本筛片和本地服务已经后置到官方后台。</p>
         </div>
-        <code id="startCommand">流程：主页链接 -> 自动生成模板 -> 上传模特图和产品图 -> 填创作提示词 -> 生成提示词。</code>
+        <code id="startCommand">流程：上传产品图 -> 自动拆卖点 -> 补一句要求 -> 生成提示词 -> 一键提交去跑视频。</code>
         <div class="serviceHelpActions">
           <button id="copyStartCommandButton" type="button">复制结构说明</button>
           <button id="retryHealthButton" type="button">重新查看</button>
         </div>
       </section>
 
-      <section class="stageGrid">
-        <aside class="referencePanel" hidden>
-          <div class="panelHead">
-            <strong>参考区</strong>
+      <section class="consumerStage">
+        <section class="consumerHero">
+          <div class="consumerHeroCopy">
+            <span class="heroEyebrow">TikTok / 抖音短视频复刻</span>
+            <h2>上传素材，生成可投放视频提示词</h2>
+            <p>默认只做三件事：传产品图、补一句要求、拿到可复制和可提交的提示词。</p>
+            <div class="heroBadgeRow">
+              <span class="badge">产品图自动拆卖点</span>
+              <span class="badge">可选参考</span>
+              <span class="badge">提示词 + 提交入口</span>
+            </div>
           </div>
-        </aside>
+          <div class="heroStatusCard">
+            <span class="miniLabel">当前模式</span>
+            <strong>极速生成前台</strong>
+            <p>蒸馏、模板管理和样本筛片都已移到下方的官方高级后台。</p>
+            <div class="heroStatusRow">
+              <span id="serviceStatus" class="statusBadge">检测中</span>
+              <span id="profileScanStatus" class="statusBadge">系统自动</span>
+            </div>
+          </div>
+        </section>
 
-        <section class="controlPanel consumerFlow">
-          <details id="stepTemplateCard" class="flowStepCard flowStepCompact" open>
-            <summary class="flowStepSummary">
-              <span class="stepBadge">步骤 1</span>
-              <div class="stepSummaryText">
-                <strong>平台和参考链接</strong>
-                <p>可选贴链接</p>
-              </div>
-              <span id="profileScanStatus" class="statusBadge stepStatusBadge">系统自动</span>
+        <section class="composerCard">
+          <div class="composerHead">
+            <div>
+              <strong>开始生成</strong>
+              <p>先把主任务做完。系统会自动选模板、自动处理语言、自动尽量参考主页风格。</p>
+            </div>
+          </div>
+
+          <div class="composerMetaGrid">
+            <label class="fieldBlock">
+              发布平台
+              <select id="templatePlatform">
+                <option value="tiktok">TikTok</option>
+                <option value="douyin">抖音</option>
+              </select>
+            </label>
+            <label class="fieldBlock">
+              生成条数
+              <select id="generationCount">
+                <option value="1">1 条</option>
+                <option value="2">2 条</option>
+                <option value="3">3 条</option>
+                <option value="4">4 条</option>
+                <option value="5">5 条</option>
+              </select>
+            </label>
+            <div class="autoInfoCard">
+              <span class="miniLabel">系统语言</span>
+              <strong>系统会按平台自动切换中英文提示词</strong>
+              <small>TikTok 默认英文，抖音默认中文。</small>
+              <select id="clipcatVoiceLanguage" hidden>
+                <option value="英文">英文</option>
+                <option value="中文">中文</option>
+              </select>
+            </div>
+            <div class="autoInfoCard">
+              <span class="miniLabel">视频时长</span>
+              <strong id="targetDurationLabel">等待视频</strong>
+              <small>如果模板里有默认时长，系统会自动带入。</small>
+              <input id="targetDuration" type="hidden" value="45" />
+            </div>
+          </div>
+
+          <details id="stepTemplateCard" class="consumerOptionalPanel">
+            <summary>
+              <span>可选参考</span>
+              <small>有对标账号或主页时再展开</small>
             </summary>
-            <div class="flowStepBody">
-            <div class="settingsGrid simpleSettingsGrid">
+            <div class="consumerOptionalBody">
               <label class="fieldBlock">
-                平台
-                <select id="templatePlatform">
-                  <option value="tiktok">TikTok</option>
-                  <option value="douyin">抖音</option>
-                </select>
-              </label>
-              <label class="fieldBlock flowWideField">
-                可选：对标主页链接
+                对标主页链接
                 <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了会自动参考该主页风格" />
               </label>
+              <div class="optionalHint">
+                <p>如果你提供主页链接，系统会优先复用现成模板；没有现成模板时，会尝试自动提炼主页风格。</p>
+              </div>
             </div>
-            <details class="advancedPanel">
-              <summary>官方高级后台（模板 / 蒸馏）</summary>
-              <div class="advancedPanelBody">
-                <div class="resultActions">
-                  <button id="scanProfileButton" class="primaryButton" type="button">立即蒸馏主页模板</button>
+          </details>
+
+          <div class="assetUploadGrid">
+            <section class="assetCard">
+              <div class="panelHead">
+                <div>
+                  <strong>产品图</strong>
+                  <p>必填。上传后自动提炼商品名、卖点和提示词草稿。</p>
                 </div>
-                <div class="settingsGrid">
+              </div>
+              <div class="assetPreviewGrid">
+                <div id="productPreviewItem" class="productPreviewItem">
+                  <div id="productHeroTile" class="productHeroTile consumerPreviewTile">
+                    <span id="productHeroBadge">示例</span>
+                    <div id="sampleProduct" class="sampleProduct"></div>
+                    <img id="productHeroImage" alt="商品图预览" hidden />
+                  </div>
+                </div>
+                <label class="uploadTile consumerUploadTile">
+                  <input id="productImages" type="file" accept="image/*" multiple />
+                  <strong>上传产品图</strong>
+                  <small>支持多张，至少放 1 张</small>
+                </label>
+              </div>
+            </section>
+
+            <section class="assetCard">
+              <div class="panelHead">
+                <div>
+                  <strong>模特图 / 人物参考</strong>
+                  <p>可选。需要固定人物风格时再上传。</p>
+                </div>
+              </div>
+              <div class="assetPreviewGrid">
+                <div class="productPreviewItem">
+                  <div class="productHeroTile consumerPreviewTile">
+                    <span>模特图</span>
+                    <div id="sampleModel" class="sampleProduct"></div>
+                    <img id="modelHeroImage" alt="模特图预览" hidden />
+                  </div>
+                </div>
+                <label class="uploadTile consumerUploadTile">
+                  <input id="modelImageFile" type="file" accept="image/*" />
+                  <strong>上传模特图</strong>
+                  <small>不传也可以直接生成</small>
+                </label>
+              </div>
+            </section>
+          </div>
+
+          <div class="composerTextGrid">
+            <label class="fieldBlock">
+              当前商品名
+              <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
+            </label>
+            <label class="fieldBlock composerWideField">
+              你的创作要求
+              <textarea
+                id="referenceBrief"
+                rows="4"
+                placeholder="写你想要的内容风格、场景、开场方式和核心卖点。比如：模特在厨房里先闻到异味，再拿出产品，30 秒内做前后对比。"
+              ></textarea>
+            </label>
+            <label class="fieldBlock composerWideField">
+              自动拆出的卖点
+              <textarea
+                id="productNotes"
+                rows="4"
+                placeholder="上传产品图后，这里会自动拆一版卖点。你也可以自己补充，比如：去异味快 / 不靠香精遮味 / 适合夏天冰箱。"
+              ></textarea>
+            </label>
+          </div>
+
+          <footer class="composerActionBar">
+            <span id="actionFeedback">先上传产品图。对标链接不填也能直接生成。</span>
+            <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>
+          </footer>
+        </section>
+
+        <details class="advancedPanel officialBackstagePanel">
+          <summary>官方高级后台</summary>
+          <div class="advancedPanelBody">
+            <div class="backstageIntro">
+              <div>
+                <strong>这里保留模板蒸馏、样本筛片、参考视频和本地服务准备能力。</strong>
+                <p>普通用户不需要先看这些。只有你要维护对标模板或批量跑视频时再展开。</p>
+              </div>
+            </div>
+
+            <div class="backstageHeadRow">
+              <div class="resultActions">
+                <button id="scanProfileButton" class="primaryButton" type="button">提炼主页模板</button>
+                <button id="saveTemplateButton" class="ghostButton" type="button">保存模板</button>
+                <button id="deleteTemplateButton" class="ghostButton" type="button">删除模板</button>
+                <button id="newTemplateButton" class="ghostButton" type="button">新建空模板</button>
+              </div>
+              <label class="fieldBlock compactSelect">
+                当前系统模板
+                <select id="accountTemplateSelect"></select>
+              </label>
+            </div>
+
+            <div class="settingsGrid backstageGrid">
+              <label class="fieldBlock">
+                模板名称
+                <input id="templateName" type="text" placeholder="扫描后自动命名，也可以自己改" />
+              </label>
+              <label class="fieldBlock">
+                对标账号
+                <input id="templateAccountHandle" type="text" placeholder="@account_name" />
+              </label>
+              <label class="fieldBlock">
+                抓样本数量
+                <select id="profileSampleLimit">
+                  <option value="6">6 条</option>
+                  <option value="9">9 条</option>
+                  <option value="12">12 条</option>
+                </select>
+              </label>
+              <label class="fieldBlock">
+                默认模型
+                <input id="templatePreferredModel" type="text" value="veo-3-fast" />
+              </label>
+              <label class="fieldBlock">
+                内容定位
+                <input id="templateContentPositioning" type="text" placeholder="比如：家清去污、情绪带货、对比实验" />
+              </label>
+              <label class="fieldBlock">
+                节奏
+                <input id="templateRhythm" type="text" placeholder="比如：3 秒强钩子，15 秒内完成证明" />
+              </label>
+              <label class="fieldBlock backstageWideField">
+                结构拆解
+                <textarea id="templateStructure" rows="3" placeholder="比如：钩子 -> 脏污问题 -> 喷产品 -> 近景证明 -> 收口。"></textarea>
+              </label>
+              <label class="fieldBlock backstageWideField">
+                表达 DNA
+                <textarea id="templateExpressionDna" rows="3" placeholder="比如：短句先抛钩子，命令式开场明显，先结果后解释。"></textarea>
+              </label>
+              <label class="fieldBlock backstageWideField">
+                决策启发式
+                <textarea id="templateDecisionHeuristics" rows="3" placeholder="比如：先拿最容易懂的痛点开场，再用前后对比证明。"></textarea>
+              </label>
+              <label class="fieldBlock backstageWideField">
+                反模式 / 禁用项
+                <textarea id="templateAntiPatterns" rows="3" placeholder="比如：不要长篇讲参数，不要照搬原字幕和原人物。"></textarea>
+              </label>
+              <label class="fieldBlock backstageWideField">
+                近期变化 / 当前信号
+                <textarea id="templateRecentSignals" rows="3" placeholder="比如：近期 20-30 秒前后对比内容表现仍然最好。"></textarea>
+              </label>
+              <label class="fieldBlock backstageWideField">
+                改写边界 / 蒸馏规则
+                <textarea id="templateRewriteRules" rows="3" placeholder="比如：只借结构，不借人物、字幕、品牌、台词。"></textarea>
+              </label>
+              <label class="fieldBlock backstageWideField">
+                样本链接
+                <textarea id="templateSampleVideoUrls" rows="3" placeholder="每行一个样本链接。"></textarea>
+              </label>
+            </div>
+
+            <details class="advancedPanel innerBackstagePanel">
+              <summary>参考视频和更多控制</summary>
+              <div class="advancedPanelBody">
+                <div class="settingsGrid backstageGrid">
                   <label class="fieldBlock">
-                    当前系统模板
-                    <select id="accountTemplateSelect"></select>
-                  </label>
-                  <label class="fieldBlock">
-                    模板名称
-                    <input id="templateName" type="text" placeholder="扫描后自动命名，也可以自己改" />
-                  </label>
-                  <label class="fieldBlock">
-                    对标账号
-                    <input id="templateAccountHandle" type="text" placeholder="@account_name" />
-                  </label>
-                  <label class="fieldBlock">
-                    抓样本数量
-                    <select id="profileSampleLimit">
-                      <option value="6">6 条</option>
-                      <option value="9">9 条</option>
-                      <option value="12">12 条</option>
+                    口播风格 / 口音
+                    <select id="voiceDialect">
+                      <option value="普通话">普通话</option>
+                      <option value="四川话">四川话</option>
+                      <option value="粤语">粤语</option>
+                      <option value="东北话">东北话</option>
                     </select>
                   </label>
                   <label class="fieldBlock">
-                    内容定位
-                    <input id="templateContentPositioning" type="text" placeholder="比如：家清去污、情绪带货、对比实验" />
+                    钩子风格
+                    <select id="hookStyle">
+                      <option value="误会反转">误会反转</option>
+                      <option value="强冲突开场">强冲突开场</option>
+                      <option value="前后对比">前后对比</option>
+                      <option value="情绪带入">情绪带入</option>
+                    </select>
                   </label>
                   <label class="fieldBlock">
-                    节奏
-                    <input id="templateRhythm" type="text" placeholder="比如：3秒强钩子，15秒内完成证明" />
+                    视觉风格
+                    <input id="visualStyle" type="text" value="生活化短视频" />
                   </label>
                   <label class="fieldBlock">
-                    默认模型
-                    <input id="templatePreferredModel" type="text" value="veo-3-fast" />
+                    收口引导
+                    <input id="ctaText" type="text" value="引导用户看评论区或主页" />
+                  </label>
+                  <label class="fieldBlock">
+                    参考平台
+                    <select id="clipcatReferencePlatform">
+                      <option value="tiktok">TikTok</option>
+                      <option value="douyin">抖音</option>
+                    </select>
+                  </label>
+                  <label class="fieldBlock">
+                    参考短视频链接
+                    <input id="tiktokUrl" type="url" placeholder="https://www.tiktok.com/@xxx/video/xxxx 或抖音视频链接" />
                   </label>
                 </div>
                 <label class="fieldBlock">
-                  结构拆解
-                  <textarea id="templateStructure" rows="3" placeholder="比如：钩子 -> 脏污问题 -> 喷产品 -> 近景证明 -> 收口。"></textarea>
+                  Clipcat 附加规则
+                  <textarea id="clipcatExtraRules" rows="3" placeholder="比如：不要字幕，保留强钩子，人物不要换脸。"></textarea>
                 </label>
-                <label class="fieldBlock">
-                  表达 DNA
-                  <textarea id="templateExpressionDna" rows="3" placeholder="比如：短句先抛钩子，命令式开场明显，先结果后解释。"></textarea>
-                </label>
-                <label class="fieldBlock">
-                  决策启发式
-                  <textarea id="templateDecisionHeuristics" rows="3" placeholder="比如：先拿最容易懂的痛点开场，再用前后对比证明。"></textarea>
-                </label>
-                <label class="fieldBlock">
-                  反模式 / 禁用项
-                  <textarea id="templateAntiPatterns" rows="3" placeholder="比如：不要长篇讲参数，不要照搬原字幕和原人物。"></textarea>
-                </label>
-                <label class="fieldBlock">
-                  近期变化 / 当前信号
-                  <textarea id="templateRecentSignals" rows="3" placeholder="比如：近期 20-30 秒前后对比内容表现仍然最好。"></textarea>
-                </label>
-                <label class="fieldBlock">
-                  改写边界 / 蒸馏规则
-                  <textarea id="templateRewriteRules" rows="3" placeholder="比如：只借结构，不借人物、字幕、品牌、台词。"></textarea>
-                </label>
-                <label class="fieldBlock">
-                  样本链接
-                  <textarea id="templateSampleVideoUrls" rows="3" placeholder="每行一个样本链接。"></textarea>
-                </label>
-                <div class="subtleActionBar">
-                  <button id="saveTemplateButton" class="ghostButton" type="button">保存模板</button>
-                  <button id="deleteTemplateButton" class="ghostButton" type="button">删除模板</button>
-                  <button id="newTemplateButton" class="ghostButton" type="button">新建空模板</button>
+                <div class="resultActions">
+                  <button id="copyClipcatPromptButton" class="ghostButton" type="button">复制 Clipcat 指令</button>
                 </div>
+
+                <section class="referenceVideoUploadPanel backstageVideoPanel">
+                  <div class="panelHead">
+                    <div>
+                      <strong>可选参考视频</strong>
+                      <p>如果你手上还有对标短视频，也可以一起上传补充节奏和镜头结构。</p>
+                    </div>
+                  </div>
+                  <div class="referenceCard compactReferenceCard">
+                    <video id="localReferenceVideo" class="localReferenceVideo" controls playsinline hidden></video>
+                    <img id="thumbnailImage" alt="参考视频首帧" hidden />
+                    <div id="thumbnailFallback" class="thumbnailFallback">
+                      <span class="playMark">▶</span>
+                      <strong id="videoHandle">参考短视频</strong>
+                      <small id="videoUrlText">用于拆钩子、节奏和转化结构</small>
+                    </div>
+                  </div>
+                  <label class="referenceVideoDropTile">
+                    <input id="referenceVideoFile" type="file" accept="video/*" />
+                    <span class="referenceUploadIcon">＋</span>
+                    <strong id="referenceVideoFileName">请上传视频</strong>
+                    <small id="referenceAnalysisStatus">未选择参考视频</small>
+                  </label>
+                  <label class="fieldBlock is-hiddenField">
+                    参考视频来源
+                    <input id="videoUrl" type="url" placeholder="本地参考视频或可选参考来源" />
+                  </label>
+                  <input id="thumbnailUrl" type="hidden" />
+                </section>
+              </div>
+            </details>
+
+            <details class="advancedPanel innerBackstagePanel">
+              <summary>主页蒸馏样本和筛片</summary>
+              <div class="advancedPanelBody">
                 <pre id="profileScanResult" class="profileScanResult">还没有主页扫描结果。</pre>
                 <div class="resultActions hiddenResultActions">
                   <button id="selectAllProfileSamplesButton" class="ghostButton" type="button" disabled>全选样本</button>
@@ -174,232 +394,21 @@
                 <div id="profileSampleList" class="profileSampleList"></div>
               </div>
             </details>
-            </div>
-          </details>
+          </div>
+        </details>
 
-          <details id="stepAssetsCard" class="flowStepCard flowStepCompact" open>
-            <summary class="flowStepSummary">
-              <span class="stepBadge">步骤 2</span>
-              <div class="stepSummaryText">
-                <strong>上传素材</strong>
-                <p>传图后自动草拟</p>
-              </div>
-            </summary>
-            <div class="flowStepBody">
-            <div class="dualUploadGrid">
-              <section class="uploadPanel simpleUploadPanel">
-                <div class="panelHead">
-                  <div>
-                    <strong>模特图 / 人物参考</strong>
-                    <p>可选。上传你想让视频里出现的人物风格图。</p>
-                  </div>
-                </div>
-                <div class="uploadGrid">
-                  <div class="productPreviewItem">
-                    <div class="productHeroTile">
-                      <span>模特图</span>
-                      <div id="sampleModel" class="sampleProduct"></div>
-                      <img id="modelHeroImage" alt="模特图预览" hidden />
-                    </div>
-                  </div>
-                  <label class="uploadTile">
-                    <input id="modelImageFile" type="file" accept="image/*" />
-                    <strong>＋</strong>
-                    <small>上传</small>
-                  </label>
-                </div>
-              </section>
-              <section class="uploadPanel simpleUploadPanel">
-                <div class="panelHead">
-                  <div>
-                    <strong>产品图</strong>
-                    <p>必填。至少放一张产品图，上传后会自动提炼商品名、卖点和提示词草稿。</p>
-                  </div>
-                </div>
-                <div class="uploadGrid">
-                  <div id="productPreviewItem" class="productPreviewItem">
-                    <div id="productHeroTile" class="productHeroTile">
-                      <span id="productHeroBadge">示例</span>
-                      <div id="sampleProduct" class="sampleProduct"></div>
-                      <img id="productHeroImage" alt="商品图预览" hidden />
-                    </div>
-                  </div>
-                  <label class="uploadTile">
-                    <input id="productImages" type="file" accept="image/*" multiple />
-                    <strong>＋</strong>
-                    <small>上传</small>
-                  </label>
-                </div>
-              </section>
-            </div>
-            <details class="advancedPanel">
-              <summary>可选：上传参考视频</summary>
-              <div class="advancedPanelBody">
-                <section class="referenceVideoUploadPanel">
-                  <div class="panelHead">
-                    <div>
-                      <strong>参考视频</strong>
-                      <p>如果你手上还有对标短视频，也可以一起上传作为补充参考。</p>
-                    </div>
-                  </div>
-                  <div class="referenceCard compactReferenceCard">
-                    <video id="localReferenceVideo" class="localReferenceVideo" controls playsinline hidden></video>
-                    <img id="thumbnailImage" alt="参考视频首帧" hidden />
-                    <div id="thumbnailFallback" class="thumbnailFallback">
-                      <span class="playMark">▶</span>
-                      <strong id="videoHandle">参考短视频</strong>
-                      <small id="videoUrlText">用于拆钩子、节奏和转化结构</small>
-                    </div>
-                  </div>
-                  <label class="referenceVideoDropTile">
-                    <input id="referenceVideoFile" type="file" accept="video/*" />
-                    <span class="referenceUploadIcon">＋</span>
-                    <strong id="referenceVideoFileName">请上传视频</strong>
-                    <small id="referenceAnalysisStatus">未选择参考视频</small>
-                  </label>
-                </section>
-              </div>
-            </details>
-            <label class="fieldBlock is-hiddenField">
-              参考视频来源
-              <input id="videoUrl" type="url" placeholder="本地参考视频或可选参考来源" />
-            </label>
-            <input id="thumbnailUrl" type="hidden" />
-            </div>
-          </details>
-
-          <details id="stepPromptCard" class="flowStepCard flowStepCompact flowWideCard" open>
-            <summary class="flowStepSummary">
-              <span class="stepBadge">步骤 3</span>
-              <div class="stepSummaryText">
-                <strong>补一句要求</strong>
-                <p>你只补一句风格</p>
-              </div>
-            </summary>
-            <div class="flowStepBody">
-            <div class="settingsGrid simpleSettingsGrid">
-              <label class="fieldBlock">
-                当前商品名
-                <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
-              </label>
-              <label class="fieldBlock flowWideField">
-                你的创作提示词
-                <textarea id="referenceBrief" rows="4" placeholder="写你想要的内容风格、场景、开场方式和核心卖点。比如：模特在厨房里先闻到异味，再拿出产品，30秒内做前后对比。"></textarea>
-              </label>
-              <label class="fieldBlock flowWideField">
-                补充说明
-                <textarea id="productNotes" rows="4" placeholder="可选。比如：去异味快 / 不靠香精遮味 / 适合夏天冰箱 / 画面要干净高级。"></textarea>
-              </label>
-              <label class="fieldBlock">
-                生成几条提示词
-                <select id="generationCount">
-                  <option value="1">1 条</option>
-                  <option value="2">2 条</option>
-                  <option value="3">3 条</option>
-                  <option value="4">4 条</option>
-                  <option value="5">5 条</option>
-                </select>
-              </label>
-              <label class="fieldBlock">
-                提示词语言（跟平台自动）
-                <select id="clipcatVoiceLanguage">
-                  <option value="英文">英文</option>
-                  <option value="中文">中文</option>
-                </select>
-              </label>
-              <label class="fieldBlock">
-                预估时长
-                <input id="targetDuration" type="hidden" value="45" />
-                <span id="targetDurationLabel" class="autoDurationLabel">等待视频</span>
-              </label>
-            </div>
-            <div class="smartHintBar">
-              <span class="badge">TikTok 默认英文提示词</span>
-              <span class="badge">抖音默认中文提示词</span>
-              <span class="badge">系统会自动参考模板风格</span>
-            </div>
-            <details class="advancedPanel">
-              <summary>更多控制（可选）</summary>
-              <div class="advancedPanelBody">
-                <div class="settingsGrid">
-                  <label class="fieldBlock">
-                    口播风格 / 口音
-                    <select id="voiceDialect">
-                      <option value="普通话">普通话</option>
-                      <option value="四川话">四川话</option>
-                      <option value="粤语">粤语</option>
-                      <option value="东北话">东北话</option>
-                    </select>
-                  </label>
-                  <label class="fieldBlock">
-                    钩子风格
-                    <select id="hookStyle">
-                      <option value="误会反转">误会反转</option>
-                      <option value="强冲突开场">强冲突开场</option>
-                      <option value="前后对比">前后对比</option>
-                      <option value="情绪带入">情绪带入</option>
-                    </select>
-                  </label>
-                  <label class="fieldBlock">
-                    视觉风格
-                    <input id="visualStyle" type="text" value="生活化短视频" />
-                  </label>
-                  <label class="fieldBlock">
-                    收口引导
-                    <input id="ctaText" type="text" value="引导用户看评论区或主页" />
-                  </label>
-                  <label class="fieldBlock">
-                    参考平台
-                    <select id="clipcatReferencePlatform">
-                      <option value="tiktok">TikTok</option>
-                      <option value="douyin">抖音</option>
-                    </select>
-                  </label>
-                  <label class="fieldBlock flowWideField">
-                    参考短视频链接
-                    <input id="tiktokUrl" type="url" placeholder="https://www.tiktok.com/@xxx/video/xxxx 或抖音视频链接" />
-                  </label>
-                </div>
-                <label class="fieldBlock">
-                  Clipcat 附加规则
-                  <textarea id="clipcatExtraRules" rows="3" placeholder="比如：不要字幕，保留强钩子，人物不要换脸。"></textarea>
-                </label>
-                <div class="resultActions">
-                  <button id="copyClipcatPromptButton" class="ghostButton" type="button">复制 Clipcat 指令</button>
-                </div>
-              </div>
-            </details>
-            </div>
-          </details>
-
-          <details id="stepGenerateCard" class="flowStepCard flowStepCardAccent flowStepCompact flowWideCard" open>
-            <summary class="flowStepSummary">
-              <span class="stepBadge">步骤 4</span>
-              <div class="stepSummaryText">
-                <strong>生成提示词</strong>
-                <p>系统自动出结果</p>
-              </div>
-            </summary>
-            <div class="flowStepBody">
-            <footer class="actionBar simpleActionBar">
-              <span id="actionFeedback">先填主页链接，生成模板后再上传素材。</span>
-              <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>
-            </footer>
-            </div>
-          </details>
-        </section>
-      </section>
-
-      <section class="projectPanel">
+        <section class="projectPanel consumerProjectPanel">
           <div class="panelHead">
             <div>
               <strong>最近生成</strong>
-              <p>这里只保留你最近做过的项目和第一条提示词预览，方便快速回看。</p>
+              <p>默认先给你最近项目和第一条提示词。更细的镜头和批量任务放在展开区。</p>
             </div>
             <span id="seriesCount" class="countBadge">0 个项目</span>
           </div>
           <div id="seriesStats" class="projectStatsGrid" aria-label="剧集生产统计"></div>
-          <div class="resultActions">
+          <div class="resultActions consumerResultActions">
+            <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
+            <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>一键提交去跑视频</button>
             <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
             <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
             <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
@@ -413,8 +422,6 @@
                   导入 JSON
                   <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
                 </label>
-                <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制批量任务</button>
-                <button id="sendBatchTasksButton" class="ghostButton" type="button" disabled>发送到本地服务</button>
                 <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
               </div>
               <div id="batchServicePanel" class="batchServicePanel">
@@ -436,6 +443,7 @@
             </div>
           </details>
         </section>
+      </section>
     </main>
     <script type="module" src="./workspace.js"></script>
   </body>

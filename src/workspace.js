@@ -172,6 +172,7 @@ function bindEvents() {
   nodes.sendBatchTasksButton.addEventListener("click", sendBatchTasksToService);
   nodes.accountTemplateSelect.addEventListener("change", handleTemplateSelectionChange);
   nodes.templatePlatform.addEventListener("change", handleTemplatePlatformChange);
+  nodes.templateProfileUrl.addEventListener("input", syncFlowStepState);
   nodes.scanProfileButton.addEventListener("click", handleProfileScan);
   nodes.selectAllProfileSamplesButton.addEventListener("click", selectAllProfileSamples);
   nodes.clearProfileSamplesButton.addEventListener("click", clearProfileSamplesSelection);
@@ -197,7 +198,7 @@ function bindEvents() {
   nodes.copyBatchServiceCommandButton.addEventListener("click", copyBatchServiceCommand);
   nodes.refreshBatchServiceButton.addEventListener("click", refreshBatchServiceHealth);
   nodes.copyStartCommandButton.addEventListener("click", async () => {
-    const text = "这套工作台当前是本地静态版：先选对标模板，再填写参考摘要、商品名、卖点，点击“拆解复刻”即可生成镜头表、批量视频任务和返工清单。";
+    const text = "这套工作台当前是本地静态版：上传产品图后会自动拆卖点，再补一句要求即可生成提示词和批量任务。";
     await navigator.clipboard.writeText(text);
     setActionFeedback("使用说明已复制。");
   });
@@ -329,9 +330,9 @@ function renderProjects() {
   ensureCurrentProject();
   nodes.seriesCount.textContent = `${projects.length} 个项目`;
   nodes.seriesStats.innerHTML = `
-    <div class="badge">最近生成：${projects.length}</div>
-    <div class="badge">已生成模板：${accountTemplates.length}</div>
-    <div class="badge">输出：提示词 / 下载文件 / 历史回看</div>
+    <div class="badge">最近生成 ${projects.length} 次</div>
+    <div class="badge">已沉淀模板 ${accountTemplates.length} 个</div>
+    <div class="badge">输出：提示词 / 提交入口 / 历史回看</div>
   `;
 
   if (projects.length === 0) {
@@ -1650,37 +1651,28 @@ function updateActionFeedback() {
     return;
   }
   if (!hasImages && !hasModelImage && !hasPrompt) {
-    setActionFeedback("先上传产品图和模特图；如果你有对标主页，也可以顺手贴上。");
+    setActionFeedback("先上传产品图；模特图和主页链接都只是可选参考。");
     return;
   }
   if (!hasImages) {
-    setActionFeedback("风格和要求已准备，再补产品图就能生成。");
+    setActionFeedback("你的要求已经有了，再补产品图就能生成。");
     return;
   }
   if (!hasPrompt) {
-    setActionFeedback("素材已准备，再补一句你想要的风格就能生成。");
+    setActionFeedback("产品图已经准备好，再补一句你想要的风格就能生成。");
     return;
   }
-  setActionFeedback(hasModelImage ? "素材和要求都已准备，系统会自动处理模板，可以直接生成。" : "产品图和要求都已准备，可以直接生成。");
+  setActionFeedback(
+    hasModelImage
+      ? "素材和要求都已准备，系统会自动处理模板和语言，可以直接生成。"
+      : "产品图和要求都已准备，可以直接生成；需要的话也能一键提交去跑视频。"
+  );
 }
 
 function syncFlowStepState() {
   const hasProfileUrl = Boolean(nodes.templateProfileUrl.value.trim());
-  const hasTemplate = Boolean(getSelectedTemplate());
-  const hasProductImage = Boolean(nodes.productImages.files?.length);
-  const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
-
   if (nodes.stepTemplateCard) {
-    nodes.stepTemplateCard.open = true;
-  }
-  if (nodes.stepAssetsCard) {
-    nodes.stepAssetsCard.open = !hasProductImage || (!hasPrompt && (hasTemplate || hasProfileUrl));
-  }
-  if (nodes.stepPromptCard) {
-    nodes.stepPromptCard.open = hasProductImage || hasPrompt;
-  }
-  if (nodes.stepGenerateCard) {
-    nodes.stepGenerateCard.open = hasProductImage && hasPrompt;
+    nodes.stepTemplateCard.open = hasProfileUrl;
   }
 }
 

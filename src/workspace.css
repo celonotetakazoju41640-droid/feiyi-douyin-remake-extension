@@ -2613,3 +2613,491 @@ h1 {
     font-size: 22px;
   }
 }
+
+.workspaceShellConsumer {
+  width: min(1240px, calc(100vw - 28px));
+  gap: 18px;
+  padding: 18px 0 28px;
+}
+
+body {
+  background:
+    radial-gradient(circle at top left, rgba(53, 94, 69, 0.14), transparent 28%),
+    linear-gradient(180deg, #f3efe6 0%, #f8f5ef 58%, #f3efe6 100%);
+}
+
+.consumerTopBar,
+.composerCard,
+.officialBackstagePanel,
+.consumerProjectPanel,
+.serviceHelpPanel {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.consumerTopBar {
+  border: 1px solid rgba(38, 67, 50, 0.16);
+  border-radius: 22px;
+  padding: 18px 20px;
+  background: rgba(255, 252, 246, 0.88);
+  box-shadow: 0 18px 50px rgba(54, 51, 37, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.consumerTopBar .brandBlock {
+  gap: 16px;
+}
+
+.consumerTopBar .brandBlock img {
+  width: 58px;
+  height: 58px;
+}
+
+.consumerTopBar h1 {
+  font-size: 22px;
+}
+
+.consumerTopBar p {
+  max-width: 700px;
+  margin-top: 4px;
+  color: #5d665f;
+}
+
+.consumerStage {
+  display: grid;
+  gap: 18px;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.consumerHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.72fr);
+  gap: 18px;
+}
+
+.consumerHeroCopy,
+.heroStatusCard,
+.composerCard,
+.officialBackstagePanel,
+.consumerProjectPanel {
+  border: 1px solid rgba(40, 61, 44, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 252, 247, 0.96);
+  box-shadow: 0 20px 56px rgba(56, 46, 28, 0.08);
+}
+
+.consumerHeroCopy {
+  padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(244, 239, 229, 0.9)),
+    linear-gradient(135deg, #fcfaf5, #f7f1e6);
+}
+
+.heroEyebrow,
+.miniLabel {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #e5ede4;
+  color: #34513b;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.consumerHeroCopy h2 {
+  margin: 14px 0 10px;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: #1f3324;
+}
+
+.consumerHeroCopy p {
+  max-width: 720px;
+  color: #5d665f;
+  font-size: 15px;
+}
+
+.heroBadgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.heroBadgeRow .badge,
+.smartHintBar .badge {
+  background: #eef3ea;
+  color: #35513b;
+}
+
+.heroStatusCard {
+  display: grid;
+  align-content: space-between;
+  gap: 14px;
+  padding: 24px;
+  background: linear-gradient(180deg, #1f3324 0%, #2f4937 100%);
+  color: #f6f2ea;
+}
+
+.heroStatusCard strong {
+  font-size: 24px;
+}
+
+.heroStatusCard p {
+  color: rgba(246, 242, 234, 0.76);
+}
+
+.heroStatusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.heroStatusCard .statusBadge {
+  background: rgba(255, 255, 255, 0.14);
+  color: #f6f2ea;
+}
+
+.heroStatusCard .statusBadge.is-ok {
+  background: rgba(125, 211, 160, 0.18);
+  color: #d8ffe6;
+}
+
+.heroStatusCard .statusBadge.is-error {
+  background: rgba(254, 202, 202, 0.18);
+  color: #ffe4e6;
+}
+
+.composerCard,
+.consumerProjectPanel {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+}
+
+.composerHead strong,
+.backstageIntro strong {
+  display: block;
+  font-size: 20px;
+  color: #1f3324;
+}
+
+.composerHead p,
+.backstageIntro p,
+.optionalHint p,
+.autoInfoCard small {
+  margin: 6px 0 0;
+  color: #647064;
+}
+
+.composerMetaGrid,
+.composerTextGrid,
+.assetUploadGrid,
+.backstageGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.autoInfoCard,
+.assetCard,
+.consumerOptionalPanel,
+.innerBackstagePanel {
+  border: 1px solid #e1d8c8;
+  border-radius: 18px;
+  background: #f9f5ec;
+}
+
+.autoInfoCard {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.autoInfoCard strong {
+  font-size: 15px;
+  color: #2a4230;
+}
+
+.consumerOptionalPanel {
+  overflow: hidden;
+}
+
+.consumerOptionalPanel summary,
+.officialBackstagePanel > summary,
+.innerBackstagePanel > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.consumerOptionalPanel summary::-webkit-details-marker,
+.officialBackstagePanel > summary::-webkit-details-marker,
+.innerBackstagePanel > summary::-webkit-details-marker,
+.advancedPanel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.consumerOptionalPanel summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  color: #233628;
+  font-weight: 800;
+}
+
+.consumerOptionalPanel summary small {
+  color: #728074;
+  font-weight: 700;
+}
+
+.consumerOptionalBody {
+  display: grid;
+  gap: 12px;
+  padding: 0 18px 18px;
+}
+
+.optionalHint {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fffdf8;
+}
+
+.assetCard {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.assetPreviewGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.consumerPreviewTile {
+  min-height: 228px;
+  border-radius: 20px;
+  border: 1px solid #e2d8c6;
+  background: linear-gradient(180deg, #fffdf8 0%, #f2ebdf 100%);
+}
+
+.consumerUploadTile {
+  min-height: 228px;
+  border: 1.5px dashed #98a28b;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f8f5ee, #f3ede3);
+}
+
+.consumerUploadTile strong {
+  color: #25372a;
+  font-size: 16px;
+}
+
+.consumerUploadTile small {
+  color: #6c766a;
+}
+
+.composerWideField,
+.backstageWideField {
+  grid-column: 1 / -1;
+}
+
+.composerActionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid #e1d8c8;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fffefb, #f5efe4);
+}
+
+.composerActionBar #actionFeedback {
+  color: #536156;
+  font-weight: 700;
+}
+
+.primaryButton {
+  border: 0;
+  border-radius: 14px;
+  padding: 13px 22px;
+  background: linear-gradient(135deg, #294633, #41634a);
+  color: #f7f4ed;
+  font-weight: 800;
+  box-shadow: 0 12px 32px rgba(41, 70, 51, 0.18);
+}
+
+.ghostButton {
+  border-radius: 14px;
+  border: 1px solid #ddd3c2;
+  background: #fffdf8;
+  color: #2d3c31;
+}
+
+.officialBackstagePanel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.officialBackstagePanel > summary,
+.innerBackstagePanel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  color: #24382a;
+  font-size: 16px;
+  font-weight: 800;
+  background: #f4efe5;
+}
+
+.officialBackstagePanel > .advancedPanelBody {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+}
+
+.backstageIntro {
+  padding: 16px 18px;
+  border: 1px solid #e4dacc;
+  border-radius: 18px;
+  background: #fbf8f1;
+}
+
+.backstageHeadRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 14px;
+  align-items: end;
+}
+
+.compactSelect {
+  align-content: end;
+}
+
+.innerBackstagePanel {
+  overflow: hidden;
+}
+
+.innerBackstagePanel > .advancedPanelBody {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  background: #fffcf7;
+}
+
+.backstageVideoPanel {
+  padding: 18px;
+  border-radius: 18px;
+  background: #faf6ee;
+}
+
+.consumerProjectPanel .panelHead {
+  align-items: end;
+}
+
+.consumerResultActions .primaryButton {
+  min-width: 180px;
+}
+
+.projectStatsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.seriesList {
+  display: grid;
+  gap: 12px;
+}
+
+.emptyStateCard {
+  padding: 20px;
+  border: 1px dashed #d6cab6;
+  border-radius: 18px;
+  background: #fbf8f1;
+}
+
+.emptyStateCard p {
+  margin-top: 6px;
+  color: #6b766d;
+}
+
+.projectListCard {
+  border-radius: 18px;
+  border: 1px solid #e4dacc;
+  background: #fffdf8;
+  padding: 16px;
+}
+
+.projectListCard details {
+  margin-top: 10px;
+}
+
+.projectDetailPanel,
+.shotEditorPanel {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 960px) {
+  .consumerHero,
+  .composerMetaGrid,
+  .composerTextGrid,
+  .assetUploadGrid,
+  .backstageGrid,
+  .backstageHeadRow {
+    grid-template-columns: 1fr;
+  }
+
+  .assetPreviewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .composerActionBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 680px) {
+  .workspaceShellConsumer {
+    width: calc(100vw - 20px);
+    gap: 14px;
+    padding: 10px 0 22px;
+  }
+
+  .consumerTopBar,
+  .consumerHeroCopy,
+  .heroStatusCard,
+  .composerCard,
+  .consumerProjectPanel {
+    border-radius: 18px;
+  }
+
+  .consumerTopBar,
+  .composerCard,
+  .consumerProjectPanel,
+  .officialBackstagePanel > .advancedPanelBody,
+  .innerBackstagePanel > .advancedPanelBody {
+    padding: 16px;
+  }
+
+  .consumerHeroCopy h2 {
+    font-size: 30px;
+  }
+
+  .heroBadgeRow,
+  .consumerResultActions {
+    gap: 8px;
+  }
+}
