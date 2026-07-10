@@ -383,10 +383,10 @@ function renderProjects() {
     currentPackage = null;
     nodes.currentTaskStatusBadge.textContent = "等待生成";
     nodes.currentTaskUnitLabel.textContent = "第 1 条";
-    nodes.currentTaskHint.textContent = "上传产品图并补一句要求后，这里会显示当前提示词和摘要。";
-    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有生成结果</strong><p>生成后，这里会显示提示词、摘要、批量任务和镜头细节。</p></div>`;
+    nodes.currentTaskHint.textContent = "先去生成页上传产品图并补一句要求，结果出来后会自动回到这里。";
+    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有生成结果</strong><p>先去生成页完成一次生成。完成后，这里会承接项目摘要、提示词、批量任务和镜头细节。</p></div>`;
     nodes.shotEditorPanel.innerHTML = "";
-    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近记录</strong><p>先上传产品图，再补一句要求。生成后，这里会保留最近结果和第一条提示词预览。</p></div>`;
+    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近记录</strong><p>第一次生成完成后，这里会保留最近结果、第一条提示词预览和切换入口。</p></div>`;
     updateResultButtons();
     return;
   }
