@@ -4517,6 +4517,10 @@ body {
   font-weight: 800;
 }
 
+.uploadAssetBadge[hidden] {
+  display: none !important;
+}
+
 .simpleProductPreview img,
 .simpleUploadButtonTile img {
   width: 100%;

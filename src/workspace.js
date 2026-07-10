@@ -297,7 +297,7 @@ function handleProductImagesChange() {
   if (!file) {
     nodes.productHeroImage.hidden = true;
     nodes.sampleProduct.hidden = false;
-    nodes.productHeroBadge.textContent = "示例";
+    nodes.productHeroBadge.hidden = true;
     return;
   }
 
@@ -305,7 +305,7 @@ function handleProductImagesChange() {
   nodes.productHeroImage.src = productPreviewUrl;
   nodes.productHeroImage.hidden = false;
   nodes.sampleProduct.hidden = true;
-  nodes.productHeroBadge.textContent = "主图";
+  nodes.productHeroBadge.hidden = true;
   autoFillProductInsightsFromImage(file);
   updateActionFeedback();
   syncFlowStepState();
@@ -821,7 +821,7 @@ function renderTemplateOptions() {
   nodes.accountTemplateSelect.innerHTML = accountTemplates
     .map(
       (template) =>
-        `<option value="${escapeHtml(template.id)}" ${template.id === selectedTemplateId ? "selected" : ""}>${escapeHtml(template.name)}${template.accountHandle ? ` · ${escapeHtml(template.accountHandle)}` : ""}</option>`
+        `<option value="${escapeHtml(template.id)}" ${template.id === selectedTemplateId ? "selected" : ""}>${escapeHtml(template.name)}</option>`
     )
     .join("");
 }
