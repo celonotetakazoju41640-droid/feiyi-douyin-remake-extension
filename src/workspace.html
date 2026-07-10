@@ -67,88 +67,122 @@
               </header>
 
               <section class="contentSection">
-                <div class="generateStageGrid">
-                  <section class="uploadStudioCard">
+                <div class="generateSimpleGrid">
+                  <section class="referencePreviewPanel">
                     <div class="contentSectionHead">
-                      <strong>上传图片</strong>
-                      <p>商品图必传，模特图可选</p>
+                      <strong>SC 对标参考</strong>
+                      <p>分段反推洗稿</p>
                     </div>
-                    <div class="uploadStudioBoard">
-                      <label class="uploadAssetTile">
-                        <input id="productImages" type="file" accept="image/*" multiple />
-                        <div class="uploadAssetPreview">
-                          <span id="productHeroBadge" class="uploadAssetBadge">示例</span>
-                          <div id="sampleProduct" class="sampleProduct"></div>
-                          <img id="productHeroImage" alt="商品图预览" hidden />
-                        </div>
-                        <strong>上传商品图片</strong>
-                        <small>必填，最多 9 张</small>
-                      </label>
-
-                      <label class="uploadAssetTile uploadAssetTileSecondary">
-                        <input id="modelImageFile" type="file" accept="image/*" />
-                        <div class="uploadAssetPreview uploadAssetPreviewSecondary">
-                          <div id="sampleModel" class="sampleProduct"></div>
-                          <img id="modelHeroImage" alt="模特图预览" hidden />
-                        </div>
-                        <strong>上传模特图</strong>
-                        <small>需要固定人物时再传</small>
-                      </label>
+                    <div class="referenceCard simpleReferenceCard">
+                      <video id="localReferenceVideo" class="localReferenceVideo" controls playsinline hidden></video>
+                      <img id="thumbnailImage" alt="参考视频首帧" hidden />
+                      <div id="thumbnailFallback" class="thumbnailFallback simpleThumbnailFallback">
+                        <span class="playMark">▶</span>
+                        <strong id="videoHandle">本地参考视频</strong>
+                        <small id="videoUrlText">请上传视频</small>
+                      </div>
                     </div>
+                    <p class="referencePanelFootnote">按 SC 流程先切成分段，再做镜头拆解和提示词组织；不照抄人物、台词、品牌和素材。</p>
                   </section>
 
-                  <section class="generateControlCard">
-                    <div class="contentSectionHead">
-                      <strong>生成设置</strong>
-                      <p>模板、平台、比例、秒数一起设</p>
-                    </div>
-                    <div class="generateControlGrid">
-                      <label class="fieldBlock">
-                        蒸馏模型
-                        <select id="accountTemplateSelect"></select>
+                  <section class="generateSimpleFlow">
+                    <section class="simpleFlowCard">
+                      <div class="contentSectionHead">
+                        <strong>请上传对标短剧视频</strong>
+                      </div>
+                      <p class="simpleFlowIntro">这里放 SC 对标视频。点击生成时会先分析参考视频结构。</p>
+                      <label class="referenceVideoDropTile generateVideoDropTile">
+                        <input id="referenceVideoFile" type="file" accept="video/*" />
+                        <span class="referenceUploadIcon">＋</span>
+                        <strong id="referenceVideoFileName">请上传视频</strong>
+                        <small id="referenceAnalysisStatus">未选择视频文件</small>
                       </label>
+                    </section>
+
+                    <section class="simpleFlowCard">
+                      <div class="contentSectionHead">
+                        <strong>上传商品图片</strong>
+                        <p>必填，最多 9 张</p>
+                      </div>
+                      <p class="simpleFlowIntro">复刻必须先有当前商品图。参考视频不能决定你的产品品类、痛点和卖点。</p>
+                      <div class="simpleImageUploadRow">
+                        <label class="simpleProductTile">
+                          <input id="productImages" type="file" accept="image/*" multiple />
+                          <div class="simpleProductPreview">
+                            <span id="productHeroBadge" class="uploadAssetBadge">示例</span>
+                            <div id="sampleProduct" class="sampleProduct"></div>
+                            <img id="productHeroImage" alt="商品图预览" hidden />
+                          </div>
+                        </label>
+                        <label class="simpleUploadButtonTile">
+                          <input id="modelImageFile" type="file" accept="image/*" />
+                          <div class="simpleUploadButtonInner">
+                            <span class="referenceUploadIcon">＋</span>
+                            <strong>上传</strong>
+                            <small>模特图可选</small>
+                          </div>
+                          <img id="modelHeroImage" alt="模特图预览" hidden />
+                          <div id="sampleModel" class="sampleProduct simpleHiddenSample"></div>
+                        </label>
+                      </div>
+                    </section>
+
+                    <section class="simpleFlowCard">
+                      <div class="contentSectionHead">
+                        <strong>中文视频设置</strong>
+                      </div>
+                      <div class="generateControlGrid simpleSettingsGrid">
+                        <label class="fieldBlock">
+                          蒸馏模型
+                          <select id="accountTemplateSelect"></select>
+                        </label>
+                        <label class="fieldBlock">
+                          发布平台
+                          <select id="templatePlatform">
+                            <option value="tiktok">TikTok</option>
+                            <option value="douyin">抖音</option>
+                          </select>
+                        </label>
+                        <label class="fieldBlock">
+                          视频比例
+                          <select id="aspectRatioSelect">
+                            <option value="9:16" selected>9:16</option>
+                            <option value="1:1">1:1</option>
+                            <option value="4:3">4:3</option>
+                            <option value="16:9">16:9</option>
+                          </select>
+                        </label>
+                        <label class="fieldBlock">
+                          生成时长
+                          <div class="durationInputWrap">
+                            <input id="targetDurationControl" type="number" min="1" max="60" step="1" value="45" />
+                            <span>秒</span>
+                          </div>
+                        </label>
+                        <label class="fieldBlock">
+                          口播语言
+                          <select id="voiceDialect"></select>
+                        </label>
+                        <label class="fieldBlock">
+                          生成数量
+                          <select id="generationCount">
+                            <option value="1">1 条</option>
+                            <option value="2">2 条</option>
+                            <option value="3">3 条</option>
+                            <option value="4">4 条</option>
+                            <option value="5">5 条</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div class="textInlineHintRow">
+                        <span class="textInlineHint">平台语言自动切换</span>
+                        <span id="profileScanStatus" class="textInlineHint">主页参考自动识别</span>
+                      </div>
                       <label class="fieldBlock">
-                        发布平台
-                        <select id="templatePlatform">
-                          <option value="tiktok">TikTok</option>
-                          <option value="douyin">抖音</option>
-                        </select>
+                        可选主页参考
+                        <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了优先参考主页风格" />
                       </label>
-                      <label class="fieldBlock">
-                        生成条数
-                        <select id="generationCount">
-                          <option value="1">1 条</option>
-                          <option value="2">2 条</option>
-                          <option value="3">3 条</option>
-                          <option value="4">4 条</option>
-                          <option value="5">5 条</option>
-                        </select>
-                      </label>
-                      <label class="fieldBlock">
-                        视频比例
-                        <select id="aspectRatioSelect">
-                          <option value="9:16" selected>9:16</option>
-                          <option value="1:1">1:1</option>
-                          <option value="4:3">4:3</option>
-                          <option value="16:9">16:9</option>
-                        </select>
-                      </label>
-                      <label class="fieldBlock">
-                        生成时长
-                        <div class="durationInputWrap">
-                          <input id="targetDurationControl" type="number" min="1" max="60" step="1" value="45" />
-                          <span>秒</span>
-                        </div>
-                      </label>
-                    </div>
-                    <div class="textInlineHintRow">
-                      <span class="textInlineHint">平台语言自动切换</span>
-                      <span id="profileScanStatus" class="textInlineHint">主页参考自动识别</span>
-                    </div>
-                    <label class="fieldBlock">
-                      可选主页参考
-                      <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了优先参考主页风格" />
-                    </label>
+                    </section>
                   </section>
                 </div>
               </section>
@@ -340,15 +374,6 @@
                 <div class="advancedPanelBody">
                   <div class="settingsGrid backstageGrid">
                     <label class="fieldBlock">
-                      口播风格 / 口音
-                      <select id="voiceDialect">
-                        <option value="普通话">普通话</option>
-                        <option value="四川话">四川话</option>
-                        <option value="粤语">粤语</option>
-                        <option value="东北话">东北话</option>
-                      </select>
-                    </label>
-                    <label class="fieldBlock">
                       钩子风格
                       <select id="hookStyle">
                         <option value="误会反转">误会反转</option>
@@ -385,34 +410,11 @@
                     <button id="copyClipcatPromptButton" class="ghostButton" type="button">复制 Clipcat 指令</button>
                   </div>
 
-                  <section class="referenceVideoUploadPanel backstageVideoPanel">
-                    <div class="panelHead">
-                      <div>
-                        <strong>可选参考视频</strong>
-                        <p>如果你手上还有对标短视频，也可以一起上传补充节奏和镜头结构。</p>
-                      </div>
-                    </div>
-                    <div class="referenceCard compactReferenceCard">
-                      <video id="localReferenceVideo" class="localReferenceVideo" controls playsinline hidden></video>
-                      <img id="thumbnailImage" alt="参考视频首帧" hidden />
-                      <div id="thumbnailFallback" class="thumbnailFallback">
-                        <span class="playMark">▶</span>
-                        <strong id="videoHandle">参考短视频</strong>
-                        <small id="videoUrlText">用于拆钩子、节奏和转化结构</small>
-                      </div>
-                    </div>
-                    <label class="referenceVideoDropTile">
-                      <input id="referenceVideoFile" type="file" accept="video/*" />
-                      <span class="referenceUploadIcon">＋</span>
-                      <strong id="referenceVideoFileName">请上传视频</strong>
-                      <small id="referenceAnalysisStatus">未选择参考视频</small>
-                    </label>
-                    <label class="fieldBlock is-hiddenField">
-                      参考视频来源
-                      <input id="videoUrl" type="url" placeholder="本地参考视频或可选参考来源" />
-                    </label>
-                    <input id="thumbnailUrl" type="hidden" />
-                  </section>
+                  <label class="fieldBlock is-hiddenField">
+                    参考视频来源
+                    <input id="videoUrl" type="url" placeholder="本地参考视频或可选参考来源" />
+                  </label>
+                  <input id="thumbnailUrl" type="hidden" />
                 </div>
               </details>
 
