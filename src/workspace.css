@@ -3,11 +3,11 @@
 }
 
 :root {
-  --bg: #f5f7fb;
-  --panel: #ffffff;
-  --ink: #172033;
-  --muted: #667085;
-  --line: #d8dee8;
+  --bg: #f6f1e6;
+  --panel: #fffdf8;
+  --ink: #27231b;
+  --muted: #746c60;
+  --line: #ddd1bb;
   --blue: #0ea5e9;
   --deep: #1d4ed8;
   --green: #047857;
@@ -29,7 +29,7 @@ body {
   min-height: 100vh;
   color: var(--ink);
   background: var(--bg);
-  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 body.modal-open {
@@ -150,8 +150,8 @@ h1 {
 .fieldBlock select {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 6px;
+  padding: 8px 10px;
   background: #fff;
   color: var(--ink);
 }
@@ -233,9 +233,9 @@ h1 {
 
 .ghostButton {
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 14px;
-  background: #f8fafc;
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #fffcf5;
   color: var(--ink);
 }
 
@@ -1060,12 +1060,12 @@ textarea {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) minmax(360px, 1.5fr) auto;
   align-items: center;
-  gap: 12px;
-  border: 1px solid #bae6fd;
+  gap: 10px;
+  border: 1px solid #e4d6bb;
   border-radius: 8px;
-  padding: 12px;
-  background: #f0f9ff;
-  color: #0f172a;
+  padding: 10px 12px;
+  background: #fff9ee;
+  color: #5f5443;
 }
 
 .serviceHelpPanel[hidden] {
@@ -1075,20 +1075,22 @@ textarea {
 .serviceHelpPanel strong {
   display: block;
   margin-bottom: 4px;
+  font-size: 13px;
 }
 
 .serviceHelpPanel p {
-  color: #475569;
+  color: #746a59;
+  font-size: 12px;
 }
 
 .serviceHelpPanel code {
   display: block;
   overflow: auto;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #ecdcc0;
   border-radius: 6px;
-  padding: 9px 10px;
-  background: white;
-  color: #0f172a;
+  padding: 7px 8px;
+  background: #f7efdf;
+  color: #5c4e3b;
   white-space: nowrap;
   font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
@@ -2538,14 +2540,15 @@ h1 {
 }
 
 .advancedPanel {
-  border: 1px dashed #d7e2ec;
-  border-radius: 16px;
-  background: rgba(244, 248, 252, 0.72);
+  border: 1px solid #eadfcb;
+  border-radius: 8px;
+  background: #fffaf1;
 }
 
 .advancedPanel summary {
-  padding: 14px 16px;
-  color: #2d2721;
+  padding: 9px 10px;
+  color: #5c4f3b;
+  font-size: 12px;
 }
 
 .uploadPanel,
@@ -2555,19 +2558,19 @@ h1 {
 .detailContent,
 .shotCard,
 .batchServicePanel {
-  border-color: #dce6ef;
-  border-radius: 18px;
+  border-color: #e4d6bb;
+  border-radius: 8px;
 }
 
 .productHeroTile,
 .uploadTile {
-  border-radius: 18px;
-  background: linear-gradient(180deg, #fcfeff, #f1f6fb);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fffdf8, #f7efdf);
 }
 
 .uploadTile {
   border-style: dashed;
-  border-color: #bfd0df;
+  border-color: #d9c6a1;
 }
 
 .projectPanel {
@@ -3012,7 +3015,7 @@ body {
 .backstageHeadRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 280px;
-  gap: 14px;
+  gap: 8px;
   align-items: end;
 }
 
@@ -3026,9 +3029,9 @@ body {
 
 .innerBackstagePanel > .advancedPanelBody {
   display: grid;
-  gap: 16px;
-  padding: 20px;
-  background: #fffcf7;
+  gap: 10px;
+  padding: 12px;
+  background: #fffaf2;
 }
 
 .backstageVideoPanel {
@@ -3139,9 +3142,9 @@ body {
 }
 
 .workspaceWizardShell {
-  width: min(1320px, calc(100vw - 28px));
-  padding: 12px 0 24px;
-  gap: 12px;
+  width: min(1260px, calc(100vw - 24px));
+  padding: 10px 0 18px;
+  gap: 10px;
 }
 
 .wizardTopBar,
@@ -3155,27 +3158,27 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 10px 16px;
-  border: 1px solid rgba(42, 50, 44, 0.2);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(254, 252, 248, 0.98), rgba(247, 242, 232, 0.98));
-  box-shadow: 0 10px 28px rgba(21, 24, 22, 0.08);
+  gap: 12px;
+  padding: 8px 14px;
+  border: 1px solid rgba(128, 108, 70, 0.18);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fffaf0, #f5ecd8);
+  box-shadow: 0 4px 14px rgba(77, 60, 31, 0.06);
 }
 
 .wizardTopBar .brandBlock img {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
 }
 
 .wizardTopBar h1 {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .wizardTopBar p {
   margin-top: 2px;
-  font-size: 13px;
-  color: #6f6d67;
+  font-size: 12px;
+  color: #776d5d;
 }
 
 .wizardTopMeta {
@@ -4092,7 +4095,7 @@ body {
 
 .textFormRow {
   display: grid;
-  gap: 12px;
+  gap: 8px;
 }
 
 .textFormRowCompact {
@@ -4109,7 +4112,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -4124,7 +4127,7 @@ body {
 .textPreviewRow {
   display: none;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .textPreviewRow:has(img:not([hidden])) {
@@ -4133,12 +4136,12 @@ body {
 
 .textPreviewItem {
   display: none;
-  gap: 8px;
-  min-height: 84px;
-  padding: 8px 10px;
-  border: 1px dashed rgba(94, 109, 98, 0.22);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.68);
+  gap: 6px;
+  min-height: 72px;
+  padding: 6px 8px;
+  border: 1px dashed rgba(145, 122, 78, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 250, 241, 0.88);
 }
 
 .textPreviewItem:has(img:not([hidden])) {
@@ -4146,16 +4149,16 @@ body {
 }
 
 .textPreviewItem strong {
-  color: #334238;
-  font-size: 13px;
+  color: #5a4c3a;
+  font-size: 12px;
 }
 
 .textPreviewItem img {
   width: 100%;
-  max-height: 96px;
+  max-height: 84px;
   object-fit: contain;
-  border-radius: 10px;
-  background: #f5f7fb;
+  border-radius: 8px;
+  background: #faf5ea;
 }
 
 .textPreviewItem .sampleProduct {
@@ -4165,31 +4168,33 @@ body {
 }
 
 .textDetails {
-  border: 1px solid rgba(42, 50, 44, 0.08);
-  border-radius: 12px;
-  background: #fbfbf8;
+  border: 1px solid #eadfcb;
+  border-radius: 8px;
+  background: #fffaf1;
 }
 
 .textDetails summary {
-  padding: 12px 14px;
+  padding: 9px 10px;
   cursor: pointer;
-  color: #425145;
+  color: #5c4f3b;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .textDetails .fieldBlock {
-  padding: 0 14px 14px;
+  padding: 0 10px 10px;
 }
 
 #actionFeedback {
   margin: 0;
-  color: #4b5b50;
+  color: #6b5d49;
+  font-size: 12px;
 }
 
 .textResultMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .simpleResultStats {
@@ -4197,7 +4202,7 @@ body {
 }
 
 .simpleResultActions {
-  gap: 10px;
+  gap: 8px;
 }
 
 .textResultAdvanced {
@@ -4238,30 +4243,32 @@ body {
 
 .panelLayout {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 178px minmax(0, 1fr);
   gap: 0;
-  width: min(1360px, 100%);
+  width: min(1240px, 100%);
   margin: 0 auto;
-  border: 1px solid #e6e8ee;
-  background: #fff;
+  border: 1px solid #e3d7c1;
+  border-radius: 10px;
+  background: #fffaf2;
+  overflow: hidden;
 }
 
 .panelSidebar {
   position: sticky;
   top: 18px;
   display: grid;
-  gap: 18px;
+  gap: 14px;
   align-content: start;
   min-height: calc(100vh - 120px);
-  padding: 20px 14px;
-  background: #1f2023;
-  color: #f5f7fb;
+  padding: 14px 10px;
+  background: #24211c;
+  color: #f7f2e7;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .panelSidebarHead strong {
   display: block;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .panelNav {
@@ -4272,21 +4279,21 @@ body {
 .panelNavItem {
   display: block;
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 0;
   background: transparent;
-  color: rgba(245, 247, 251, 0.72);
+  color: rgba(247, 242, 231, 0.72);
   text-align: left;
 }
 
 .panelNavItem strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .panelNavItem.is-active {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
+  background: rgba(227, 198, 134, 0.14);
+  color: #fff7e7;
 }
 
 .panelSidebarFoot {
@@ -4296,14 +4303,14 @@ body {
 }
 
 .panelSidebarFoot .textLinkButton {
-  color: #91b4ff;
+  color: #e5c985;
   text-align: left;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .panelMain {
   display: grid;
-  background: #fff;
+  background: #fffaf2;
 }
 
 .panelView[hidden] {
@@ -4312,30 +4319,31 @@ body {
 
 .contentSurface {
   display: grid;
-  gap: 12px;
+  gap: 8px;
+  align-content: start;
   min-height: calc(100vh - 120px);
-  padding: 18px 22px 24px;
-  background: #ffffff;
+  padding: 12px 16px 16px;
+  background: #fffdf8;
 }
 
 .manageSurface {
-  background: #fff;
+  background: #fffdf8;
 }
 
 .contentHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eceff4;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #eee4d0;
 }
 
 .contentHeader h2 {
   margin: 0;
-  color: #20242f;
-  font-size: 28px;
-  line-height: 1.2;
+  color: #2a241b;
+  font-size: 18px;
+  line-height: 1.15;
 }
 
 .contentHeaderMeta {
@@ -4346,52 +4354,53 @@ body {
 
 .contentSection {
   display: grid;
-  gap: 10px;
-  padding: 10px 0 0;
-  border-top: 1px solid #f0f2f6;
+  gap: 8px;
+  padding: 8px 0 0;
+  border-top: 1px solid #f1e7d5;
 }
 
 .contentSectionHead {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .contentSectionHead strong {
-  color: #20242f;
-  font-size: 16px;
+  color: #2a241b;
+  font-size: 13px;
+  letter-spacing: 0.02em;
 }
 
 .contentSectionHead p {
-  color: #667085;
-  font-size: 13px;
+  color: #7a725f;
+  font-size: 12px;
 }
 
 .panelView .fieldBlock,
 .panelView .panelHead p,
 .panelView .panelHead strong {
-  color: #1f2937;
+  color: #2b251d;
 }
 
 .panelView .fieldBlock input,
 .panelView .fieldBlock textarea,
 .panelView .fieldBlock select {
-  border: 1px solid #cfd8e3;
+  border: 1px solid #d9ccb8;
   background: #fff;
-  color: #1f2937;
+  color: #2b251d;
 }
 
 .panelView .fieldBlock input::placeholder,
 .panelView .fieldBlock textarea::placeholder {
-  color: #98a2b3;
+  color: #a08f74;
 }
 
 .panelView .fieldBlock input:focus,
 .panelView .fieldBlock textarea:focus,
 .panelView .fieldBlock select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  border-color: #c89f49;
+  box-shadow: 0 0 0 3px rgba(200, 159, 73, 0.14);
 }
 
 .panelView .textInlineHint,
@@ -4400,20 +4409,21 @@ body {
   padding: 0;
   min-height: 0;
   background: transparent;
-  color: #556070;
+  color: #756a58;
   border-radius: 0;
+  font-size: 12px;
 }
 
 .panelView .ghostButton {
-  border-color: #d9e2ec;
-  background: #fff;
-  color: #344054;
+  border-color: #ddcfb8;
+  background: #fffdf8;
+  color: #5c4e3b;
 }
 
 .panelView .primaryButton {
-  border: 1px solid #2563eb;
-  background: #2563eb;
-  color: #fff;
+  border: 1px solid #c89f49;
+  background: #d9b061;
+  color: #2f2413;
 }
 
 @media (max-width: 1100px) {

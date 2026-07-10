@@ -27,9 +27,9 @@
       <section id="serviceHelpPanel" class="serviceHelpPanel" hidden>
         <div>
           <strong>当前工作台说明</strong>
-          <p>现在首页改成左侧菜单。生成、历史记录和蒸馏管理已经拆开。</p>
+          <p>左侧切栏目，右侧处理内容。</p>
         </div>
-        <code id="startCommand">流程：左侧选栏目 -> 右侧处理内容。</code>
+        <code id="startCommand">流程：选模型 -> 传图 -> 生成 -> 去历史记录提交。</code>
         <div class="serviceHelpActions">
           <button id="copyStartCommandButton" type="button">复制结构说明</button>
           <button id="retryHealthButton" type="button">重新查看</button>
@@ -62,7 +62,7 @@
             <article class="contentSurface">
               <header class="contentHeader">
                 <div>
-                  <h2>选择蒸馏模型，上传图片，直接生成提示词</h2>
+                  <h2>生成</h2>
                 </div>
               </header>
 
@@ -94,30 +94,29 @@
                   </label>
                 </div>
                 <div class="textInlineHintRow">
-                  <span class="textInlineHint">当前语言：系统自动切换</span>
-                  <span id="profileScanStatus" class="textInlineHint">主页参考：系统自动</span>
+                  <span class="textInlineHint">平台语言自动切换</span>
+                  <span id="profileScanStatus" class="textInlineHint">主页参考自动识别</span>
                 </div>
                 <label class="fieldBlock">
                   可选主页参考
-                  <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了会优先参考该主页风格" />
+                  <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了优先参考主页风格" />
                 </label>
               </section>
 
               <section class="contentSection">
                 <div class="contentSectionHead">
                   <strong>上传图片</strong>
-                  <p>产品图必传，模特图可选</p>
                 </div>
                 <div class="textFormRow textUploadRow">
                   <label class="fieldBlock">
                     产品图
                     <input id="productImages" type="file" accept="image/*" multiple />
-                    <small>支持多张，至少上传 1 张。</small>
+                    <small>至少 1 张</small>
                   </label>
                   <label class="fieldBlock">
                     模特图 / 人物参考
                     <input id="modelImageFile" type="file" accept="image/*" />
-                    <small>只有需要固定人物时再传。</small>
+                    <small>需要固定人物时再传</small>
                   </label>
                 </div>
                 <div class="textPreviewRow">
@@ -137,7 +136,6 @@
               <section class="contentSection">
                 <div class="contentSectionHead">
                   <strong>生成提示词</strong>
-                  <p>补一句要求即可生成</p>
                 </div>
                 <div class="textFormRow textFormRowCompact">
                   <label class="fieldBlock">
@@ -160,7 +158,7 @@
                     <textarea
                       id="productNotes"
                       rows="4"
-                      placeholder="上传产品图后，这里会自动拆一版卖点；你也可以手动补充。"
+                      placeholder="上传产品图后会自动拆卖点，也可以手动补充。"
                     ></textarea>
                   </label>
                 </details>
@@ -184,7 +182,7 @@
                 <div class="contentSectionHead">
                   <div>
                     <strong>结果与提交</strong>
-                    <p id="currentTaskHint">生成完成后，这里会显示当前提示词、摘要和可提交任务。</p>
+                    <p id="currentTaskHint">生成后在这里复制、导出或提交。</p>
                   </div>
                   <div class="textResultMeta">
                     <span id="currentTaskStatusBadge" class="countBadge">等待生成</span>
@@ -247,12 +245,6 @@
                   <h2>蒸馏管理</h2>
                 </div>
               </header>
-
-              <div class="backstageIntro">
-                <div>
-                  <strong>模型维护、主页提炼、样本筛片。</strong>
-                </div>
-              </div>
 
               <div class="backstageHeadRow">
                 <div class="resultActions">
