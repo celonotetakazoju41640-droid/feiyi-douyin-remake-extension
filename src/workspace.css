@@ -4472,6 +4472,8 @@ body {
   position: relative;
   display: grid;
   gap: 6px;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
 .simpleProductTile input,
@@ -4523,6 +4525,10 @@ body {
 
 .simpleProductPreview img,
 .simpleUploadButtonTile img {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -4542,6 +4548,8 @@ body {
 }
 
 .simpleUploadButtonInner {
+  position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
   gap: 4px;
