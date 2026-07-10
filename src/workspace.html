@@ -68,23 +68,6 @@
 
               <section class="contentSection">
                 <div class="generateSimpleGrid">
-                  <section class="referencePreviewPanel">
-                    <div class="contentSectionHead">
-                      <strong>SC 对标参考</strong>
-                      <p>分段反推洗稿</p>
-                    </div>
-                    <div class="referenceCard simpleReferenceCard">
-                      <video id="localReferenceVideo" class="localReferenceVideo" controls playsinline hidden></video>
-                      <img id="thumbnailImage" alt="参考视频首帧" hidden />
-                      <div id="thumbnailFallback" class="thumbnailFallback simpleThumbnailFallback">
-                        <span class="playMark">▶</span>
-                        <strong id="videoHandle">本地参考视频</strong>
-                        <small id="videoUrlText">请上传视频</small>
-                      </div>
-                    </div>
-                    <p class="referencePanelFootnote">按 SC 流程先切成分段，再做镜头拆解和提示词组织；不照抄人物、台词、品牌和素材。</p>
-                  </section>
-
                   <section class="generateSimpleFlow">
                     <section class="simpleFlowCard">
                       <div class="contentSectionHead">
@@ -466,6 +449,18 @@
         <option value="英文">英文</option>
         <option value="中文">中文</option>
       </select>
+
+      <section hidden>
+        <div class="referenceCard simpleReferenceCard">
+          <video id="localReferenceVideo" class="localReferenceVideo" controls playsinline hidden></video>
+          <img id="thumbnailImage" alt="参考视频首帧" hidden />
+          <div id="thumbnailFallback" class="thumbnailFallback simpleThumbnailFallback">
+            <span class="playMark">▶</span>
+            <strong id="videoHandle">本地参考视频</strong>
+            <small id="videoUrlText">请上传视频</small>
+          </div>
+        </div>
+      </section>
 
       <section hidden>
         <button id="wizardPrevButton" type="button">上一步</button>

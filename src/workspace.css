@@ -4261,9 +4261,9 @@ body {
   align-content: start;
   min-height: calc(100vh - 120px);
   padding: 14px 10px;
-  background: #24211c;
-  color: #f7f2e7;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #fbf4e6, #f6ecd7);
+  color: #3e3428;
+  border-right: 1px solid #e3d7c1;
 }
 
 .panelSidebarHead strong {
@@ -4282,7 +4282,7 @@ body {
   padding: 8px 10px;
   border: 0;
   background: transparent;
-  color: rgba(247, 242, 231, 0.72);
+  color: #7a705f;
   text-align: left;
 }
 
@@ -4292,8 +4292,8 @@ body {
 }
 
 .panelNavItem.is-active {
-  background: rgba(227, 198, 134, 0.14);
-  color: #fff7e7;
+  background: #e9dbc0;
+  color: #2f2413;
 }
 
 .panelSidebarFoot {
@@ -4303,7 +4303,7 @@ body {
 }
 
 .panelSidebarFoot .textLinkButton {
-  color: #e5c985;
+  color: #9b7a31;
   text-align: left;
   font-size: 12px;
 }
@@ -4400,7 +4400,7 @@ body {
 
 .generateSimpleGrid {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: start;
 }
