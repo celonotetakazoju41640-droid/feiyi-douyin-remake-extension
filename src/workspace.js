@@ -153,6 +153,7 @@ let pinnedProfileVideoUrls = [];
 let excludedProfileVideoUrls = new Set();
 let currentWizardStep = 1;
 let onboardingVisible = false;
+let currentView = "generate";
 
 init();
 
@@ -174,6 +175,7 @@ function init() {
   refreshBatchServiceHealth();
   syncFlowStepState();
   renderWizardStep();
+  renderCurrentView();
   maybeShowOnboarding();
 }
 
@@ -201,6 +203,9 @@ function bindEvents() {
   document.addEventListener("keydown", handleDocumentKeydown);
   document.querySelectorAll("[data-step-nav]").forEach((button) => {
     button.addEventListener("click", () => setWizardStep(Number(button.dataset.stepNav)));
+  });
+  document.querySelectorAll("[data-view-nav]").forEach((button) => {
+    button.addEventListener("click", () => setCurrentView(button.dataset.viewNav || "generate"));
   });
   nodes.accountTemplateSelect.addEventListener("change", handleTemplateSelectionChange);
   nodes.templatePlatform.addEventListener("change", handleTemplatePlatformChange);
@@ -357,6 +362,7 @@ async function handleGenerate() {
   setActionFeedback(`已生成 ${currentPackage.batchVideoTasks?.length || 0} 条可直接去跑的提示词任务。`);
   syncFlowStepState();
   setWizardStep(4);
+  setCurrentView("history");
 }
 
 function renderProjects() {
@@ -1817,6 +1823,23 @@ async function handleWizardNext() {
 function setActionFeedback(message, isError = false) {
   nodes.actionFeedback.textContent = message;
   nodes.actionFeedback.style.color = isError ? "#b42318" : "#4b5b50";
+}
+
+function renderCurrentView() {
+  document.querySelectorAll("[data-view-panel]").forEach((panel) => {
+    const active = panel.dataset.viewPanel === currentView;
+    panel.hidden = !active;
+    panel.classList.toggle("is-active", active);
+  });
+  document.querySelectorAll("[data-view-nav]").forEach((button) => {
+    const active = button.dataset.viewNav === currentView;
+    button.classList.toggle("is-active", active);
+  });
+}
+
+function setCurrentView(view) {
+  currentView = view || "generate";
+  renderCurrentView();
 }
 
 function handleDocumentKeydown(event) {

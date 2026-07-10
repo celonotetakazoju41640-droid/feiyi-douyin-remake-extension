@@ -4235,3 +4235,234 @@ body {
     flex-direction: column;
   }
 }
+
+.panelLayout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  width: min(1360px, 100%);
+  margin: 0 auto;
+}
+
+.panelSidebar {
+  position: sticky;
+  top: 18px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-height: calc(100vh - 120px);
+  padding: 20px 16px;
+  border-radius: 16px;
+  background: #1f2023;
+  color: #f5f7fb;
+  box-shadow: 0 18px 42px rgba(17, 19, 24, 0.18);
+}
+
+.panelSidebar .wizardEyebrow {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f6f7fb;
+}
+
+.panelSidebarHead strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+}
+
+.panelSidebarHead p {
+  margin-top: 6px;
+  color: rgba(245, 247, 251, 0.68);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.panelNav {
+  display: grid;
+  gap: 8px;
+}
+
+.panelNavItem {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(245, 247, 251, 0.72);
+  text-align: left;
+}
+
+.panelNavItem strong {
+  font-size: 15px;
+}
+
+.panelNavItem small {
+  color: inherit;
+  font-size: 12px;
+}
+
+.panelNavItem.is-active {
+  background: #2f3658;
+  color: #ffffff;
+}
+
+.panelSidebarFoot {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.panelSidebarFoot .textInlineHint {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(245, 247, 251, 0.78);
+}
+
+.panelSidebarFoot .textLinkButton {
+  color: #91b4ff;
+  text-align: left;
+}
+
+.panelMain {
+  display: grid;
+}
+
+.panelView[hidden] {
+  display: none !important;
+}
+
+.contentSurface {
+  display: grid;
+  gap: 16px;
+  min-height: calc(100vh - 120px);
+  padding: 22px;
+  border: 1px solid #e8ebf2;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(22, 28, 45, 0.06);
+}
+
+.manageSurface {
+  background: #fbfcff;
+}
+
+.contentHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.contentHeader h2 {
+  margin: 8px 0 4px;
+  color: #20242f;
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.contentHeader p {
+  color: #667085;
+}
+
+.contentHeaderMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.contentSection {
+  display: grid;
+  gap: 12px;
+  padding: 6px 0 0;
+}
+
+.contentSectionHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.contentSectionHead strong {
+  color: #20242f;
+  font-size: 18px;
+}
+
+.contentSectionHead p {
+  margin-top: 4px;
+  color: #667085;
+}
+
+.panelView .fieldBlock,
+.panelView .panelHead p,
+.panelView .panelHead strong {
+  color: #1f2937;
+}
+
+.panelView .fieldBlock input,
+.panelView .fieldBlock textarea,
+.panelView .fieldBlock select {
+  border: 1px solid #cfd8e3;
+  background: #fff;
+  color: #1f2937;
+}
+
+.panelView .fieldBlock input::placeholder,
+.panelView .fieldBlock textarea::placeholder {
+  color: #98a2b3;
+}
+
+.panelView .fieldBlock input:focus,
+.panelView .fieldBlock textarea:focus,
+.panelView .fieldBlock select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.panelView .textInlineHint,
+.panelView .statusLine {
+  border-color: #d8e1ee;
+  background: #fff;
+  color: #556070;
+}
+
+.panelView .ghostButton {
+  border-color: #d9e2ec;
+  background: #fff;
+  color: #344054;
+}
+
+.panelView .primaryButton {
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+@media (max-width: 1100px) {
+  .panelLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .panelSidebar {
+    position: static;
+    min-height: auto;
+  }
+
+  .panelNav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .panelNav {
+    grid-template-columns: 1fr;
+  }
+
+  .contentHeader,
+  .contentSectionHead {
+    flex-direction: column;
+  }
+}

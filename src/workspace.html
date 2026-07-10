@@ -13,11 +13,11 @@
           <img src="../images/feiyi-logo.png" alt="飞蚁" />
           <div>
             <h1>飞蚁抖音复刻</h1>
-            <p>选蒸馏模型，上传图片，直接生成提示词。</p>
+            <p>左侧切栏目，右侧做生成、历史和蒸馏管理。</p>
           </div>
         </div>
         <div class="wizardTopMeta">
-          <span class="wizardTopMetaLabel">文字表单版</span>
+          <span class="wizardTopMetaLabel">菜单版</span>
           <span id="serviceStatus" class="statusBadge">检测中</span>
           <button id="openOnboardingButton" class="ghostButton" type="button">使用要点</button>
           <button id="startServiceButton" class="startButton" type="button" hidden>启动服务</button>
@@ -28,194 +28,247 @@
       <section id="serviceHelpPanel" class="serviceHelpPanel" hidden>
         <div>
           <strong>当前工作台说明</strong>
-          <p>现在首页改成文字表单。主流程只保留模型、图片和提示词生成。</p>
+          <p>现在首页改成左侧菜单。生成、历史记录和蒸馏管理已经拆开。</p>
         </div>
-        <code id="startCommand">流程：选择蒸馏模型 -> 上传图片 -> 生成提示词。</code>
+        <code id="startCommand">流程：左侧选栏目 -> 右侧处理内容。</code>
         <div class="serviceHelpActions">
           <button id="copyStartCommandButton" type="button">复制结构说明</button>
           <button id="retryHealthButton" type="button">重新查看</button>
         </div>
       </section>
 
-      <section class="textLayout">
-        <article class="textConsole">
-          <header class="textConsoleHead">
-            <div>
-              <span class="wizardEyebrow">主流程</span>
-              <h2>选择蒸馏模型，上传图片，直接生成提示词</h2>
-              <p>普通用户只需要看这一页。蒸馏模型维护和主页提炼都单独放到下方。</p>
-            </div>
-            <div class="textConsoleMeta">
-              <span class="statusLine">语言：TikTok 自动英文 / 抖音自动中文</span>
-              <span class="statusLine">参考：优先复用蒸馏模型，没有再补主页参考</span>
-            </div>
-          </header>
+      <section class="panelLayout">
+        <aside class="panelSidebar">
+          <div class="panelSidebarHead">
+            <span class="wizardEyebrow">工作台</span>
+            <strong>飞蚁抖音复刻</strong>
+            <p>像后台一样分栏处理，不把所有东西堆在一个页面里。</p>
+          </div>
+          <nav class="panelNav" aria-label="主栏目">
+            <button class="panelNavItem is-active" type="button" data-view-nav="generate">
+              <strong>生成</strong>
+              <small>选模型、传图、生成提示词</small>
+            </button>
+            <button class="panelNavItem" type="button" data-view-nav="history">
+              <strong>历史记录</strong>
+              <small>查看最近结果和导出内容</small>
+            </button>
+            <button class="panelNavItem" type="button" data-view-nav="manage">
+              <strong>蒸馏管理</strong>
+              <small>维护模型、提炼主页、筛样本</small>
+            </button>
+          </nav>
+          <div class="panelSidebarFoot">
+            <span class="textInlineHint">语言：TikTok 自动英文 / 抖音自动中文</span>
+            <button id="reopenOnboardingDockButton" class="textLinkButton" type="button">查看开始前要点</button>
+          </div>
+        </aside>
 
-          <section class="textFormSection">
-            <div class="textFormRow textFormRowCompact">
-              <label class="fieldBlock">
-                蒸馏模型
-                <select id="accountTemplateSelect"></select>
-              </label>
-              <label class="fieldBlock">
-                发布平台
-                <select id="templatePlatform">
-                  <option value="tiktok">TikTok</option>
-                  <option value="douyin">抖音</option>
-                </select>
-              </label>
-              <label class="fieldBlock">
-                生成条数
-                <select id="generationCount">
-                  <option value="1">1 条</option>
-                  <option value="2">2 条</option>
-                  <option value="3">3 条</option>
-                  <option value="4">4 条</option>
-                  <option value="5">5 条</option>
-                </select>
-              </label>
-            </div>
+        <section class="panelMain">
+          <section class="panelView is-active" data-view-panel="generate">
+            <article class="contentSurface">
+              <header class="contentHeader">
+                <div>
+                  <span class="wizardEyebrow">生成</span>
+                  <h2>选择蒸馏模型，上传图片，直接生成提示词</h2>
+                  <p>普通用户只需要处理这里，不用先理解蒸馏过程。</p>
+                </div>
+                <div class="contentHeaderMeta">
+                  <span class="statusLine">参考：优先复用蒸馏模型，没有再补主页参考</span>
+                </div>
+              </header>
 
-            <div class="textInlineHintRow">
-              <span class="textInlineHint">当前语言：系统自动切换</span>
-              <span id="profileScanStatus" class="textInlineHint">主页参考：系统自动</span>
-              <button id="reopenOnboardingDockButton" class="textLinkButton" type="button">查看开始前要点</button>
-            </div>
-
-            <label class="fieldBlock">
-              可选主页参考
-              <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了会优先参考该主页风格" />
-            </label>
-          </section>
-
-          <section class="textFormSection">
-            <div class="textSectionHead">
-              <strong>上传图片</strong>
-              <p>产品图必传，模特图可选。</p>
-            </div>
-            <div class="textFormRow textUploadRow">
-              <label class="fieldBlock">
-                产品图
-                <input id="productImages" type="file" accept="image/*" multiple />
-                <small>支持多张，至少上传 1 张。</small>
-              </label>
-              <label class="fieldBlock">
-                模特图 / 人物参考
-                <input id="modelImageFile" type="file" accept="image/*" />
-                <small>只有需要固定人物时再传。</small>
-              </label>
-            </div>
-            <div class="textPreviewRow">
-              <div id="productPreviewItem" class="textPreviewItem">
-                <strong id="productHeroBadge">产品图预览</strong>
-                <div id="sampleProduct" class="sampleProduct"></div>
-                <img id="productHeroImage" alt="商品图预览" hidden />
-              </div>
-              <div class="textPreviewItem">
-                <strong>模特图预览</strong>
-                <div id="sampleModel" class="sampleProduct"></div>
-                <img id="modelHeroImage" alt="模特图预览" hidden />
-              </div>
-            </div>
-          </section>
-
-          <section class="textFormSection">
-            <div class="textSectionHead">
-              <strong>生成提示词</strong>
-              <p>补一句要求即可生成。商品名和卖点会尽量按图片自动回填。</p>
-            </div>
-            <div class="textFormRow textFormRowCompact">
-              <label class="fieldBlock">
-                当前商品名
-                <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
-              </label>
-            </div>
-            <label class="fieldBlock">
-              你的创作要求
-              <textarea
-                id="referenceBrief"
-                rows="5"
-                placeholder="直接写你想要的内容风格、场景、开场方式和核心卖点。比如：厨房异味开场，30 秒内做前后对比，结尾强调去味快。"
-              ></textarea>
-            </label>
-            <details class="textDetails">
-              <summary>展开自动拆出的卖点</summary>
-              <label class="fieldBlock">
-                自动拆出的卖点
-                <textarea
-                  id="productNotes"
-                  rows="4"
-                  placeholder="上传产品图后，这里会自动拆一版卖点；你也可以手动补充。"
-                ></textarea>
-              </label>
-            </details>
-            <div class="textActionRow">
-              <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>
-              <p id="actionFeedback">先选择蒸馏模型，再上传产品图。</p>
-            </div>
-          </section>
-
-          <section class="textResultSection">
-            <div class="textSectionHead">
-              <div>
-                <strong>结果与提交</strong>
-                <p id="currentTaskHint">生成完成后，这里会显示当前提示词、摘要和可提交任务。</p>
-              </div>
-              <div class="textResultMeta">
-                <span id="currentTaskStatusBadge" class="countBadge">等待生成</span>
-                <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
-                <span id="seriesCount" class="countBadge">0 个项目</span>
-              </div>
-            </div>
-            <div id="seriesStats" class="projectStatsGrid simpleResultStats" aria-label="剧集生产统计"></div>
-            <div class="resultActions simpleResultActions">
-              <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交去跑视频</button>
-              <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
-              <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
-              <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
-            </div>
-            <div id="projectDetailPanel" class="projectDetailPanel"></div>
-            <div class="textResultHistoryHead">
-              <strong>最近生成</strong>
-              <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
-            </div>
-            <div id="seriesList" class="seriesList"></div>
-            <details class="advancedPanel textResultAdvanced">
-              <summary>展开导入、本地服务和镜头微调</summary>
-              <div class="advancedPanelBody">
-                <div class="resultActions">
-                  <label class="ghostButton importButton">
-                    导入 JSON
-                    <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+              <section class="contentSection">
+                <div class="contentSectionHead">
+                  <strong>基础设置</strong>
+                  <p>先选模型、平台和生成条数。</p>
+                </div>
+                <div class="textFormRow textFormRowCompact">
+                  <label class="fieldBlock">
+                    蒸馏模型
+                    <select id="accountTemplateSelect"></select>
                   </label>
-                  <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+                  <label class="fieldBlock">
+                    发布平台
+                    <select id="templatePlatform">
+                      <option value="tiktok">TikTok</option>
+                      <option value="douyin">抖音</option>
+                    </select>
+                  </label>
+                  <label class="fieldBlock">
+                    生成条数
+                    <select id="generationCount">
+                      <option value="1">1 条</option>
+                      <option value="2">2 条</option>
+                      <option value="3">3 条</option>
+                      <option value="4">4 条</option>
+                      <option value="5">5 条</option>
+                    </select>
+                  </label>
                 </div>
-                <div id="batchServicePanel" class="batchServicePanel">
-                  <div class="panelHead">
-                    <div>
-                      <strong>本地视频任务服务</strong>
-                      <p>这里负责接住批量短视频任务，并读取你本机已有的 Packy / Gemini 配置。</p>
-                    </div>
-                    <span id="batchServiceStatus" class="statusBadge">未检测</span>
+                <div class="textInlineHintRow">
+                  <span class="textInlineHint">当前语言：系统自动切换</span>
+                  <span id="profileScanStatus" class="textInlineHint">主页参考：系统自动</span>
+                </div>
+                <label class="fieldBlock">
+                  可选主页参考
+                  <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了会优先参考该主页风格" />
+                </label>
+              </section>
+
+              <section class="contentSection">
+                <div class="contentSectionHead">
+                  <strong>上传图片</strong>
+                  <p>产品图必传，模特图可选。</p>
+                </div>
+                <div class="textFormRow textUploadRow">
+                  <label class="fieldBlock">
+                    产品图
+                    <input id="productImages" type="file" accept="image/*" multiple />
+                    <small>支持多张，至少上传 1 张。</small>
+                  </label>
+                  <label class="fieldBlock">
+                    模特图 / 人物参考
+                    <input id="modelImageFile" type="file" accept="image/*" />
+                    <small>只有需要固定人物时再传。</small>
+                  </label>
+                </div>
+                <div class="textPreviewRow">
+                  <div id="productPreviewItem" class="textPreviewItem">
+                    <strong id="productHeroBadge">产品图预览</strong>
+                    <div id="sampleProduct" class="sampleProduct"></div>
+                    <img id="productHeroImage" alt="商品图预览" hidden />
                   </div>
-                  <code id="batchServiceCommand">node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs</code>
-                  <div class="resultActions">
-                    <button id="copyBatchServiceCommandButton" class="ghostButton" type="button">复制启动命令</button>
-                    <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
+                  <div class="textPreviewItem">
+                    <strong>模特图预览</strong>
+                    <div id="sampleModel" class="sampleProduct"></div>
+                    <img id="modelHeroImage" alt="模特图预览" hidden />
                   </div>
                 </div>
-                <div id="shotEditorPanel" class="shotEditorPanel"></div>
-              </div>
-            </details>
+              </section>
+
+              <section class="contentSection">
+                <div class="contentSectionHead">
+                  <strong>生成提示词</strong>
+                  <p>补一句要求即可生成。商品名和卖点会尽量按图片自动回填。</p>
+                </div>
+                <div class="textFormRow textFormRowCompact">
+                  <label class="fieldBlock">
+                    当前商品名
+                    <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
+                  </label>
+                </div>
+                <label class="fieldBlock">
+                  你的创作要求
+                  <textarea
+                    id="referenceBrief"
+                    rows="5"
+                    placeholder="直接写你想要的内容风格、场景、开场方式和核心卖点。比如：厨房异味开场，30 秒内做前后对比，结尾强调去味快。"
+                  ></textarea>
+                </label>
+                <details class="textDetails">
+                  <summary>展开自动拆出的卖点</summary>
+                  <label class="fieldBlock">
+                    自动拆出的卖点
+                    <textarea
+                      id="productNotes"
+                      rows="4"
+                      placeholder="上传产品图后，这里会自动拆一版卖点；你也可以手动补充。"
+                    ></textarea>
+                  </label>
+                </details>
+                <div class="textActionRow">
+                  <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>
+                  <p id="actionFeedback">先选择蒸馏模型，再上传产品图。</p>
+                </div>
+              </section>
+            </article>
           </section>
 
-          <details class="advancedPanel officialBackstagePanel">
-            <summary>蒸馏模型管理</summary>
-            <div class="advancedPanelBody">
+          <section class="panelView" data-view-panel="history" hidden>
+            <article class="contentSurface">
+              <header class="contentHeader">
+                <div>
+                  <span class="wizardEyebrow">历史记录</span>
+                  <h2>查看最近结果、复制提示词、继续提交</h2>
+                  <p>这里单独放结果，不再混在生成页首屏里。</p>
+                </div>
+              </header>
+
+              <section class="contentSection">
+                <div class="contentSectionHead">
+                  <div>
+                    <strong>结果与提交</strong>
+                    <p id="currentTaskHint">生成完成后，这里会显示当前提示词、摘要和可提交任务。</p>
+                  </div>
+                  <div class="textResultMeta">
+                    <span id="currentTaskStatusBadge" class="countBadge">等待生成</span>
+                    <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
+                    <span id="seriesCount" class="countBadge">0 个项目</span>
+                  </div>
+                </div>
+                <div id="seriesStats" class="projectStatsGrid simpleResultStats" aria-label="剧集生产统计"></div>
+                <div class="resultActions simpleResultActions">
+                  <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交去跑视频</button>
+                  <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
+                  <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
+                  <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
+                </div>
+                <div id="projectDetailPanel" class="projectDetailPanel"></div>
+              </section>
+
+              <section class="contentSection">
+                <div class="contentSectionHead">
+                  <strong>最近生成</strong>
+                  <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
+                </div>
+                <div id="seriesList" class="seriesList"></div>
+              </section>
+
+              <details class="advancedPanel textResultAdvanced">
+                <summary>展开导入、本地服务和镜头微调</summary>
+                <div class="advancedPanelBody">
+                  <div class="resultActions">
+                    <label class="ghostButton importButton">
+                      导入 JSON
+                      <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                    </label>
+                    <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+                  </div>
+                  <div id="batchServicePanel" class="batchServicePanel">
+                    <div class="panelHead">
+                      <div>
+                        <strong>本地视频任务服务</strong>
+                        <p>这里负责接住批量短视频任务，并读取你本机已有的 Packy / Gemini 配置。</p>
+                      </div>
+                      <span id="batchServiceStatus" class="statusBadge">未检测</span>
+                    </div>
+                    <code id="batchServiceCommand">node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs</code>
+                    <div class="resultActions">
+                      <button id="copyBatchServiceCommandButton" class="ghostButton" type="button">复制启动命令</button>
+                      <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
+                    </div>
+                  </div>
+                  <div id="shotEditorPanel" class="shotEditorPanel"></div>
+                </div>
+              </details>
+            </article>
+          </section>
+
+          <section class="panelView" data-view-panel="manage" hidden>
+            <article class="contentSurface manageSurface">
+              <header class="contentHeader">
+                <div>
+                  <span class="wizardEyebrow">蒸馏管理</span>
+                  <h2>维护蒸馏模型、提炼主页、筛样本</h2>
+                  <p>这里只有你在维护模型和蒸馏规则时才需要用到。</p>
+                </div>
+              </header>
+
               <div class="backstageIntro">
                 <div>
                   <strong>这里单独管理蒸馏模型，不放进普通用户主流程。</strong>
-                  <p>只有你要维护模型、提炼主页、筛样本和补参考视频时再展开。</p>
+                  <p>模型维护、主页提炼、样本筛片和参考视频都统一收在这里。</p>
                 </div>
               </div>
 
@@ -406,9 +459,9 @@
                   <div id="profileSampleList" class="profileSampleList"></div>
                 </div>
               </details>
-            </div>
-          </details>
-        </article>
+            </article>
+          </section>
+        </section>
       </section>
 
       <input id="targetDuration" type="hidden" value="45" />
@@ -422,7 +475,7 @@
         <button id="wizardNextButton" type="button">下一步</button>
         <span id="wizardStepTag">步骤 1 / 4</span>
         <span id="wizardStepTitle">基础信息</span>
-        <span id="wizardStepDescription">文字表单版</span>
+        <span id="wizardStepDescription">菜单版</span>
       </section>
     </main>
 
@@ -458,11 +511,11 @@
           </article>
           <article class="onboardingRuleCard">
             <strong>6. 这里生成的是任务，不是直接成片</strong>
-            <p>结果区会给你提示词和提交入口。真正在视频工具里跑的时候，参考图也要继续带上。</p>
+            <p>历史记录页会给你提示词和提交入口。真正在视频工具里跑的时候，参考图也要继续带上。</p>
           </article>
         </div>
         <div class="onboardingFooter">
-          <p>记不住也没关系，右上角和主表单里都能随时再打开这份要点。</p>
+          <p>记不住也没关系，右上角和左侧菜单都能随时再打开这份要点。</p>
           <div class="wizardFooterActions onboardingActions">
             <button id="dismissOnboardingButton" class="ghostButton" type="button">稍后再看</button>
             <button id="acknowledgeOnboardingButton" class="primaryButton" type="button">知道了，开始创建</button>
