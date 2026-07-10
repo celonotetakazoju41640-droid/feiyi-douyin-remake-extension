@@ -4538,6 +4538,37 @@ body {
   border: 1px solid rgba(214, 196, 163, 0.72);
 }
 
+.uploadStatusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.uploadStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e0d3bf;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #6e6252;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.uploadStatusBadge.is-ready {
+  border-color: #cfe1c9;
+  background: #f3fbf1;
+  color: #35643c;
+}
+
+.uploadStatusBadge.is-optional {
+  border-color: #dfd6c8;
+  background: #fbf8f1;
+  color: #7a6d5c;
+}
+
 .simpleProductTile,
 .simpleUploadButtonTile {
   position: relative;
@@ -4778,6 +4809,14 @@ body {
   color: #756a58;
   font-size: 12px;
   line-height: 1.55;
+}
+
+.generatePrimaryActionRow .primaryButton:disabled {
+  border-color: #dccfb8;
+  background: #efe5d1;
+  color: #9f8f74;
+  box-shadow: none;
+  cursor: not-allowed;
 }
 
 .generateSettingsCard .contentSectionHead,

@@ -43,6 +43,7 @@ const nodes = {
   videoUrlText: document.querySelector("#videoUrlText"),
   modelImageFile: document.querySelector("#modelImageFile"),
   modelHeroImage: document.querySelector("#modelHeroImage"),
+  modelUploadStatus: document.querySelector("#modelUploadStatus"),
   stepTemplateCard: document.querySelector("#stepTemplateCard"),
   stepAssetsCard: document.querySelector("#stepAssetsCard"),
   stepPromptCard: document.querySelector("#stepPromptCard"),
@@ -53,6 +54,7 @@ const nodes = {
   referenceAnalysisStatus: document.querySelector("#referenceAnalysisStatus"),
   productImages: document.querySelector("#productImages"),
   productHeroImage: document.querySelector("#productHeroImage"),
+  productUploadStatus: document.querySelector("#productUploadStatus"),
   sampleProduct: document.querySelector("#sampleProduct"),
   productHeroBadge: document.querySelector("#productHeroBadge"),
   productName: document.querySelector("#productName"),
@@ -173,6 +175,8 @@ function init() {
   applyTemplateToGenerationFields();
   renderProfileScanState();
   renderProjects();
+  renderAssetStatus();
+  updateGenerateButtonState();
   updateActionFeedback();
   refreshBatchServiceHealth();
   syncFlowStepState();
@@ -187,6 +191,14 @@ function bindEvents() {
   nodes.productImages.addEventListener("change", handleProductImagesChange);
   nodes.targetDurationControl?.addEventListener("input", handleTargetDurationControlChange);
   nodes.remakeButton?.addEventListener("click", handleGenerate);
+  nodes.productName?.addEventListener("input", () => {
+    updateGenerateButtonState();
+    updateActionFeedback();
+  });
+  nodes.referenceBrief?.addEventListener("input", () => {
+    updateGenerateButtonState();
+    updateActionFeedback();
+  });
   nodes.downloadJsonButton.addEventListener("click", () => downloadCurrent("json"));
   nodes.downloadMarkdownButton.addEventListener("click", () => downloadCurrent("md"));
   nodes.clearProjectsButton.addEventListener("click", clearProjects);
@@ -255,12 +267,16 @@ function handleModelImageChange() {
   }
   if (!file) {
     nodes.modelHeroImage.hidden = true;
+    renderAssetStatus();
+    updateGenerateButtonState();
     return;
   }
 
   modelPreviewUrl = URL.createObjectURL(file);
   nodes.modelHeroImage.src = modelPreviewUrl;
   nodes.modelHeroImage.hidden = false;
+  renderAssetStatus();
+  updateGenerateButtonState();
   updateActionFeedback();
 }
 
@@ -298,6 +314,8 @@ function handleProductImagesChange() {
     nodes.productHeroImage.hidden = true;
     nodes.sampleProduct.hidden = false;
     nodes.productHeroBadge.hidden = true;
+    renderAssetStatus();
+    updateGenerateButtonState();
     return;
   }
 
@@ -307,6 +325,8 @@ function handleProductImagesChange() {
   nodes.sampleProduct.hidden = true;
   nodes.productHeroBadge.hidden = true;
   autoFillProductInsightsFromImage(file);
+  renderAssetStatus();
+  updateGenerateButtonState();
   updateActionFeedback();
   syncFlowStepState();
 }
@@ -1617,6 +1637,7 @@ function selectProject(projectId) {
   ensureCurrentProject();
   syncFormWithCurrentPackage();
   renderProjects();
+  nodes.currentTaskHint.textContent = `当前已切换到：${currentPackage.project.projectName}。先检查摘要、提示词和批量任务，再决定是否提交。`;
   setActionFeedback(`已切换到：${currentPackage.project.projectName}`);
 }
 
@@ -1740,6 +1761,30 @@ function updateActionFeedback() {
   );
 }
 
+function renderAssetStatus() {
+  if (nodes.productUploadStatus) {
+    const productCount = nodes.productImages?.files?.length || 0;
+    nodes.productUploadStatus.textContent = productCount ? `商品图：已上传 ${productCount} 张` : "商品图：未上传";
+    nodes.productUploadStatus.classList.toggle("is-ready", productCount > 0);
+    nodes.productUploadStatus.classList.toggle("is-optional", false);
+  }
+  if (nodes.modelUploadStatus) {
+    const hasModel = Boolean(nodes.modelImageFile?.files?.length);
+    nodes.modelUploadStatus.textContent = hasModel ? "模特图：已上传" : "模特图：可选";
+    nodes.modelUploadStatus.classList.toggle("is-ready", hasModel);
+    nodes.modelUploadStatus.classList.toggle("is-optional", !hasModel);
+  }
+}
+
+function updateGenerateButtonState() {
+  if (!nodes.remakeButton) return;
+  const hasTemplate = Boolean(getSelectedTemplate());
+  const hasProductImage = Boolean(nodes.productImages?.files?.length);
+  const hasPrompt = Boolean(nodes.referenceBrief?.value.trim());
+  const hasProductName = Boolean(nodes.productName?.value.trim());
+  nodes.remakeButton.disabled = !(hasTemplate && hasProductImage && hasPrompt && hasProductName);
+}
+
 function syncFlowStepState() {
   const hasProfileUrl = Boolean(nodes.templateProfileUrl.value.trim());
   if (nodes.profileScanStatus) {
@@ -1748,6 +1793,7 @@ function syncFlowStepState() {
   if (nodes.stepTemplateCard) {
     nodes.stepTemplateCard.open = hasProfileUrl;
   }
+  updateGenerateButtonState();
 }
 
 function getWizardStepConfig(step) {
