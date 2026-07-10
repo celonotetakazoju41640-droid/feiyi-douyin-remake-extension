@@ -4596,9 +4596,9 @@ body {
   max-width: 100%;
   margin: 0 auto;
   justify-content: center;
-  grid-template-columns: minmax(240px, 240px) repeat(2, minmax(130px, 130px)) minmax(150px, 150px) minmax(140px, 140px) minmax(130px, 130px);
+  grid-template-columns: 220px 118px 108px 126px 128px 112px;
   align-items: end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .simpleSettingsStrip .fieldBlock {
@@ -4609,6 +4609,23 @@ body {
 .simpleSettingsStrip .fieldBlock select,
 .simpleSettingsStrip .fieldBlock input {
   min-width: 0;
+  padding: 10px 12px;
+}
+
+.simpleSettingsStrip .fieldBlock select {
+  padding-right: 30px;
+}
+
+.simpleSettingsStrip #accountTemplateSelect {
+  padding-right: 34px;
+}
+
+.simpleSettingsStrip .durationInputWrap {
+  gap: 6px;
+}
+
+.simpleSettingsStrip .durationInputWrap input {
+  padding-right: 10px;
 }
 
 .durationInputWrap {
