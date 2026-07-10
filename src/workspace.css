@@ -4321,9 +4321,26 @@ body {
   display: grid;
   gap: 8px;
   align-content: start;
+  justify-items: start;
   min-height: calc(100vh - 120px);
   padding: 12px 16px 16px;
   background: #fffdf8;
+}
+
+.contentSurface > * {
+  width: min(980px, 100%);
+}
+
+.generateSurface > * {
+  width: min(920px, 100%);
+}
+
+.historySurface > * {
+  width: min(980px, 100%);
+}
+
+.manageSurface > * {
+  width: min(1040px, 100%);
 }
 
 .manageSurface {
@@ -4375,6 +4392,35 @@ body {
 .contentSectionHead p {
   color: #7a725f;
   font-size: 12px;
+}
+
+.generateSurface .textFormRowCompact {
+  grid-template-columns: minmax(260px, 1.1fr) minmax(180px, 0.8fr) minmax(140px, 0.6fr);
+}
+
+.generateSurface #productName {
+  max-width: 520px;
+}
+
+.generateSurface #templateProfileUrl,
+.generateSurface #referenceBrief,
+.generateSurface .textDetails,
+.generateSurface .textActionRow {
+  max-width: 880px;
+}
+
+.historySurface .projectStatsGrid,
+.historySurface .resultActions,
+.historySurface #projectDetailPanel,
+.historySurface #seriesList,
+.historySurface .advancedPanel {
+  max-width: 940px;
+}
+
+.manageSurface .backstageHeadRow,
+.manageSurface .settingsGrid,
+.manageSurface .advancedPanel {
+  max-width: 980px;
 }
 
 .panelView .fieldBlock,
