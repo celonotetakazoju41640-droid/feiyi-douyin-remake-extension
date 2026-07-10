@@ -58,9 +58,11 @@ const nodes = {
   productName: document.querySelector("#productName"),
   productNotes: document.querySelector("#productNotes"),
   targetDuration: document.querySelector("#targetDuration"),
+  targetDurationControl: document.querySelector("#targetDurationControl"),
   targetDurationLabel: document.querySelector("#targetDurationLabel"),
   voiceDialect: document.querySelector("#voiceDialect"),
   generationCount: document.querySelector("#generationCount"),
+  aspectRatioSelect: document.querySelector("#aspectRatioSelect"),
   hookStyle: document.querySelector("#hookStyle"),
   visualStyle: document.querySelector("#visualStyle"),
   ctaText: document.querySelector("#ctaText"),
@@ -183,6 +185,7 @@ function bindEvents() {
   nodes.modelImageFile?.addEventListener("change", handleModelImageChange);
   nodes.referenceVideoFile.addEventListener("change", handleReferenceVideoChange);
   nodes.productImages.addEventListener("change", handleProductImagesChange);
+  nodes.targetDurationControl?.addEventListener("input", handleTargetDurationControlChange);
   nodes.remakeButton?.addEventListener("click", handleGenerate);
   nodes.downloadJsonButton.addEventListener("click", () => downloadCurrent("json"));
   nodes.downloadMarkdownButton.addEventListener("click", () => downloadCurrent("md"));
@@ -337,6 +340,7 @@ async function handleGenerate() {
     cta: nodes.ctaText.value,
     durationSeconds: Number(nodes.targetDuration.value || template.defaultDurationSeconds || 30),
     generationCount: Number(nodes.generationCount.value || 3),
+    aspectRatio: nodes.aspectRatioSelect?.value || "9:16",
     voiceDialect: nodes.voiceDialect.value,
     tiktokUrl: nodes.tiktokUrl.value.trim(),
     referencePlatform: nodes.clipcatReferencePlatform.value,
@@ -847,14 +851,26 @@ function applyTemplateToGenerationFields() {
   if (!template) return;
   nodes.hookStyle.value = template.hookStyle || nodes.hookStyle.value;
   nodes.ctaText.value = template.ctaStyle || nodes.ctaText.value;
-  nodes.targetDuration.value = String(template.defaultDurationSeconds || 30);
-  if (nodes.targetDurationLabel) {
-    nodes.targetDurationLabel.textContent = `${template.defaultDurationSeconds || 30} 秒`;
-  }
+  syncTargetDurationControl(template.defaultDurationSeconds || 30);
   nodes.clipcatReferencePlatform.value = template.platform || "tiktok";
   nodes.clipcatVoiceLanguage.value = template.defaultVoiceLanguage || "英文";
   nodes.clipcatExtraRules.value = template.rewriteRules || "";
   updatePlatformDependentUi();
+}
+
+function handleTargetDurationControlChange() {
+  syncTargetDurationControl(nodes.targetDurationControl?.value || nodes.targetDuration.value || 30);
+}
+
+function syncTargetDurationControl(value) {
+  const nextDuration = Math.max(1, Math.min(60, Number(value || 30) || 30));
+  nodes.targetDuration.value = String(nextDuration);
+  if (nodes.targetDurationControl) {
+    nodes.targetDurationControl.value = String(nextDuration);
+  }
+  if (nodes.targetDurationLabel) {
+    nodes.targetDurationLabel.textContent = `${nextDuration} 秒`;
+  }
 }
 
 async function prepareTemplateForGeneration() {
@@ -1544,10 +1560,7 @@ function applyDistilledTemplateToForm(scan) {
   nodes.templateContentPositioning.value = distilled.contentPositioning || "";
   nodes.hookStyle.value = distilled.hookStyle || nodes.hookStyle.value;
   nodes.templateRhythm.value = distilled.rhythm || "";
-  nodes.targetDuration.value = String(distilled.defaultDurationSeconds || 30);
-  if (nodes.targetDurationLabel) {
-    nodes.targetDurationLabel.textContent = `${distilled.defaultDurationSeconds || 30} 秒`;
-  }
+  syncTargetDurationControl(distilled.defaultDurationSeconds || 30);
   nodes.clipcatVoiceLanguage.value = distilled.defaultVoiceLanguage || "英文";
   nodes.templatePreferredModel.value = distilled.preferredModel || "veo-3-fast";
   nodes.templateStructure.value = distilled.structure || "";
@@ -1647,9 +1660,9 @@ function syncFormWithCurrentPackage() {
   nodes.hookStyle.value = currentPackage.project.hookStyle || nodes.hookStyle.value;
   nodes.visualStyle.value = currentPackage.project.visualStyle || "";
   nodes.ctaText.value = currentPackage.project.cta || "";
-  nodes.targetDuration.value = currentPackage.project.durationSeconds || 30;
-  if (nodes.targetDurationLabel) {
-    nodes.targetDurationLabel.textContent = `${currentPackage.project.durationSeconds || 30} 秒`;
+  syncTargetDurationControl(currentPackage.project.durationSeconds || 30);
+  if (nodes.aspectRatioSelect) {
+    nodes.aspectRatioSelect.value = currentPackage.project.aspectRatio || "9:16";
   }
   nodes.voiceDialect.value = currentPackage.project.voiceDialect || "普通话";
   nodes.generationCount.value = String(currentPackage.project.generationCount || 3);

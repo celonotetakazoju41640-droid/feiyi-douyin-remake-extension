@@ -67,77 +67,98 @@
               </header>
 
               <section class="contentSection">
-                <div class="contentSectionHead">
-                  <strong>基础设置</strong>
-                </div>
-                <div class="textFormRow textFormRowCompact">
-                  <label class="fieldBlock">
-                    蒸馏模型
-                    <select id="accountTemplateSelect"></select>
-                  </label>
-                  <label class="fieldBlock">
-                    发布平台
-                    <select id="templatePlatform">
-                      <option value="tiktok">TikTok</option>
-                      <option value="douyin">抖音</option>
-                    </select>
-                  </label>
-                  <label class="fieldBlock">
-                    生成条数
-                    <select id="generationCount">
-                      <option value="1">1 条</option>
-                      <option value="2">2 条</option>
-                      <option value="3">3 条</option>
-                      <option value="4">4 条</option>
-                      <option value="5">5 条</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="textInlineHintRow">
-                  <span class="textInlineHint">平台语言自动切换</span>
-                  <span id="profileScanStatus" class="textInlineHint">主页参考自动识别</span>
-                </div>
-                <label class="fieldBlock">
-                  可选主页参考
-                  <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了优先参考主页风格" />
-                </label>
-              </section>
+                <div class="generateStageGrid">
+                  <section class="uploadStudioCard">
+                    <div class="contentSectionHead">
+                      <strong>上传图片</strong>
+                      <p>商品图必传，模特图可选</p>
+                    </div>
+                    <div class="uploadStudioBoard">
+                      <label class="uploadAssetTile">
+                        <input id="productImages" type="file" accept="image/*" multiple />
+                        <div class="uploadAssetPreview">
+                          <span id="productHeroBadge" class="uploadAssetBadge">示例</span>
+                          <div id="sampleProduct" class="sampleProduct"></div>
+                          <img id="productHeroImage" alt="商品图预览" hidden />
+                        </div>
+                        <strong>上传商品图片</strong>
+                        <small>必填，最多 9 张</small>
+                      </label>
 
-              <section class="contentSection">
-                <div class="contentSectionHead">
-                  <strong>上传图片</strong>
-                </div>
-                <div class="textFormRow textUploadRow">
-                  <label class="fieldBlock">
-                    产品图
-                    <input id="productImages" type="file" accept="image/*" multiple />
-                    <small>至少 1 张</small>
-                  </label>
-                  <label class="fieldBlock">
-                    模特图 / 人物参考
-                    <input id="modelImageFile" type="file" accept="image/*" />
-                    <small>需要固定人物时再传</small>
-                  </label>
-                </div>
-                <div class="textPreviewRow">
-                  <div id="productPreviewItem" class="textPreviewItem">
-                    <strong id="productHeroBadge">产品图预览</strong>
-                    <div id="sampleProduct" class="sampleProduct"></div>
-                    <img id="productHeroImage" alt="商品图预览" hidden />
-                  </div>
-                  <div class="textPreviewItem">
-                    <strong>模特图预览</strong>
-                    <div id="sampleModel" class="sampleProduct"></div>
-                    <img id="modelHeroImage" alt="模特图预览" hidden />
-                  </div>
+                      <label class="uploadAssetTile uploadAssetTileSecondary">
+                        <input id="modelImageFile" type="file" accept="image/*" />
+                        <div class="uploadAssetPreview uploadAssetPreviewSecondary">
+                          <div id="sampleModel" class="sampleProduct"></div>
+                          <img id="modelHeroImage" alt="模特图预览" hidden />
+                        </div>
+                        <strong>上传模特图</strong>
+                        <small>需要固定人物时再传</small>
+                      </label>
+                    </div>
+                  </section>
+
+                  <section class="generateControlCard">
+                    <div class="contentSectionHead">
+                      <strong>生成设置</strong>
+                      <p>模板、平台、比例、秒数一起设</p>
+                    </div>
+                    <div class="generateControlGrid">
+                      <label class="fieldBlock">
+                        蒸馏模型
+                        <select id="accountTemplateSelect"></select>
+                      </label>
+                      <label class="fieldBlock">
+                        发布平台
+                        <select id="templatePlatform">
+                          <option value="tiktok">TikTok</option>
+                          <option value="douyin">抖音</option>
+                        </select>
+                      </label>
+                      <label class="fieldBlock">
+                        生成条数
+                        <select id="generationCount">
+                          <option value="1">1 条</option>
+                          <option value="2">2 条</option>
+                          <option value="3">3 条</option>
+                          <option value="4">4 条</option>
+                          <option value="5">5 条</option>
+                        </select>
+                      </label>
+                      <label class="fieldBlock">
+                        视频比例
+                        <select id="aspectRatioSelect">
+                          <option value="9:16" selected>9:16</option>
+                          <option value="1:1">1:1</option>
+                          <option value="4:3">4:3</option>
+                          <option value="16:9">16:9</option>
+                        </select>
+                      </label>
+                      <label class="fieldBlock">
+                        生成时长
+                        <div class="durationInputWrap">
+                          <input id="targetDurationControl" type="number" min="1" max="60" step="1" value="45" />
+                          <span>秒</span>
+                        </div>
+                      </label>
+                    </div>
+                    <div class="textInlineHintRow">
+                      <span class="textInlineHint">平台语言自动切换</span>
+                      <span id="profileScanStatus" class="textInlineHint">主页参考自动识别</span>
+                    </div>
+                    <label class="fieldBlock">
+                      可选主页参考
+                      <input id="templateProfileUrl" type="url" placeholder="不填也能生成；填了优先参考主页风格" />
+                    </label>
+                  </section>
                 </div>
               </section>
 
               <section class="contentSection">
                 <div class="contentSectionHead">
                   <strong>生成提示词</strong>
+                  <p>商品名和创作要求放这里</p>
                 </div>
-                <div class="textFormRow textFormRowCompact">
+                <div class="textFormRow generatePromptGrid">
                   <label class="fieldBlock">
                     当前商品名
                     <input id="productName" type="text" placeholder="比如：冰箱除味蛋、厨房清洁剂、去污喷雾" />
