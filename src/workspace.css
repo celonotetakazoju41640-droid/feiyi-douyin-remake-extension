@@ -4592,13 +4592,18 @@ body {
 }
 
 .simpleSettingsStrip {
-  grid-template-columns: minmax(220px, 1.35fr) repeat(5, minmax(110px, 1fr));
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  justify-content: center;
+  grid-template-columns: minmax(240px, 240px) repeat(2, minmax(130px, 130px)) minmax(150px, 150px) minmax(140px, 140px) minmax(130px, 130px);
   align-items: end;
-  gap: 10px 12px;
+  gap: 10px;
 }
 
 .simpleSettingsStrip .fieldBlock {
   min-width: 0;
+  width: 100%;
 }
 
 .simpleSettingsStrip .fieldBlock select,
