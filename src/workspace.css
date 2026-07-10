@@ -4363,6 +4363,16 @@ body {
   line-height: 1.15;
 }
 
+.generateHeaderBlock {
+  display: grid;
+  gap: 4px;
+}
+
+.generateHeaderBlock p {
+  color: #7d7364;
+  font-size: 12px;
+}
+
 .contentHeaderMeta {
   display: flex;
   flex-wrap: wrap;
@@ -4453,6 +4463,34 @@ body {
   line-height: 1.6;
 }
 
+.generateHeroPanel {
+  width: 100%;
+}
+
+.generateHeroGrid {
+  display: grid;
+  grid-template-columns: minmax(280px, 332px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.generateUploadCard,
+.generateComposerCard,
+.generateSettingsCard,
+.generateAssistCard {
+  min-height: 0;
+}
+
+.generateUploadCard {
+  align-content: start;
+  align-self: start;
+}
+
+.generateComposerCard {
+  align-content: start;
+  background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
+}
+
 .generateVideoDropTile {
   min-height: 168px;
   border-style: dashed;
@@ -4465,6 +4503,13 @@ body {
   align-items: flex-start;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.uploadTileLabel {
+  color: #6f6558;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .simpleProductTile,
@@ -4592,11 +4637,8 @@ body {
 }
 
 .simpleSettingsStrip {
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto;
-  justify-content: center;
-  grid-template-columns: 220px 118px 108px 126px 128px 112px;
+  width: 100%;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(104px, 0.82fr)) minmax(136px, 0.92fr) minmax(128px, 0.9fr) minmax(112px, 0.8fr);
   align-items: end;
   gap: 8px;
 }
@@ -4646,11 +4688,11 @@ body {
 }
 
 .generatePromptGrid {
-  grid-template-columns: minmax(260px, 520px);
+  grid-template-columns: 1fr;
 }
 
 .generateSurface #productName {
-  max-width: 520px;
+  max-width: 100%;
 }
 
 .generateSurface #templateProfileUrl,
@@ -4658,6 +4700,49 @@ body {
 .generateSurface .textDetails,
 .generateSurface .textActionRow {
   max-width: 880px;
+}
+
+.generateComposerCard #referenceBrief {
+  min-height: 180px;
+}
+
+.generatePrimaryActionRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.generatePrimaryActionRow #actionFeedback {
+  margin: 0;
+  color: #756a58;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.generateSettingsCard .contentSectionHead,
+.generateAssistCard .contentSectionHead {
+  margin-bottom: 2px;
+}
+
+.generateAssistCard {
+  gap: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.generateReferenceField input {
+  max-width: 100%;
+}
+
+.generateAssistHints {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.generateNotesDetails {
+  max-width: 100%;
 }
 
 .historySurface .projectStatsGrid,
@@ -4741,6 +4826,14 @@ body {
   .generateSimpleGrid {
     grid-template-columns: 1fr;
   }
+
+  .generateHeroGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .simpleSettingsStrip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 820px) {
@@ -4764,5 +4857,15 @@ body {
 
   .simpleImageUploadRow {
     flex-direction: column;
+  }
+
+  .generatePrimaryActionRow {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .generateAssistHints {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
