@@ -71,19 +71,6 @@
                   <section class="generateSimpleFlow">
                     <section class="simpleFlowCard">
                       <div class="contentSectionHead">
-                        <strong>请上传对标短剧视频</strong>
-                      </div>
-                      <p class="simpleFlowIntro">这里放 SC 对标视频。点击生成时会先分析参考视频结构。</p>
-                      <label class="referenceVideoDropTile generateVideoDropTile">
-                        <input id="referenceVideoFile" type="file" accept="video/*" />
-                        <span class="referenceUploadIcon">＋</span>
-                        <strong id="referenceVideoFileName">请上传视频</strong>
-                        <small id="referenceAnalysisStatus">未选择视频文件</small>
-                      </label>
-                    </section>
-
-                    <section class="simpleFlowCard">
-                      <div class="contentSectionHead">
                         <strong>上传商品图片</strong>
                         <p>必填，最多 9 张</p>
                       </div>
@@ -114,7 +101,7 @@
                       <div class="contentSectionHead">
                         <strong>中文视频设置</strong>
                       </div>
-                      <div class="generateControlGrid simpleSettingsGrid">
+                      <div class="generateControlGrid simpleSettingsGrid simpleSettingsStrip">
                         <label class="fieldBlock">
                           蒸馏模型
                           <select id="accountTemplateSelect"></select>
@@ -449,6 +436,15 @@
         <option value="英文">英文</option>
         <option value="中文">中文</option>
       </select>
+
+      <section hidden>
+        <label class="referenceVideoDropTile generateVideoDropTile">
+          <input id="referenceVideoFile" type="file" accept="video/*" />
+          <span class="referenceUploadIcon">＋</span>
+          <strong id="referenceVideoFileName">请上传视频</strong>
+          <small id="referenceAnalysisStatus">未选择视频文件</small>
+        </label>
+      </section>
 
       <section hidden>
         <div class="referenceCard simpleReferenceCard">

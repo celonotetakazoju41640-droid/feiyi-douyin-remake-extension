@@ -4407,7 +4407,7 @@ body {
 
 .generateSimpleFlow {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .referencePreviewPanel,
@@ -4575,6 +4575,21 @@ body {
   background: #f8fbff;
 }
 
+.simpleSettingsStrip {
+  grid-template-columns: minmax(220px, 1.35fr) repeat(5, minmax(110px, 1fr));
+  align-items: end;
+  gap: 10px 12px;
+}
+
+.simpleSettingsStrip .fieldBlock {
+  min-width: 0;
+}
+
+.simpleSettingsStrip .fieldBlock select,
+.simpleSettingsStrip .fieldBlock input {
+  min-width: 0;
+}
+
 .durationInputWrap {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -4703,6 +4718,10 @@ body {
   .generateControlGrid,
   .generatePromptGrid {
     grid-template-columns: 1fr;
+  }
+
+  .simpleSettingsStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .simpleImageUploadRow {
