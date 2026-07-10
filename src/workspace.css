@@ -4352,14 +4352,16 @@ body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  padding-bottom: 6px;
+  padding-bottom: 8px;
   border-bottom: 1px solid #eee4d0;
 }
 
 .contentHeader h2 {
   margin: 0;
   color: #2a241b;
-  font-size: 18px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1.15;
 }
 
@@ -4371,6 +4373,7 @@ body {
 .generateHeaderBlock p {
   color: #7d7364;
   font-size: 12px;
+  line-height: 1.55;
 }
 
 .historyHeaderBlock,
@@ -4383,6 +4386,7 @@ body {
 .manageHeaderBlock p {
   color: #7d7364;
   font-size: 12px;
+  line-height: 1.55;
 }
 
 .contentHeaderMeta {
@@ -4407,13 +4411,15 @@ body {
 
 .contentSectionHead strong {
   color: #2a241b;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 800;
   letter-spacing: 0.02em;
 }
 
 .contentSectionHead p {
   color: #7a725f;
   font-size: 12px;
+  line-height: 1.55;
 }
 
 .generateSurface .textFormRowCompact {
@@ -4435,11 +4441,12 @@ body {
 .referencePreviewPanel,
 .simpleFlowCard {
   display: grid;
-  gap: 8px;
-  padding: 12px;
+  gap: 10px;
+  padding: 14px;
   border: 1px solid #e8dcc8;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #fffaf1;
+  box-shadow: 0 10px 24px rgba(111, 88, 39, 0.05);
 }
 
 .referencePreviewPanel {
@@ -4882,16 +4889,107 @@ body {
   font-size: 12px;
 }
 
+.panelView .countBadge,
+.panelView .statusBadge {
+  padding: 7px 10px;
+  border: 1px solid #e6dccd;
+  background: #fffdf8;
+  color: #61584b;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.panelView .statusBadge.is-ok {
+  border-color: #cfe4cf;
+  background: #f1fbf1;
+  color: #2f6b37;
+}
+
+.panelView .statusBadge.is-error {
+  border-color: #efcfc9;
+  background: #fff4f1;
+  color: #9a4338;
+}
+
 .panelView .ghostButton {
   border-color: #ddcfb8;
   background: #fffdf8;
   color: #5c4e3b;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(95, 76, 41, 0.04);
 }
 
 .panelView .primaryButton {
   border: 1px solid #c89f49;
   background: #d9b061;
   color: #2f2413;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(201, 157, 63, 0.16);
+}
+
+.panelView .primaryButton:hover,
+.panelView .ghostButton:hover {
+  transform: translateY(-1px);
+}
+
+.panelView .advancedPanel {
+  border: 1px solid #eadfcb;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffaf2 0%, #fffdf8 100%);
+  box-shadow: 0 8px 20px rgba(111, 88, 39, 0.04);
+}
+
+.panelView .advancedPanel summary {
+  padding: 12px 14px;
+  color: #5a4d39;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.panelView .advancedPanelBody {
+  padding: 0 14px 14px;
+}
+
+.panelView .emptyStateCard {
+  padding: 18px;
+  border: 1px dashed #dccfb8;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffdf8 0%, #faf4e9 100%);
+}
+
+.panelView .emptyStateCard strong {
+  color: #2d261d;
+  font-size: 14px;
+}
+
+.panelView .emptyStateCard p {
+  margin-top: 6px;
+  color: #766c5e;
+  line-height: 1.6;
+}
+
+.panelView .projectDetailPanel,
+.panelView .shotEditorPanel,
+.panelView .batchServicePanel {
+  border-radius: 14px;
+}
+
+.panelView .batchServicePanel {
+  border: 1px solid #e7dac4;
+  background: linear-gradient(180deg, #fffaf2 0%, #fffdf8 100%);
+}
+
+.panelView .projectListCard {
+  border: 1px solid #e5d9c6;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffdf8 0%, #fffaf2 100%);
 }
 
 @media (max-width: 1100px) {
