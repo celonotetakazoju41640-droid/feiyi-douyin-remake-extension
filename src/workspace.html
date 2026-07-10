@@ -214,52 +214,72 @@
           <section class="panelView" data-view-panel="history" hidden>
             <article class="contentSurface historySurface">
               <header class="contentHeader">
-                <div>
+                <div class="historyHeaderBlock">
                   <h2>历史记录</h2>
+                  <p>这里负责看当前结果、复制任务、导出文件和提交去跑视频。</p>
                 </div>
               </header>
 
               <section class="contentSection">
-                <div class="contentSectionHead">
-                  <div>
-                    <strong>结果与提交</strong>
-                    <p id="currentTaskHint">生成后在这里复制、导出或提交。</p>
+                <section class="simpleFlowCard historyOverviewCard">
+                  <div class="contentSectionHead">
+                    <div>
+                      <strong>当前结果</strong>
+                      <p id="currentTaskHint">生成后在这里复制、导出或提交。</p>
+                    </div>
+                    <div class="textResultMeta">
+                      <span id="currentTaskStatusBadge" class="countBadge">等待生成</span>
+                      <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
+                      <span id="seriesCount" class="countBadge">0 个项目</span>
+                    </div>
                   </div>
-                  <div class="textResultMeta">
-                    <span id="currentTaskStatusBadge" class="countBadge">等待生成</span>
-                    <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
-                    <span id="seriesCount" class="countBadge">0 个项目</span>
+                  <div id="seriesStats" class="projectStatsGrid simpleResultStats historyStatGrid" aria-label="剧集生产统计"></div>
+                  <div class="resultActions simpleResultActions historyPrimaryActions">
+                    <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交去跑视频</button>
+                    <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
+                    <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
+                    <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
                   </div>
-                </div>
-                <div id="seriesStats" class="projectStatsGrid simpleResultStats" aria-label="剧集生产统计"></div>
-                <div class="resultActions simpleResultActions">
-                  <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交去跑视频</button>
-                  <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
-                  <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
-                  <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
-                </div>
-                <div id="projectDetailPanel" class="projectDetailPanel"></div>
+                </section>
               </section>
 
               <section class="contentSection">
-                <div class="contentSectionHead">
-                  <strong>最近生成</strong>
-                  <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
-                </div>
-                <div id="seriesList" class="seriesList"></div>
+                <section class="simpleFlowCard historyDetailCard">
+                  <div class="contentSectionHead">
+                    <strong>当前结果详情</strong>
+                    <p>先检查摘要、提示词和批量任务，再决定是否提交。</p>
+                  </div>
+                  <div id="projectDetailPanel" class="projectDetailPanel historyDetailPanel"></div>
+                </section>
               </section>
 
-              <details class="advancedPanel textResultAdvanced">
-                <summary>展开导入、本地服务和镜头微调</summary>
-                <div class="advancedPanelBody">
-                  <div class="resultActions">
-                    <label class="ghostButton importButton">
-                      导入 JSON
-                      <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
-                    </label>
-                    <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+              <section class="contentSection">
+                <section class="simpleFlowCard historyListCard">
+                  <div class="contentSectionHead">
+                    <strong>最近生成</strong>
+                    <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
                   </div>
-                  <div id="batchServicePanel" class="batchServicePanel">
+                  <div id="seriesList" class="seriesList historySeriesList"></div>
+                </section>
+              </section>
+
+              <details class="advancedPanel textResultAdvanced historyToolDetails">
+                <summary>展开导入、本地服务和镜头微调</summary>
+                <div class="advancedPanelBody historyToolBody">
+                  <section class="simpleFlowCard historyToolCard">
+                    <div class="contentSectionHead">
+                      <strong>导入与批量导出</strong>
+                      <p>给高级用户处理历史项目和离线包。</p>
+                    </div>
+                    <div class="resultActions">
+                      <label class="ghostButton importButton">
+                        导入 JSON
+                        <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                      </label>
+                      <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+                    </div>
+                  </section>
+                  <div id="batchServicePanel" class="batchServicePanel historyServicePanel">
                     <div class="panelHead">
                       <div>
                         <strong>本地视频任务服务</strong>
@@ -282,83 +302,102 @@
           <section class="panelView" data-view-panel="manage" hidden>
             <article class="contentSurface manageSurface">
               <header class="contentHeader">
-                <div>
+                <div class="manageHeaderBlock">
                   <h2>蒸馏管理</h2>
+                  <p>这里维护蒸馏模型、主页样本和参考控制，不打扰普通生成流程。</p>
                 </div>
               </header>
 
-              <div class="backstageHeadRow">
-                <div class="resultActions">
-                  <button id="scanProfileButton" class="primaryButton" type="button">提炼主页模型</button>
-                  <button id="saveTemplateButton" class="ghostButton" type="button">保存模型</button>
-                  <button id="deleteTemplateButton" class="ghostButton" type="button">删除模型</button>
-                  <button id="newTemplateButton" class="ghostButton" type="button">新建空模型</button>
-                </div>
-              </div>
+              <section class="contentSection">
+                <section class="simpleFlowCard manageOverviewCard">
+                  <div class="contentSectionHead">
+                    <div>
+                      <strong>当前要做什么</strong>
+                      <p>先选或新建一个模型，再决定是手动维护，还是贴主页链接去提炼。</p>
+                    </div>
+                    <div class="resultActions managePrimaryActions">
+                      <button id="scanProfileButton" class="primaryButton" type="button">提炼主页模型</button>
+                      <button id="saveTemplateButton" class="ghostButton" type="button">保存模型</button>
+                      <button id="deleteTemplateButton" class="ghostButton" type="button">删除模型</button>
+                      <button id="newTemplateButton" class="ghostButton" type="button">新建空模型</button>
+                    </div>
+                  </div>
+                </section>
+              </section>
 
-              <div class="settingsGrid backstageGrid">
-                <label class="fieldBlock">
-                  模型名称
-                  <input id="templateName" type="text" placeholder="扫描后自动命名，也可以自己改" />
-                </label>
-                <label class="fieldBlock">
-                  对标账号
-                  <input id="templateAccountHandle" type="text" placeholder="@account_name" />
-                </label>
-                <label class="fieldBlock">
-                  抓样本数量
-                  <select id="profileSampleLimit">
-                    <option value="6">6 条</option>
-                    <option value="9">9 条</option>
-                    <option value="12">12 条</option>
-                  </select>
-                </label>
-                <label class="fieldBlock">
-                  默认模型
-                  <input id="templatePreferredModel" type="text" value="veo-3-fast" />
-                </label>
-                <label class="fieldBlock">
-                  内容定位
-                  <input id="templateContentPositioning" type="text" placeholder="比如：家清去污、情绪带货、对比实验" />
-                </label>
-                <label class="fieldBlock">
-                  节奏
-                  <input id="templateRhythm" type="text" placeholder="比如：3 秒强钩子，15 秒内完成证明" />
-                </label>
-                <label class="fieldBlock backstageWideField">
-                  结构拆解
-                  <textarea id="templateStructure" rows="3" placeholder="比如：钩子 -> 脏污问题 -> 喷产品 -> 近景证明 -> 收口。"></textarea>
-                </label>
-                <label class="fieldBlock backstageWideField">
-                  表达 DNA
-                  <textarea id="templateExpressionDna" rows="3" placeholder="比如：短句先抛钩子，命令式开场明显，先结果后解释。"></textarea>
-                </label>
-                <label class="fieldBlock backstageWideField">
-                  决策启发式
-                  <textarea id="templateDecisionHeuristics" rows="3" placeholder="比如：先拿最容易懂的痛点开场，再用前后对比证明。"></textarea>
-                </label>
-                <label class="fieldBlock backstageWideField">
-                  反模式 / 禁用项
-                  <textarea id="templateAntiPatterns" rows="3" placeholder="比如：不要长篇讲参数，不要照搬原字幕和原人物。"></textarea>
-                </label>
-                <label class="fieldBlock backstageWideField">
-                  近期变化 / 当前信号
-                  <textarea id="templateRecentSignals" rows="3" placeholder="比如：近期 20-30 秒前后对比内容表现仍然最好。"></textarea>
-                </label>
-                <label class="fieldBlock backstageWideField">
-                  改写边界 / 蒸馏规则
-                  <textarea id="templateRewriteRules" rows="3" placeholder="比如：只借结构，不借人物、字幕、品牌、台词。"></textarea>
-                </label>
-                <label class="fieldBlock backstageWideField">
-                  样本链接
-                  <textarea id="templateSampleVideoUrls" rows="3" placeholder="每行一个样本链接。"></textarea>
-                </label>
-              </div>
+              <section class="contentSection">
+                <section class="simpleFlowCard manageBasicsCard">
+                  <div class="contentSectionHead">
+                    <strong>模型基础信息</strong>
+                    <p>先把模型名、账号、定位和基础节奏定下来。</p>
+                  </div>
+                  <div class="settingsGrid backstageGrid manageBasicsGrid">
+                    <label class="fieldBlock">
+                      模型名称
+                      <input id="templateName" type="text" placeholder="扫描后自动命名，也可以自己改" />
+                    </label>
+                    <label class="fieldBlock">
+                      对标账号
+                      <input id="templateAccountHandle" type="text" placeholder="@account_name" />
+                    </label>
+                    <label class="fieldBlock">
+                      抓样本数量
+                      <select id="profileSampleLimit">
+                        <option value="6">6 条</option>
+                        <option value="9">9 条</option>
+                        <option value="12">12 条</option>
+                      </select>
+                    </label>
+                    <label class="fieldBlock">
+                      默认模型
+                      <input id="templatePreferredModel" type="text" value="veo-3-fast" />
+                    </label>
+                    <label class="fieldBlock">
+                      内容定位
+                      <input id="templateContentPositioning" type="text" placeholder="比如：家清去污、情绪带货、对比实验" />
+                    </label>
+                    <label class="fieldBlock">
+                      节奏
+                      <input id="templateRhythm" type="text" placeholder="比如：3 秒强钩子，15 秒内完成证明" />
+                    </label>
+                    <label class="fieldBlock backstageWideField">
+                      结构拆解
+                      <textarea id="templateStructure" rows="3" placeholder="比如：钩子 -> 脏污问题 -> 喷产品 -> 近景证明 -> 收口。"></textarea>
+                    </label>
+                    <label class="fieldBlock backstageWideField">
+                      表达 DNA
+                      <textarea id="templateExpressionDna" rows="3" placeholder="比如：短句先抛钩子，命令式开场明显，先结果后解释。"></textarea>
+                    </label>
+                  </div>
+                </section>
+              </section>
 
               <details class="advancedPanel innerBackstagePanel">
-                <summary>参考视频和更多控制</summary>
+                <summary>展开深层规则与参考控制</summary>
                 <div class="advancedPanelBody">
-                  <div class="settingsGrid backstageGrid">
+                  <div class="settingsGrid backstageGrid manageDeepGrid">
+                    <label class="fieldBlock backstageWideField">
+                      决策启发式
+                      <textarea id="templateDecisionHeuristics" rows="3" placeholder="比如：先拿最容易懂的痛点开场，再用前后对比证明。"></textarea>
+                    </label>
+                    <label class="fieldBlock backstageWideField">
+                      反模式 / 禁用项
+                      <textarea id="templateAntiPatterns" rows="3" placeholder="比如：不要长篇讲参数，不要照搬原字幕和原人物。"></textarea>
+                    </label>
+                    <label class="fieldBlock backstageWideField">
+                      近期变化 / 当前信号
+                      <textarea id="templateRecentSignals" rows="3" placeholder="比如：近期 20-30 秒前后对比内容表现仍然最好。"></textarea>
+                    </label>
+                    <label class="fieldBlock backstageWideField">
+                      改写边界 / 蒸馏规则
+                      <textarea id="templateRewriteRules" rows="3" placeholder="比如：只借结构，不借人物、字幕、品牌、台词。"></textarea>
+                    </label>
+                    <label class="fieldBlock backstageWideField">
+                      样本链接
+                      <textarea id="templateSampleVideoUrls" rows="3" placeholder="每行一个样本链接。"></textarea>
+                    </label>
+                  </div>
+                  <div class="settingsGrid backstageGrid manageControlGrid">
                     <label class="fieldBlock">
                       钩子风格
                       <select id="hookStyle">
@@ -405,7 +444,7 @@
               </details>
 
               <details class="advancedPanel innerBackstagePanel">
-                <summary>主页蒸馏样本和筛片</summary>
+                <summary>展开主页蒸馏样本和筛片</summary>
                 <div class="advancedPanelBody">
                   <pre id="profileScanResult" class="profileScanResult">还没有主页扫描结果。</pre>
                   <div class="resultActions hiddenResultActions">
