@@ -67,6 +67,20 @@
                 </div>
               </header>
 
+              <section id="templateGuideCard" class="contentSection" hidden>
+                <section class="simpleFlowCard templateGuideCard">
+                  <div class="contentSectionHead">
+                    <strong>先补一个可用模板</strong>
+                    <p>当前这个模板还比较空，先补基础信息或直接去提炼主页模板。</p>
+                  </div>
+                  <div id="templateGuideSummary" class="templateGuideSummary"></div>
+                  <div class="resultActions templateGuideActions">
+                    <button id="jumpToManageButton" class="primaryButton" type="button">去蒸馏管理补模板</button>
+                    <button id="dismissTemplateGuideButton" class="ghostButton" type="button">先继续填写</button>
+                  </div>
+                </section>
+              </section>
+
               <section class="contentSection">
                 <section class="generateHeroPanel">
                   <div class="generateHeroGrid">
@@ -238,6 +252,7 @@
                     </div>
                   </div>
                   <div id="seriesStats" class="projectStatsGrid simpleResultStats historyStatGrid" aria-label="剧集生产统计"></div>
+                  <div id="currentResultSummary" class="currentResultSummary"></div>
                   <div class="resultActions simpleResultActions historyPrimaryActions">
                     <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交去跑视频</button>
                     <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>

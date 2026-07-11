@@ -44,6 +44,10 @@ const nodes = {
   modelImageFile: document.querySelector("#modelImageFile"),
   modelHeroImage: document.querySelector("#modelHeroImage"),
   modelUploadStatus: document.querySelector("#modelUploadStatus"),
+  templateGuideCard: document.querySelector("#templateGuideCard"),
+  templateGuideSummary: document.querySelector("#templateGuideSummary"),
+  jumpToManageButton: document.querySelector("#jumpToManageButton"),
+  dismissTemplateGuideButton: document.querySelector("#dismissTemplateGuideButton"),
   stepTemplateCard: document.querySelector("#stepTemplateCard"),
   stepAssetsCard: document.querySelector("#stepAssetsCard"),
   stepPromptCard: document.querySelector("#stepPromptCard"),
@@ -120,6 +124,7 @@ const nodes = {
   currentTaskStatusBadge: document.querySelector("#currentTaskStatusBadge"),
   currentTaskUnitLabel: document.querySelector("#currentTaskUnitLabel"),
   currentTaskHint: document.querySelector("#currentTaskHint"),
+  currentResultSummary: document.querySelector("#currentResultSummary"),
   actionFeedback: document.querySelector("#actionFeedback"),
   remakeButton: document.querySelector("#remakeButton"),
   reopenOnboardingDockButton: document.querySelector("#reopenOnboardingDockButton"),
@@ -176,6 +181,7 @@ function init() {
   renderProfileScanState();
   renderProjects();
   renderAssetStatus();
+  renderTemplateGuide();
   updateGenerateButtonState();
   updateActionFeedback();
   refreshBatchServiceHealth();
@@ -211,6 +217,11 @@ function bindEvents() {
   nodes.wizardNextButton?.addEventListener("click", handleWizardNext);
   nodes.openOnboardingButton?.addEventListener("click", openOnboarding);
   nodes.reopenOnboardingDockButton?.addEventListener("click", openOnboarding);
+  nodes.jumpToManageButton?.addEventListener("click", () => setCurrentView("manage"));
+  nodes.dismissTemplateGuideButton?.addEventListener("click", () => {
+    nodes.templateGuideCard.hidden = true;
+    setActionFeedback("你也可以先继续填写，再回头补模板。");
+  });
   nodes.closeOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
   nodes.dismissOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
   nodes.acknowledgeOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
@@ -407,6 +418,7 @@ function renderProjects() {
     nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有生成结果</strong><p>先去生成页完成一次生成。完成后，这里会承接项目摘要、提示词、批量任务和镜头细节。</p></div>`;
     nodes.shotEditorPanel.innerHTML = "";
     nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近记录</strong><p>第一次生成完成后，这里会保留最近结果、第一条提示词预览和切换入口。</p></div>`;
+    renderCurrentResultSummary();
     updateResultButtons();
     return;
   }
@@ -454,6 +466,7 @@ function renderProjects() {
     .join("");
 
   bindProjectListEvents();
+  renderCurrentResultSummary();
   renderProjectDetail();
   renderShotEditor();
   updateResultButtons();
@@ -739,6 +752,7 @@ function handleTemplateSelectionChange() {
   selectedProfileVideoUrls = new Set();
   syncTemplateForm();
   applyTemplateToGenerationFields();
+  renderTemplateGuide();
   renderProfileScanState();
   setActionFeedback("已切换对标账户模板。");
 }
@@ -787,6 +801,7 @@ function saveCurrentTemplate() {
   saveAccountTemplates();
   renderTemplateOptions();
   syncTemplateForm();
+  renderTemplateGuide();
   renderProfileScanState();
   setActionFeedback(`模板已保存：${template.name}`);
 }
@@ -808,6 +823,7 @@ function deleteCurrentTemplate() {
   renderTemplateOptions();
   syncTemplateForm();
   applyTemplateToGenerationFields();
+  renderTemplateGuide();
   currentProfileScan = null;
   selectedProfileVideoUrls = new Set();
   renderProfileScanState();
@@ -827,6 +843,7 @@ function createNewTemplate() {
   saveAccountTemplates();
   renderTemplateOptions();
   syncTemplateForm();
+  renderTemplateGuide();
   renderProfileScanState();
   setActionFeedback("已新建空模板，你也可以直接提炼主页模板自动生成。");
 }
@@ -844,6 +861,46 @@ function renderTemplateOptions() {
         `<option value="${escapeHtml(template.id)}" ${template.id === selectedTemplateId ? "selected" : ""}>${escapeHtml(template.name)}</option>`
     )
     .join("");
+}
+
+function isTemplateGuideNeeded(template) {
+  if (!template) return false;
+  const weakFields = [
+    template.contentPositioning,
+    template.rhythm,
+    template.structure,
+    template.expressionDna
+  ].filter((item) => String(item || "").trim());
+  const isNamedBlankTemplate = ["新模板", "未命名模板"].includes(String(template.name || "").trim());
+  return isNamedBlankTemplate || weakFields.length < 2;
+}
+
+function renderTemplateGuide() {
+  if (!nodes.templateGuideCard || !nodes.templateGuideSummary) return;
+  const template = getSelectedTemplate();
+  const shouldShow = isTemplateGuideNeeded(template);
+  nodes.templateGuideCard.hidden = !shouldShow;
+  if (!shouldShow || !template) {
+    return;
+  }
+  const checks = [
+    ["内容定位", Boolean(template.contentPositioning?.trim())],
+    ["节奏", Boolean(template.rhythm?.trim())],
+    ["结构拆解", Boolean(template.structure?.trim())],
+    ["表达 DNA", Boolean(template.expressionDna?.trim())]
+  ];
+  nodes.templateGuideSummary.innerHTML = `
+    <strong>当前模板：${escapeHtml(template.name || "未命名模板")}</strong>
+    <div class="templateGuideChecklist">
+      ${checks
+        .map(
+          ([label, ready]) =>
+            `<span class="templateGuideChip ${ready ? "is-ready" : ""}">${escapeHtml(label)}：${ready ? "已补" : "待补"}</span>`
+        )
+        .join("")}
+    </div>
+    <p>如果你还没准备模板，最稳的做法是去蒸馏管理里先补 2 到 4 项基础信息，或者直接贴主页链接去提炼。</p>
+  `;
 }
 
 function syncTemplateForm() {
@@ -1774,6 +1831,31 @@ function renderAssetStatus() {
     nodes.modelUploadStatus.classList.toggle("is-ready", hasModel);
     nodes.modelUploadStatus.classList.toggle("is-optional", !hasModel);
   }
+}
+
+function renderCurrentResultSummary() {
+  if (!nodes.currentResultSummary) return;
+  if (!currentPackage) {
+    nodes.currentResultSummary.hidden = true;
+    nodes.currentResultSummary.innerHTML = "";
+    return;
+  }
+  const taskCount = currentPackage.batchVideoTasks?.length || 0;
+  const shotCount = currentPackage.shots?.length || 0;
+  const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
+  nodes.currentResultSummary.hidden = false;
+  nodes.currentResultSummary.innerHTML = `
+    <div class="currentResultSummaryHead">
+      <strong>${escapeHtml(currentPackage.project.projectName)}</strong>
+      <div class="currentResultSummaryMeta">
+        <span class="countBadge">${shotCount} 个镜头</span>
+        <span class="countBadge">${taskCount} 条任务</span>
+        <span class="countBadge">${escapeHtml(currentPackage.project.aspectRatio || "9:16")}</span>
+      </div>
+    </div>
+    <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
+    <div class="currentResultSummaryNote">当前摘要：${escapeHtml(currentPackage.project.referenceSummary || "还没有摘要")}</div>
+  `;
 }
 
 function updateGenerateButtonState() {

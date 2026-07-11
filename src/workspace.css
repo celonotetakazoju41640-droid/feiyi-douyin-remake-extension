@@ -4843,6 +4843,64 @@ body {
   max-width: 100%;
 }
 
+.templateGuideCard {
+  gap: 12px;
+  background: linear-gradient(180deg, #fffaf1 0%, #fff8ec 100%);
+  border-color: #e7d4ad;
+}
+
+.templateGuideCard .contentSectionHead {
+  display: grid;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.templateGuideCard .contentSectionHead p {
+  max-width: 720px;
+  margin: 0;
+}
+
+.templateGuideSummary {
+  display: grid;
+  gap: 8px;
+  color: #6d604e;
+  font-size: 12px;
+}
+
+.templateGuideSummary strong {
+  color: #2c241b;
+  font-size: 13px;
+}
+
+.templateGuideChecklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.templateGuideChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e4d5b8;
+  border-radius: 999px;
+  background: #fffdf8;
+  color: #725f43;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.templateGuideChip.is-ready {
+  border-color: #cfe1c9;
+  background: #f3fbf1;
+  color: #35643c;
+}
+
+.templateGuideActions {
+  justify-content: flex-start;
+}
+
 .historyOverviewCard,
 .historyDetailCard,
 .historyListCard,
@@ -4854,6 +4912,44 @@ body {
 .historyOverviewCard {
   gap: 12px;
   background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
+}
+
+.currentResultSummary {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e8dcc8;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf8 0%, #fff9ef 100%);
+}
+
+.currentResultSummary[hidden] {
+  display: none !important;
+}
+
+.currentResultSummaryHead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.currentResultSummaryHead strong {
+  color: #2c241b;
+  font-size: 14px;
+}
+
+.currentResultSummaryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.currentResultSummaryNote {
+  color: #6d604e;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .historyStatGrid {
