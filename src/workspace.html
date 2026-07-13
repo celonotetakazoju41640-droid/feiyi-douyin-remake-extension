@@ -445,11 +445,11 @@
                     <div class="contentSectionHead managePrimaryHead">
                       <div>
                         <strong>视频深蒸馏</strong>
-                        <p>直接选择本地文件夹里的视频，先沉淀镜头节奏、情绪和商品露出结构。</p>
+                        <p>先读取本地视频，再决定要不要交给视觉模型做自动分析。</p>
                       </div>
                       <div class="resultActions manageDeepDistillActions">
                         <label class="ghostButton manageFolderButton">
-                          选择本地视频文件夹
+                          读取本地视频文件夹
                           <input id="deepDistillFolderInput" type="file" accept="video/*" webkitdirectory multiple hidden />
                         </label>
                         <button id="analyzeDeepDistillVideosButton" class="primaryButton" type="button">自动分析当前视频</button>
@@ -457,11 +457,31 @@
                       </div>
                     </div>
                     <div class="textInlineHintRow manageDeepDistillHints">
-                      <span class="textInlineHint">不会上传视频，只读取你本机当前选中的文件夹内容</span>
+                      <span class="textInlineHint">第一步只读本地元数据和抽帧，不会直接上传整条视频</span>
                       <span id="deepDistillStatus" class="textInlineHint">还没读取本地视频</span>
                     </div>
+                    <div class="deepDistillProgressStack">
+                      <div id="deepDistillReadProgress" class="deepDistillProgressCard" hidden>
+                        <div class="deepDistillProgressHead">
+                          <strong>读取进度</strong>
+                          <span id="deepDistillReadProgressText">0%</span>
+                        </div>
+                        <div class="deepDistillProgressTrack">
+                          <div id="deepDistillReadProgressFill" class="deepDistillProgressFill"></div>
+                        </div>
+                      </div>
+                      <div id="deepDistillAnalyzeProgress" class="deepDistillProgressCard" hidden>
+                        <div class="deepDistillProgressHead">
+                          <strong>自动分析进度</strong>
+                          <span id="deepDistillAnalyzeProgressText">0%</span>
+                        </div>
+                        <div class="deepDistillProgressTrack">
+                          <div id="deepDistillAnalyzeProgressFill" class="deepDistillProgressFill"></div>
+                        </div>
+                      </div>
+                    </div>
                     <div id="deepDistillVideoList" class="deepDistillVideoList">
-                      <p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和分析字段。</p>
+                      <p class="emptyState">先读取一个本地视频文件夹。读取后，这里会保留视频样本；需要时再点自动分析。</p>
                     </div>
                   </section>
                 </div>

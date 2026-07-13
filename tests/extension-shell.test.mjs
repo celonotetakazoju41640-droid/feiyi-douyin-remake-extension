@@ -40,3 +40,10 @@ test("workspace shell includes scene plan, cast editor, and storyboard toggle", 
   assert.match(workspaceHtml, /id="castList"/);
   assert.match(workspaceHtml, /id="addSupportingCast"/);
 });
+
+test("workspace shell exposes separated deep-distill read and analysis progress", () => {
+  assert.match(workspaceHtml, /读取本地视频文件夹/);
+  assert.match(workspaceHtml, /id="deepDistillReadProgress"/);
+  assert.match(workspaceHtml, /id="deepDistillAnalyzeProgress"/);
+  assert.match(workspaceHtml, /自动分析当前视频/);
+});
