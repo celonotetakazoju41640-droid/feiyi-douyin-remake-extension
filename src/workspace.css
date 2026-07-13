@@ -4983,6 +4983,12 @@ body {
   gap: 8px;
 }
 
+.manageTemplateSnapshot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .manageProfileUrlField input {
   max-width: 100%;
 }

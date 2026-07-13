@@ -78,6 +78,7 @@ const nodes = {
   clipcatExtraRules: document.querySelector("#clipcatExtraRules"),
   accountTemplateSelect: document.querySelector("#accountTemplateSelect"),
   manageTemplateSelect: document.querySelector("#manageTemplateSelect"),
+  manageTemplateSnapshot: document.querySelector("#manageTemplateSnapshot"),
   templateDeepDistillSummary: document.querySelector("#templateDeepDistillSummary"),
   manageProfileUrl: document.querySelector("#manageProfileUrl"),
   manageProfileStatus: document.querySelector("#manageProfileStatus"),
@@ -963,6 +964,30 @@ function renderTemplateGuide() {
   `;
 }
 
+function renderManageTemplateSnapshot() {
+  if (!nodes.manageTemplateSnapshot) return;
+  const template = getSelectedTemplate();
+  if (!template) {
+    nodes.manageTemplateSnapshot.innerHTML = "";
+    return;
+  }
+  const readyCount = [
+    template.contentPositioning,
+    template.rhythm,
+    template.structure,
+    template.expressionDna
+  ].filter((item) => String(item || "").trim()).length;
+  const sampleCount = Array.isArray(template.sampleVideoUrls) ? template.sampleVideoUrls.length : 0;
+  const deepVideoCount = Array.isArray(template.deepDistillVideos) ? template.deepDistillVideos.length : 0;
+  const hasProfileUrl = Boolean(String(template.profileUrl || "").trim());
+  nodes.manageTemplateSnapshot.innerHTML = `
+    <span class="templateDeepDistillChip">主页：${hasProfileUrl ? "已绑定" : "未绑定"}</span>
+    <span class="templateDeepDistillChip">基础字段：${readyCount}/4</span>
+    <span class="templateDeepDistillChip">主页样本：${sampleCount} 条</span>
+    <span class="templateDeepDistillChip">深蒸馏视频：${deepVideoCount} 条</span>
+  `;
+}
+
 function renderTemplateDeepDistillSummary() {
   if (!nodes.templateDeepDistillSummary) return;
   const template = getSelectedTemplate();
@@ -1063,6 +1088,7 @@ function syncTemplateForm() {
   currentDeepDistillVideos = cloneDeepDistillVideos(template.deepDistillVideos || []);
   currentDeepDistillFiles = new Map();
   renderDeepDistillVideoList();
+  renderManageTemplateSnapshot();
   renderTemplateDeepDistillSummary();
   updatePlatformDependentUi();
 }
