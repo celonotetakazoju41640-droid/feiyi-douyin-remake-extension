@@ -1,0 +1,428 @@
+import { createServer } from "node:http";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const runtimeDir = join(__dirname, "runtime");
+const queuePath = join(runtimeDir, "video-batches.json");
+const port = Number(process.env.PORT || 4328);
+const host = process.env.HOST || "127.0.0.1";
+const projectEnvCandidates = [
+  "/Users/da/Documents/Codex/2026-06-16/users-da-documents-codex-2026-06/outputs/commerce-video-batch-tool/.env",
+  "/Users/da/Documents/Codex/2026-06-16/users-da-documents-codex-2026-06/outputs/commerce-drama-remake-tool/.env"
+];
+
+await mkdir(runtimeDir, { recursive: true });
+const fileEnv = await loadMergedEnv(projectEnvCandidates);
+const config = mergeNonEmptyEnv(fileEnv, pickProcessEnv());
+
+const server = createServer(async (request, response) => {
+  try {
+    if (request.method === "OPTIONS") {
+      return sendJson(response, 200, { ok: true });
+    }
+
+    if (request.method === "GET" && request.url === "/health") {
+      const queue = await loadQueue();
+      return sendJson(response, 200, {
+        status: "ok",
+        service: "feiyi-douyin-fuke-video-batch-service",
+        queueSize: queue.batches.length,
+        mode: config.PACKY_VIDEO_API_URL ? "proxy_ready" : "queue_only",
+        hasTextApiKey: Boolean(config.TEXT_API_KEY),
+        hasImageApiKey: Boolean(config.IMAGE_API_KEY || config.PACKY_API_KEY),
+        hasGeminiKey: Boolean(getGeminiApiKey(config)),
+        deepDistillSupported: Boolean(getGeminiApiKey(config)),
+        geminiBaseUrl: maskUrl(getGeminiBaseUrl(config)),
+        geminiModel: getGeminiModel(config),
+        textBaseUrl: maskUrl(config.TEXT_API_BASE_URL),
+        imageBaseUrl: maskUrl(config.IMAGE_API_BASE_URL)
+      });
+    }
+
+    if (request.method === "GET" && request.url === "/api/video-batches") {
+      const queue = await loadQueue();
+      return sendJson(response, 200, queue);
+    }
+
+    if (request.method === "POST" && request.url === "/api/video-batches") {
+      const body = await readJsonBody(request);
+      const tasks = Array.isArray(body.tasks) ? body.tasks : [];
+      if (tasks.length === 0) {
+        return sendJson(response, 400, { message: "没有收到可入队的批量视频任务。" });
+      }
+
+      const queue = await loadQueue();
+      const batchId = `batch-${Date.now()}`;
+      const batch = {
+        batchId,
+        projectName: String(body.projectName || "未命名项目").trim(),
+        submitMode: body.submitMode === "live" ? "live" : "queue_only",
+        accountTemplate: sanitizeTemplate(body.accountTemplate),
+        acceptedAt: new Date().toISOString(),
+        tasks: tasks.map((task, index) => ({
+          taskId: String(task.taskId || `${batchId}-task-${index + 1}`),
+          taskTitle: String(task.taskTitle || `任务 ${index + 1}`),
+          model: String(task.model || "veo-3-fast"),
+          durationSeconds: Number(task.durationSeconds || 30),
+          aspectRatio: String(task.aspectRatio || "9:16"),
+          voiceLanguage: String(task.voiceLanguage || "英文"),
+          prompt: String(task.prompt || "").trim(),
+          imagePrompt: String(task.imagePrompt || "").trim(),
+          sourceLinks: Array.isArray(task.sourceLinks) ? task.sourceLinks.map(String) : [],
+          extraRules: String(task.extraRules || "").trim(),
+          status: body.submitMode === "live" && config.PACKY_VIDEO_API_URL ? "待转发" : "已入队",
+          upstreamTaskId: null
+        }))
+      };
+
+      queue.batches.unshift(batch);
+      await saveQueue(queue);
+
+      return sendJson(response, 200, {
+        ok: true,
+        batchId,
+        queuedTasks: batch.tasks.length,
+        mode: config.PACKY_VIDEO_API_URL ? "proxy_ready" : "queue_only",
+        message: config.PACKY_VIDEO_API_URL
+          ? "任务已进入本地服务队列，后续可接真实 Packy 视频接口。"
+          : "任务已进入本地服务队列；当前没有配置真实视频接口地址，暂不外发。"
+      });
+    }
+
+    if (request.method === "POST" && request.url === "/api/deep-distill/analyze") {
+      const body = await readJsonBody(request);
+      const videos = Array.isArray(body.videos) ? body.videos : [];
+      if (!videos.length) {
+        return sendJson(response, 400, { message: "没有收到可分析的视频样本。" });
+      }
+      if (!getGeminiApiKey(config)) {
+        return sendJson(response, 400, { message: "当前本地服务没有读到 GEMINI_API_KEY，暂时不能自动分析视频深蒸馏。" });
+      }
+
+      const results = [];
+      for (const video of videos) {
+        results.push(await analyzeDeepDistillVideo(video, config));
+      }
+
+      return sendJson(response, 200, {
+        ok: true,
+        provider: "packyapi-google-gemini",
+        model: getGeminiModel(config),
+        results
+      });
+    }
+
+    sendJson(response, 404, { message: "接口不存在。" });
+  } catch (error) {
+    sendJson(response, 500, { message: error instanceof Error ? error.message : String(error) });
+  }
+});
+
+server.listen(port, host, () => {
+  console.log(`[feiyi-video-batch-service] listening on http://${host}:${port}`);
+});
+
+async function analyzeDeepDistillVideo(video, config) {
+  const prompt = buildDeepDistillPrompt(video);
+  const contents = [
+    {
+      role: "user",
+      parts: [
+        { text: prompt },
+        ...buildFrameParts(video.frames),
+        {
+          text:
+            "请严格只返回一个 JSON 对象，不要带 markdown，不要带解释，不要带代码块。字段缺失时返回空字符串，isZeroFrameProductHook 只能返回“是”“否”或“待判断”。"
+        }
+      ]
+    }
+  ];
+
+  const response = await fetch(
+    `${getGeminiBaseUrl(config).replace(/\/$/, "")}/v1beta/models/${encodeURIComponent(getGeminiModel(config))}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-goog-api-key": getGeminiApiKey(config),
+        ...(getGeminiTokenGroup(config) ? { "x-token-group": getGeminiTokenGroup(config) } : {})
+      },
+      body: JSON.stringify({
+        contents,
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json"
+        }
+      })
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(readGeminiError(data) || `${response.status} ${response.statusText}`);
+  }
+
+  const text = extractGeminiText(data);
+  const parsed = parseLooseJson(text);
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error(`视觉模型返回内容不可解析：${text.slice(0, 120) || "空结果"}`);
+  }
+
+  return {
+    id: String(video.id || "").trim(),
+    fileName: String(video.fileName || "").trim(),
+    relativePath: String(video.relativePath || "").trim(),
+    analysis: normalizeDeepDistillAnalysis(parsed)
+  };
+}
+
+function buildDeepDistillPrompt(video) {
+  const durationSeconds = Number(video.durationSeconds || 0);
+  const frameCount = Array.isArray(video.frames) ? video.frames.length : 0;
+  return [
+    "你是短视频复刻分析师，任务是根据同一条短视频的多张关键帧，反推这条视频最值得复刻的画面结构。",
+    "分析重点不是文案，而是：",
+    "1. 是否 0 帧商品起手",
+    "2. 商品第一次强露出大概在第几秒",
+    "3. 前 3 秒钩子更像哪一类",
+    "4. 画面情绪曲线怎么走",
+    "5. 镜头节奏是快切、停留、推进还是对比证明",
+    "6. 卖点证明方式是什么",
+    "7. 结尾收口方式是什么",
+    "8. 画面是如何从开场推进到结果的",
+    "9. 这条视频的视觉 DNA 是什么",
+    "",
+    `当前视频名：${String(video.fileName || "未命名视频").trim()}`,
+    `相对路径：${String(video.relativePath || "").trim() || "未提供"}`,
+    `时长：${durationSeconds > 0 ? `${durationSeconds} 秒` : "未知"}`,
+    `抽样帧数：${frameCount} 张`,
+    "",
+    "请按以下 JSON 结构返回：",
+    JSON.stringify(
+      {
+        isZeroFrameProductHook: "是 / 否 / 待判断",
+        firstStrongProductSecond: "",
+        hookType: "",
+        emotionCurve: "",
+        shotRhythm: "",
+        proofStyle: "",
+        ctaStyle: "",
+        sceneProgression: "",
+        visualDna: "",
+        summary: ""
+      },
+      null,
+      2
+    )
+  ].join("\n");
+}
+
+function buildFrameParts(frames) {
+  return (Array.isArray(frames) ? frames : [])
+    .slice(0, 8)
+    .flatMap((frame, index) => {
+      const label = String(frame.label || `帧 ${index + 1}`).trim();
+      const second = Number(frame.second || 0);
+      const data = String(frame.data || "").trim();
+      if (!data) return [];
+      return [
+        { text: `${label}，约第 ${second} 秒。` },
+        {
+          inlineData: {
+            mimeType: String(frame.mimeType || "image/jpeg").trim(),
+            data
+          }
+        }
+      ];
+    });
+}
+
+function normalizeDeepDistillAnalysis(raw = {}) {
+  return {
+    isZeroFrameProductHook: normalizeChoice(raw.isZeroFrameProductHook),
+    firstStrongProductSecond: String(raw.firstStrongProductSecond || "").trim(),
+    hookType: String(raw.hookType || "").trim(),
+    emotionCurve: String(raw.emotionCurve || "").trim(),
+    shotRhythm: String(raw.shotRhythm || "").trim(),
+    proofStyle: String(raw.proofStyle || "").trim(),
+    ctaStyle: String(raw.ctaStyle || "").trim(),
+    sceneProgression: String(raw.sceneProgression || "").trim(),
+    visualDna: String(raw.visualDna || "").trim(),
+    summary: String(raw.summary || "").trim()
+  };
+}
+
+function normalizeChoice(value) {
+  const text = String(value || "").trim();
+  if (text === "是" || /^yes$/i.test(text)) return "是";
+  if (text === "否" || /^no$/i.test(text)) return "否";
+  return "待判断";
+}
+
+function extractGeminiText(payload = {}) {
+  return (payload.candidates || [])
+    .flatMap((candidate) => candidate?.content?.parts || [])
+    .map((part) => String(part?.text || ""))
+    .join("\n")
+    .trim();
+}
+
+function parseLooseJson(text) {
+  const normalized = String(text || "").trim();
+  if (!normalized) return null;
+  try {
+    return JSON.parse(normalized);
+  } catch {}
+  const match = normalized.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try {
+    return JSON.parse(match[0]);
+  } catch {
+    return null;
+  }
+}
+
+function readGeminiError(payload = {}) {
+  return String(payload?.error?.message || payload?.message || "").trim();
+}
+
+function getGeminiBaseUrl(config) {
+  return (
+    config.GEMINI_API_BASE_URL ||
+    config.GOOGLE_GEMINI_BASE_URL ||
+    config.GEMINI_BASE_URL ||
+    config.PACKY_GEMINI_BASE_URL ||
+    "https://www.packyapi.com"
+  );
+}
+
+function getGeminiModel(config) {
+  return config.GEMINI_VISION_MODEL || config.GEMINI_MODEL || "gemini-2.5-flash";
+}
+
+function getGeminiApiKey(config) {
+  if (config.GEMINI_API_KEY) return config.GEMINI_API_KEY;
+  if (isPackyApiUrl(getGeminiBaseUrl(config)) && config.TEXT_API_KEY) return config.TEXT_API_KEY;
+  return "";
+}
+
+function getGeminiTokenGroup(config) {
+  return config.GEMINI_TOKEN_GROUP || "";
+}
+
+function pickProcessEnv() {
+  const keys = [
+    "TEXT_API_KEY",
+    "IMAGE_API_KEY",
+    "PACKY_API_KEY",
+    "PACKY_VIDEO_API_URL",
+    "TEXT_API_BASE_URL",
+    "IMAGE_API_BASE_URL",
+    "GEMINI_API_KEY",
+    "GEMINI_API_BASE_URL",
+    "GOOGLE_GEMINI_BASE_URL",
+    "GEMINI_BASE_URL",
+    "PACKY_GEMINI_BASE_URL",
+    "GEMINI_MODEL",
+    "GEMINI_VISION_MODEL",
+    "TEXT_TOKEN_GROUP",
+    "GEMINI_TOKEN_GROUP"
+  ];
+  return Object.fromEntries(keys.map((key) => [key, process.env[key] || ""]));
+}
+
+function mergeNonEmptyEnv(...sources) {
+  const merged = {};
+  for (const source of sources) {
+    for (const [key, value] of Object.entries(source || {})) {
+      if (value !== undefined && value !== null && String(value).trim() !== "") {
+        merged[key] = String(value);
+      }
+    }
+  }
+  return merged;
+}
+
+function isPackyApiUrl(url) {
+  return /^https:\/\/(www\.)?packyapi\.com(?:\/|$)/i.test(String(url || "").trim());
+}
+
+async function loadMergedEnv(paths) {
+  const merged = {};
+  for (const path of paths) {
+    try {
+      const contents = await readFile(path, "utf8");
+      Object.assign(merged, parseEnvFile(contents));
+    } catch {}
+  }
+  return merged;
+}
+
+function parseEnvFile(contents) {
+  const parsed = {};
+  for (const rawLine of contents.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const separatorIndex = line.indexOf("=");
+    if (separatorIndex <= 0) continue;
+    const key = line.slice(0, separatorIndex).trim();
+    let value = line.slice(separatorIndex + 1).trim();
+    if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    parsed[key] = value;
+  }
+  return parsed;
+}
+
+async function loadQueue() {
+  try {
+    const text = await readFile(queuePath, "utf8");
+    return JSON.parse(text);
+  } catch {
+    return { batches: [] };
+  }
+}
+
+async function saveQueue(queue) {
+  await writeFile(queuePath, JSON.stringify(queue, null, 2));
+}
+
+async function readJsonBody(request) {
+  const chunks = [];
+  for await (const chunk of request) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  const text = Buffer.concat(chunks).toString("utf8");
+  return text ? JSON.parse(text) : {};
+}
+
+function sendJson(response, statusCode, payload) {
+  response.writeHead(statusCode, {
+    "content-type": "application/json; charset=utf-8",
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-headers": "content-type"
+  });
+  response.end(JSON.stringify(payload));
+}
+
+function sanitizeTemplate(raw = {}) {
+  return {
+    id: String(raw.id || "").trim(),
+    name: String(raw.name || "").trim(),
+    accountHandle: String(raw.accountHandle || "").trim(),
+    contentPositioning: String(raw.contentPositioning || "").trim(),
+    hookStyle: String(raw.hookStyle || "").trim(),
+    rhythm: String(raw.rhythm || "").trim(),
+    structure: String(raw.structure || "").trim(),
+    rewriteRules: String(raw.rewriteRules || "").trim(),
+    preferredModel: String(raw.preferredModel || "").trim()
+  };
+}
+
+function maskUrl(value) {
+  return value ? String(value).replace(/:\/\/[^/]+/, "://<configured>") : "";
+}

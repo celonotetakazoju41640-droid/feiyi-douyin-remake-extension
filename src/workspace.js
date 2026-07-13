@@ -88,6 +88,7 @@ const nodes = {
   manageScanSteps: document.querySelector("#manageScanSteps"),
   manageScanSummaryBody: document.querySelector("#manageScanSummaryBody"),
   deepDistillFolderInput: document.querySelector("#deepDistillFolderInput"),
+  analyzeDeepDistillVideosButton: document.querySelector("#analyzeDeepDistillVideosButton"),
   clearDeepDistillVideosButton: document.querySelector("#clearDeepDistillVideosButton"),
   deepDistillStatus: document.querySelector("#deepDistillStatus"),
   deepDistillVideoList: document.querySelector("#deepDistillVideoList"),
@@ -184,6 +185,8 @@ let profileScanProgressValue = 0;
 let profileScanProgressTimer = null;
 let profileScanStageKey = "idle";
 let currentDeepDistillVideos = [];
+let currentDeepDistillFiles = new Map();
+let deepDistillAnalysisRunning = false;
 
 function setProfileScanStage(stageKey, progressValue = null) {
   profileScanStageKey = stageKey || "idle";
@@ -268,6 +271,7 @@ function bindEvents() {
   nodes.manageProfileUrl?.addEventListener("input", handleManageProfileUrlInput);
   nodes.scanProfileButton.addEventListener("click", handleProfileScan);
   nodes.deepDistillFolderInput?.addEventListener("change", handleDeepDistillFolderChange);
+  nodes.analyzeDeepDistillVideosButton?.addEventListener("click", analyzeDeepDistillVideos);
   nodes.clearDeepDistillVideosButton?.addEventListener("click", clearDeepDistillVideos);
   nodes.selectAllProfileSamplesButton.addEventListener("click", selectAllProfileSamples);
   nodes.clearProfileSamplesButton.addEventListener("click", clearProfileSamplesSelection);
@@ -763,7 +767,11 @@ async function refreshBatchServiceHealth() {
     const response = await fetch(`${batchServiceBaseUrl}/health`);
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-    nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可转发" : "队列模式";
+    if (data.deepDistillSupported) {
+      nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可分析 / 可转发" : "可分析";
+    } else {
+      nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可转发" : "队列模式";
+    }
     nodes.batchServiceStatus.classList.add("is-ok");
     nodes.batchServiceStatus.classList.remove("is-error");
   } catch {
@@ -954,6 +962,7 @@ function syncTemplateForm() {
   nodes.templateRewriteRules.value = template.rewriteRules || "";
   nodes.templateSampleVideoUrls.value = (template.sampleVideoUrls || []).join("\n");
   currentDeepDistillVideos = cloneDeepDistillVideos(template.deepDistillVideos || []);
+  currentDeepDistillFiles = new Map();
   renderDeepDistillVideoList();
   updatePlatformDependentUi();
 }
@@ -1015,6 +1024,7 @@ function cloneDeepDistillVideos(videos = []) {
 async function handleDeepDistillFolderChange(event) {
   const files = Array.from(event.target.files || []).filter((file) => String(file.type || "").startsWith("video/"));
   if (!files.length) {
+    currentDeepDistillFiles = new Map();
     setDeepDistillStatus("没读到可用视频，请重新选择本地视频文件夹。", true);
     renderDeepDistillVideoList();
     return;
@@ -1024,13 +1034,17 @@ async function handleDeepDistillFolderChange(event) {
   setActionFeedback("正在读取本地文件夹视频元数据，完成后会自动写回当前模型。");
 
   const nextVideos = [];
+  const nextFiles = new Map();
   for (let index = 0; index < files.length; index += 1) {
     const file = files[index];
     setDeepDistillStatus(`正在读取 ${index + 1} / ${files.length}：${file.name}`);
-    nextVideos.push(await buildDeepDistillVideoFromFile(file));
+    const nextVideo = await buildDeepDistillVideoFromFile(file);
+    nextVideos.push(nextVideo);
+    nextFiles.set(nextVideo.id, file);
   }
 
   currentDeepDistillVideos = nextVideos;
+  currentDeepDistillFiles = nextFiles;
   renderDeepDistillVideoList();
   saveCurrentTemplate();
   setDeepDistillStatus(`已读取 ${nextVideos.length} 条本地视频，并保存到当前模型。`);
@@ -1082,6 +1096,7 @@ function readVideoDurationFromFile(file) {
 
 function clearDeepDistillVideos() {
   currentDeepDistillVideos = [];
+  currentDeepDistillFiles = new Map();
   renderDeepDistillVideoList();
   saveCurrentTemplate();
   setDeepDistillStatus("已清空当前模型下的视频深蒸馏样本。");
@@ -1096,6 +1111,7 @@ function setDeepDistillStatus(message, isError = false) {
 
 function renderDeepDistillVideoList() {
   if (!nodes.deepDistillVideoList) return;
+  updateDeepDistillActionState();
   if (!currentDeepDistillVideos.length) {
     nodes.deepDistillVideoList.innerHTML =
       '<p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和深蒸馏字段。</p>';
@@ -1184,6 +1200,17 @@ function renderDeepDistillVideoList() {
   });
 }
 
+function updateDeepDistillActionState() {
+  if (nodes.analyzeDeepDistillVideosButton) {
+    const hasAnalyzableVideos = currentDeepDistillVideos.some((video) => currentDeepDistillFiles.has(video.id));
+    nodes.analyzeDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || !hasAnalyzableVideos;
+    nodes.analyzeDeepDistillVideosButton.textContent = deepDistillAnalysisRunning ? "分析中..." : "自动分析当前视频";
+  }
+  if (nodes.clearDeepDistillVideosButton) {
+    nodes.clearDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || currentDeepDistillVideos.length === 0;
+  }
+}
+
 function updateDeepDistillVideoField(videoId, field, value) {
   if (!videoId || !field) return;
   currentDeepDistillVideos = currentDeepDistillVideos.map((video) =>
@@ -1202,11 +1229,198 @@ function updateDeepDistillVideoField(videoId, field, value) {
 function removeDeepDistillVideo(videoId) {
   if (!videoId) return;
   currentDeepDistillVideos = currentDeepDistillVideos.filter((video) => video.id !== videoId);
+  currentDeepDistillFiles.delete(videoId);
   renderDeepDistillVideoList();
   saveCurrentTemplate();
   setDeepDistillStatus(
     currentDeepDistillVideos.length ? `已删除 1 条视频，当前还剩 ${currentDeepDistillVideos.length} 条。` : "当前模型下已没有视频深蒸馏样本。"
   );
+}
+
+async function analyzeDeepDistillVideos() {
+  const analyzableVideos = currentDeepDistillVideos.filter((video) => currentDeepDistillFiles.has(video.id));
+  if (!analyzableVideos.length) {
+    setActionFeedback("当前没有可自动分析的视频。请先重新选择本地视频文件夹。", true);
+    setDeepDistillStatus("当前没有可自动分析的视频，请先重新选择本地视频文件夹。", true);
+    return;
+  }
+
+  deepDistillAnalysisRunning = true;
+  updateDeepDistillActionState();
+  setActionFeedback("正在做视频深蒸馏自动分析，会按视频顺序逐条回填。");
+
+  try {
+    for (let index = 0; index < analyzableVideos.length; index += 1) {
+      const video = analyzableVideos[index];
+      const file = currentDeepDistillFiles.get(video.id);
+      if (!file) continue;
+
+      setDeepDistillStatus(`正在抽帧并分析 ${index + 1} / ${analyzableVideos.length}：${video.fileName}`);
+      const frames = await extractDeepDistillFramesFromFile(file, Number(video.durationSeconds || 0));
+      const response = await fetch(`${batchServiceBaseUrl}/api/deep-distill/analyze`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          videos: [
+            {
+              id: video.id,
+              fileName: video.fileName,
+              relativePath: video.relativePath,
+              durationSeconds: video.durationSeconds,
+              sizeBytes: video.sizeBytes,
+              frames
+            }
+          ]
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message || `${response.status} ${response.statusText}`);
+      }
+      const result = Array.isArray(data.results) ? data.results[0] : null;
+      if (!result?.id || !result?.analysis) {
+        throw new Error("自动分析接口返回为空，暂时没有拿到可回填结果。");
+      }
+      currentDeepDistillVideos = currentDeepDistillVideos.map((item) =>
+        item.id === result.id
+          ? {
+              ...item,
+              analysis: {
+                ...item.analysis,
+                ...result.analysis
+              }
+            }
+          : item
+      );
+      renderDeepDistillVideoList();
+    }
+
+    saveCurrentTemplate();
+    setDeepDistillStatus(`自动分析完成，已回填 ${analyzableVideos.length} 条视频。`);
+    setActionFeedback(`视频深蒸馏已完成，当前共回填 ${analyzableVideos.length} 条视频。`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    setDeepDistillStatus(`自动分析失败：${message}`, true);
+    setActionFeedback(`视频深蒸馏自动分析失败：${message}`, true);
+  } finally {
+    deepDistillAnalysisRunning = false;
+    updateDeepDistillActionState();
+  }
+}
+
+async function extractDeepDistillFramesFromFile(file, knownDurationSeconds = 0) {
+  const url = URL.createObjectURL(file);
+  const video = document.createElement("video");
+  video.preload = "auto";
+  video.muted = true;
+  video.playsInline = true;
+  video.src = url;
+
+  try {
+    await waitForVideoMetadata(video);
+    const duration = Math.max(Number(knownDurationSeconds || 0), Number(video.duration || 0), 0);
+    const timestamps = buildDeepDistillTimestamps(duration);
+    const canvas = document.createElement("canvas");
+    const { width, height } = pickDeepDistillFrameSize(video.videoWidth || 720, video.videoHeight || 1280);
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) {
+      throw new Error("当前浏览器拿不到视频抽帧画布。");
+    }
+
+    const frames = [];
+    for (const shot of timestamps) {
+      await seekVideoToSecond(video, shot.second);
+      context.drawImage(video, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+      frames.push({
+        label: shot.label,
+        second: shot.second,
+        mimeType: "image/jpeg",
+        data: dataUrl.split(",")[1] || ""
+      });
+    }
+    return frames;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function waitForVideoMetadata(video) {
+  return new Promise((resolve, reject) => {
+    if (video.readyState >= 1) {
+      resolve();
+      return;
+    }
+    const cleanup = () => {
+      video.onloadedmetadata = null;
+      video.onerror = null;
+    };
+    video.onloadedmetadata = () => {
+      cleanup();
+      resolve();
+    };
+    video.onerror = () => {
+      cleanup();
+      reject(new Error("本地视频元数据读取失败。"));
+    };
+  });
+}
+
+function buildDeepDistillTimestamps(durationSeconds = 0) {
+  const duration = Math.max(Number(durationSeconds || 0), 1);
+  const raw = [
+    { label: "开场首帧", second: 0 },
+    { label: "前段钩子", second: duration * 0.08 },
+    { label: "前段推进", second: duration * 0.18 },
+    { label: "中段结构", second: duration * 0.38 },
+    { label: "卖点证明", second: duration * 0.62 },
+    { label: "后段收口", second: duration * 0.86 },
+    { label: "结尾状态", second: Math.max(duration - 0.4, 0) }
+  ];
+  const seen = new Set();
+  return raw
+    .map((item) => ({
+      ...item,
+      second: Number(Math.min(Math.max(item.second, 0), Math.max(duration - 0.05, 0)).toFixed(2))
+    }))
+    .filter((item) => {
+      const key = `${item.second}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function pickDeepDistillFrameSize(width, height) {
+  const sourceWidth = Math.max(Number(width || 0), 1);
+  const sourceHeight = Math.max(Number(height || 0), 1);
+  const maxEdge = 768;
+  const scale = Math.min(1, maxEdge / Math.max(sourceWidth, sourceHeight));
+  return {
+    width: Math.max(1, Math.round(sourceWidth * scale)),
+    height: Math.max(1, Math.round(sourceHeight * scale))
+  };
+}
+
+function seekVideoToSecond(video, second) {
+  return new Promise((resolve, reject) => {
+    const targetSecond = Math.max(0, Number(second || 0));
+    const cleanup = () => {
+      video.onseeked = null;
+      video.onerror = null;
+    };
+    video.onseeked = () => {
+      cleanup();
+      resolve();
+    };
+    video.onerror = () => {
+      cleanup();
+      reject(new Error("视频抽帧时跳转时间点失败。"));
+    };
+    video.currentTime = targetSecond;
+  });
 }
 
 function handleTargetDurationControlChange() {

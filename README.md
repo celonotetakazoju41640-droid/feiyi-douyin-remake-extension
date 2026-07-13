@@ -217,6 +217,8 @@
 - `视频深蒸馏`：
   - 直接选择本地视频文件夹
   - 当前先读取文件名、相对路径、时长、大小和修改时间
+  - 支持点击 `自动分析当前视频`
+  - 会先在前台抽多帧，再交给本地服务走谷歌视觉模型分析
   - 然后手动补每条视频的：
     - 0 帧起手
     - 商品强露出秒点
@@ -275,14 +277,22 @@
 工作台里保留了本地视频任务服务入口：
 
 ```bash
-node /Users/da/plugins/feiyi-douyin-fuke/scripts/video-batch-service.mjs
+node /Users/da/Desktop/飞蚁抖音复刻-Chrome扩展/scripts/video-batch-service.mjs
 ```
 
 当前这套扩展的定位是：
 
 - 负责整理任务
 - 负责把批量任务送到本地服务
+- 负责把视频深蒸馏的多帧样本送到本地服务
 - 不在前端直接保存密钥
+
+当前本地服务还负责：
+
+- 接住批量视频任务
+- 接住视频深蒸馏自动分析
+- 优先读取本机已有的 `GEMINI_API_KEY`
+- 默认走 `https://www.packyapi.com` 的谷歌视觉模型兼容接口
 
 当前仓库不会把任何 API Key 写进扩展代码。
 
@@ -297,6 +307,7 @@ src/remake-core.js             复刻包、摘要、任务生成核心
 src/background*.js             后台桥接
 src/content.js                 页面侧入口
 src/tiktok-viral-scanner*.js   TikTok 公开内容扫描相关逻辑
+scripts/video-batch-service.mjs 本地批量任务与视频深蒸馏服务
 tests/remake-core.test.mjs     核心逻辑测试
 ```
 
