@@ -693,7 +693,7 @@ function finalizePackage(base) {
 
   const videoShots = base.shots.map((shot) =>
     promptLocale === "en"
-      ? `Use the provided keyframe for image-to-video. Shot ${shot.shotNumber}, duration ${shot.durationSeconds}s, goal: ${shot.purpose}, action: ${shot.action}, voiceover intent: ${shot.lineIntent}, product visibility: ${shot.productRole}, pacing: ${base.project.accountTemplate?.rhythm || "fast-paced"}, keep the character and scene consistent.`
+      ? `Animate from the supplied keyframe into a creator-style product video. Shot ${shot.shotNumber} should run about ${shot.durationSeconds}s. Goal: ${shot.purpose}. On-screen move: ${shot.action}. Voiceover intent: ${shot.lineIntent}. Product job in frame: ${shot.productRole}. Keep the pacing ${base.project.accountTemplate?.rhythm || "fast-paced"} and hold character + scene continuity.`
       : `基于已给关键帧做 image-to-video，镜头 ${shot.shotNumber}，时长 ${shot.durationSeconds} 秒，目标：${shot.purpose}，动作：${shot.action}，口播意图：${shot.lineIntent}，商品露出：${shot.productRole}，节奏要求：${base.project.accountTemplate?.rhythm || "快节奏"}，保持人物和场景一致。`
   );
 
@@ -749,18 +749,18 @@ function buildGenerationDistilledSummary(project, locale = "zh") {
 
   if (locale === "en") {
     return [
-      `${template.name} distilled framework: `,
-      `positioning "${template.contentPositioning || "not provided"}", `,
-      `opening hook "${template.hookStyle || "strong hook"}", `,
-      `pacing "${template.rhythm || "fast-paced"}", `,
-      `structure "${template.structure || "Hook -> Problem -> Solution -> CTA"}", `,
-      `expression DNA "${template.expressionDna || "not provided"}", `,
-      `decision rule "${template.decisionHeuristics || "not provided"}", `,
-      `avoid "${template.antiPatterns || "not provided"}", `,
-      `recent signal "${template.recentSignals || "not provided"}", `,
-      `CTA style "${template.ctaStyle || "soft CTA"}".`,
+      `${template.name} playbook: `,
+      `position it as "${template.contentPositioning || "not provided"}"; `,
+      `open with "${template.hookStyle || "strong hook"}"; `,
+      `keep the pace "${template.rhythm || "fast-paced"}"; `,
+      `follow the structure "${template.structure || "Hook -> Problem -> Solution -> CTA"}"; `,
+      `write in a voice that feels like "${template.expressionDna || "not provided"}"; `,
+      `make decisions by "${template.decisionHeuristics || "not provided"}"; `,
+      `stay away from "${template.antiPatterns || "not provided"}"; `,
+      `keep recent momentum around "${template.recentSignals || "not provided"}"; `,
+      `close with "${template.ctaStyle || "soft CTA"}".`,
       deepDistillSummary
-        ? ` Deep-distill add-on: ${deepDistillSummary.videoCount} samples, zero-frame bias "${deepDistillSummary.zeroFrameBias}", hook types "${deepDistillSummary.hookTypes || "not provided"}", emotion curves "${deepDistillSummary.emotionCurves || "not provided"}", shot rhythms "${deepDistillSummary.shotRhythms || "not provided"}", proof styles "${deepDistillSummary.proofStyles || "not provided"}", CTA styles "${deepDistillSummary.ctaStyles || "not provided"}", scene progressions "${deepDistillSummary.sceneProgressions || "not provided"}", visual DNA "${deepDistillSummary.visualDna || "not provided"}".`
+        ? ` Deep-distill read: across ${deepDistillSummary.videoCount} samples, the opening bias leans "${deepDistillSummary.zeroFrameBiasEn}", common hook types are "${deepDistillSummary.hookTypes || "not provided"}", emotion curves trend "${deepDistillSummary.emotionCurves || "not provided"}", shot rhythm stays around "${deepDistillSummary.shotRhythms || "not provided"}", proof usually looks like "${deepDistillSummary.proofStyles || "not provided"}", CTAs land as "${deepDistillSummary.ctaStyles || "not provided"}", scene progression tends to be "${deepDistillSummary.sceneProgressions || "not provided"}", and the visual DNA reads "${deepDistillSummary.visualDna || "not provided"}".`
         : ""
     ].join("");
   }
@@ -844,38 +844,38 @@ function buildPromptVariants(project, shots) {
       {
         key: "safe",
         title: getVariantTitle("safe", locale),
-        summary: `Keep the structure clear and the product easy to see. Stay close to "${template.expressionDna || "stable lifestyle delivery"}" without forcing aggressive changes.${
-          deepDistillSummary ? ` For shot execution, reference "${deepDistillSummary.shotRhythms || "the current template shot rhythm"}".` : ""
+        summary: `Keep it grounded in creator-led proof, make the product easy to follow, and stay close to "${template.expressionDna || "stable lifestyle delivery"}" without over-forcing the edit.${
+          deepDistillSummary ? ` Let the shot pacing stay near "${deepDistillSummary.shotRhythms || "the current template shot rhythm"}".` : ""
         }`,
         videoShots: shots.map(
           (shot) =>
-            `Safe version: shot ${shot.shotNumber}, ${shot.purpose}. Action: ${shot.action}. Keep it lifestyle-driven, stable, and product-clear. Stay close to "${template.expressionDna || "clear short-line delivery"}" and avoid "${template.antiPatterns || "copying the original people or captions"}".${
-              deepDistillSummary ? ` Prioritize shot rhythm "${deepDistillSummary.shotRhythms || "the current template rhythm"}" and proof style "${deepDistillSummary.proofStyles || "the current template proof style"}".` : ""
+            `Safe version, shot ${shot.shotNumber}: ${shot.purpose}. Play the action as ${shot.action}. Keep the delivery lifestyle-led, stable, and easy to track on product. Stay close to "${template.expressionDna || "clear short-line delivery"}" and avoid "${template.antiPatterns || "copying the original people or captions"}".${
+              deepDistillSummary ? ` Favor a shot rhythm like "${deepDistillSummary.shotRhythms || "the current template rhythm"}" and proof beats closer to "${deepDistillSummary.proofStyles || "the current template proof style"}".` : ""
             }`
         )
       },
       {
         key: "fast",
         title: getVariantTitle("fast", locale),
-        summary: `Use a stronger hook and a faster pace, leaning into "${template.recentSignals || "recent high-performing pacing"}".${
-          deepDistillSummary ? ` Let the first 3 seconds reference "${deepDistillSummary.hookTypes || "the current template hook"}".` : ""
+        summary: `Push for a faster scroll-stopper, lead harder with the hook, and lean into "${template.recentSignals || "recent high-performing pacing"}".${
+          deepDistillSummary ? ` Let the first 3 seconds borrow from "${deepDistillSummary.hookTypes || "the current template hook"}".` : ""
         }`,
         videoShots: shots.map(
           (shot) =>
-            `Fast version: shot ${shot.shotNumber}, move faster into ${shot.purpose}. Action: ${shot.action}. Remove idle beats and prioritize "${template.decisionHeuristics || "pain first, proof second"}" as the shot progression.${
-              deepDistillSummary ? ` Early emotional movement should reference "${deepDistillSummary.emotionCurves || "the current template emotion curve"}".` : ""
+            `Fast version, shot ${shot.shotNumber}: get to ${shot.purpose} faster. Play the action as ${shot.action}. Strip out any dead air and let "${template.decisionHeuristics || "pain first, proof second"}" drive the order of beats.${
+              deepDistillSummary ? ` Early emotional movement should feel closer to "${deepDistillSummary.emotionCurves || "the current template emotion curve"}".` : ""
             }`
         )
       },
       {
         key: "conversion",
         title: getVariantTitle("conversion", locale),
-        summary: `Push the selling points and CTA harder so the structure stays closer to "${dnaFocus}".${
-          deepDistillSummary ? ` Let the proof and close reference "${deepDistillSummary.proofStyles || "the current template proof style"} / ${deepDistillSummary.ctaStyles || "the current template CTA style"}".` : ""
+        summary: `Turn up the sell, make the payoff clearer, and keep the structure anchored in "${dnaFocus}".${
+          deepDistillSummary ? ` Let the proof and close echo "${deepDistillSummary.proofStyles || "the current template proof style"} / ${deepDistillSummary.ctaStyles || "the current template CTA style"}".` : ""
         }`,
         videoShots: shots.map(
           (shot) =>
-            `Conversion version: shot ${shot.shotNumber}, emphasize the role of ${project.productName || "the current product"}. Action: ${shot.action}. Organize the scene around "${template.decisionHeuristics || "pain -> proof -> close"}" and land the ending on "${template.ctaStyle || "a comments-or-profile CTA"}".${
+            `Conversion version, shot ${shot.shotNumber}: make ${project.productName || "the current product"} earn its place in the frame. Play the action as ${shot.action}. Build the scene around "${template.decisionHeuristics || "pain -> proof -> close"}" and land the ending on "${template.ctaStyle || "a comments-or-profile CTA"}".${
               deepDistillSummary ? ` Keep the proof progression aligned with "${deepDistillSummary.sceneProgressions || "the current template scene progression"}".` : ""
             }`
         )
@@ -952,13 +952,14 @@ function buildBatchVideoTasks(project, promptVariants, distilledFramework) {
         locale === "en"
           ? [
               `Create a short-form video following the benchmark template ${template.name || "Current template"}.`,
+              `Build a scroll-stopping TikTok that still feels like a native creator ad, not a stiff prompt dump.`,
               `Benchmark platform: ${getPlatformLabel(template.platform)}`,
               `Positioning: ${template.contentPositioning || "Not provided"}`,
               `Pacing: ${template.rhythm || "Fast-paced"}`,
               `Structure: ${template.structure || "Hook -> Problem -> Solution -> CTA"}`,
               `Expression DNA: ${template.expressionDna || "Not provided"}`,
-              `Decision heuristic: ${template.decisionHeuristics || "Not provided"}`,
-              `Anti-patterns: ${template.antiPatterns || "Not provided"}`,
+              `Creative angle: ${template.decisionHeuristics || "Not provided"}`,
+              `What to avoid: ${template.antiPatterns || "Not provided"}`,
               `Recent signals: ${template.recentSignals || "Not provided"}`,
               `Current product: ${project.productName || "Not provided"}`,
               `Selling points: ${project.sellingPoints.join(" / ") || "Not provided"}`,
@@ -968,16 +969,10 @@ function buildBatchVideoTasks(project, promptVariants, distilledFramework) {
               `Distilled summary: ${buildGenerationDistilledSummary(project, locale)}`,
               ...(deepDistillSummary
                 ? [
-                    `Deep-distill sample count: ${deepDistillSummary.videoCount}`,
-                    `Zero-frame bias: ${deepDistillSummary.zeroFrameBias}`,
-                    `Frequent hook types: ${deepDistillSummary.hookTypes || "Not provided"}`,
-                    `Frequent emotion curves: ${deepDistillSummary.emotionCurves || "Not provided"}`,
-                    `Frequent shot rhythms: ${deepDistillSummary.shotRhythms || "Not provided"}`,
-                    `Frequent proof styles: ${deepDistillSummary.proofStyles || "Not provided"}`,
-                    `Frequent CTA styles: ${deepDistillSummary.ctaStyles || "Not provided"}`,
+                    `Deep-distill read: ${deepDistillSummary.videoCount} sample videos suggest "${deepDistillSummary.zeroFrameBiasEn}". Hooks often look like "${deepDistillSummary.hookTypes || "Not provided"}". Emotion usually moves through "${deepDistillSummary.emotionCurves || "Not provided"}". Shot rhythm tends to be "${deepDistillSummary.shotRhythms || "Not provided"}". Proof usually lands through "${deepDistillSummary.proofStyles || "Not provided"}", and the close tends to use "${deepDistillSummary.ctaStyles || "Not provided"}".`,
                     `Scene progression pattern: ${deepDistillSummary.sceneProgressions || "Not provided"}`,
                     `Visual DNA pattern: ${deepDistillSummary.visualDna || "Not provided"}`,
-                    `Execution note: If the product fits, use these deep-distill patterns to organize the first 3 seconds hook, strong product reveal, proof rhythm, and ending close.`
+                    `Execution note: If the product fits, use these deep-distill patterns to shape the first 3 seconds, the product reveal, the proof beats, and the final close.`
                   ]
                 : []),
               `Rewrite boundary: ${template.rewriteRules || "Keep the structure and do not copy the original directly."}`
@@ -1080,6 +1075,12 @@ function buildDeepDistillSummary(templateLike = {}) {
       : zeroFrameNoCount > zeroFrameYesCount
         ? `偏非 0 帧商品起手（${zeroFrameNoCount}/${videos.length}）`
         : "待继续观察";
+  const zeroFrameBiasEn =
+    zeroFrameYesCount > zeroFrameNoCount
+      ? `leans toward opening with the product already in frame (${zeroFrameYesCount}/${videos.length})`
+      : zeroFrameNoCount > zeroFrameYesCount
+        ? `leans toward earning the product reveal after the opening beat (${zeroFrameNoCount}/${videos.length})`
+        : "does not show a clear opening bias yet";
 
   const hookTypes = pickTopDeepDistillValues(videos, "hookType");
   const emotionCurves = pickTopDeepDistillValues(videos, "emotionCurve");
@@ -1092,6 +1093,7 @@ function buildDeepDistillSummary(templateLike = {}) {
   return {
     videoCount: videos.length,
     zeroFrameBias,
+    zeroFrameBiasEn,
     hookTypes,
     emotionCurves,
     shotRhythms,

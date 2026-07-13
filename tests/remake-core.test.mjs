@@ -269,8 +269,63 @@ test("buildRemakePackage outputs english batch prompt for TikTok generation", ()
   assert.match(pkg.batchVideoTasks[0].prompt, /Create a short-form video/i);
   assert.match(pkg.batchVideoTasks[0].prompt, /Current product:/i);
   assert.match(pkg.batchVideoTasks[0].prompt, /Selling points:/i);
-  assert.match(pkg.prompts.videoShots[0], /Use the provided keyframe for image-to-video/i);
+  assert.match(pkg.prompts.videoShots[0], /Animate from the supplied keyframe/i);
   assert.match(pkg.prompts.videoShots[0], /voiceover intent:/i);
+});
+
+test("buildRemakePackage uses more native english phrasing for TikTok prompts", () => {
+  const pkg = buildRemakePackage({
+    projectName: "odor-remover-remake",
+    referenceSummary: "Open with a kitchen odor problem, prove the result fast, then end with a soft CTA.",
+    productName: "odor remover box",
+    sellingPoints: ["Fast visible result", "Easy to use", "Fits kitchen use cases"],
+    hookStyle: "Strong conflict hook",
+    visualStyle: "lifestyle product demo",
+    cta: "Guide viewers to the profile for more results",
+    durationSeconds: 30,
+    generationCount: 1,
+    voiceDialect: "English",
+    voiceLanguage: "英文",
+    accountTemplate: {
+      name: "Fast cleaning template",
+      platform: "tiktok",
+      accountHandle: "@cleaning_fast_den",
+      contentPositioning: "Cleaning demo with strong conflict and quick proof",
+      hookStyle: "Strong conflict hook",
+      rhythm: "3-second hook, then proof and payoff inside 30 seconds",
+      structure: "Problem hook -> product entry -> proof -> CTA",
+      expressionDna: "Short lines, result first, then explanation",
+      decisionHeuristics: "Open on pain, prove fast, close cleanly",
+      antiPatterns: "Do not explain specs before showing the result",
+      recentSignals: "Fast before-after demos still perform best",
+      ctaStyle: "Soft CTA to comments or profile",
+      rewriteRules: "Reuse structure only, do not copy branding or captions",
+      defaultVoiceLanguage: "英文",
+      preferredModel: "veo-3-fast",
+      deepDistillVideos: [
+        {
+          fileName: "sample-1.mp4",
+          analysis: {
+            isZeroFrameProductHook: "是",
+            hookType: "Problem-first visual hook",
+            emotionCurve: "Curious -> relieved",
+            shotRhythm: "Quick hook, tight proof beats, clean CTA close",
+            proofStyle: "Visible before-after proof",
+            ctaStyle: "Soft profile CTA",
+            sceneProgression: "Problem -> demo -> payoff",
+            visualDna: "Bright kitchen, tight handheld demo"
+          }
+        }
+      ]
+    }
+  });
+
+  assert.match(pkg.batchVideoTasks[0].prompt, /Build a scroll-stopping TikTok/i);
+  assert.match(pkg.batchVideoTasks[0].prompt, /Creative angle:/i);
+  assert.match(pkg.batchVideoTasks[0].prompt, /What to avoid:/i);
+  assert.match(pkg.batchVideoTasks[0].prompt, /Deep-distill read:/i);
+  assert.match(pkg.prompts.videoShots[0], /Animate from the supplied keyframe/i);
+  assert.match(pkg.promptVariants[0].summary, /Keep it grounded in creator-led proof/i);
 });
 
 test("buildProfileSelectionComparisonSummary highlights selected sample drift", () => {
