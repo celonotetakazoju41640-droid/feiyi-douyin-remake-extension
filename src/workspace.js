@@ -77,6 +77,12 @@ const nodes = {
   clipcatVoiceLanguage: document.querySelector("#clipcatVoiceLanguage"),
   clipcatExtraRules: document.querySelector("#clipcatExtraRules"),
   accountTemplateSelect: document.querySelector("#accountTemplateSelect"),
+  manageProfileUrl: document.querySelector("#manageProfileUrl"),
+  manageProfileStatus: document.querySelector("#manageProfileStatus"),
+  manageScanSummary: document.querySelector("#manageScanSummary"),
+  manageScanSummaryTitle: document.querySelector("#manageScanSummaryTitle"),
+  manageScanSummaryMeta: document.querySelector("#manageScanSummaryMeta"),
+  manageScanSummaryBody: document.querySelector("#manageScanSummaryBody"),
   templateName: document.querySelector("#templateName"),
   templatePlatform: document.querySelector("#templatePlatform"),
   templateAccountHandle: document.querySelector("#templateAccountHandle"),
@@ -106,6 +112,7 @@ const nodes = {
   profileSampleSort: document.querySelector("#profileSampleSort"),
   profileMinViewsFilter: document.querySelector("#profileMinViewsFilter"),
   profileSampleList: document.querySelector("#profileSampleList"),
+  profileSamplePanel: document.querySelector("#profileSamplePanel"),
   saveTemplateButton: document.querySelector("#saveTemplateButton"),
   deleteTemplateButton: document.querySelector("#deleteTemplateButton"),
   newTemplateButton: document.querySelector("#newTemplateButton"),
@@ -182,6 +189,7 @@ function init() {
   renderProjects();
   renderAssetStatus();
   renderTemplateGuide();
+  renderManageScanSummary();
   updateGenerateButtonState();
   updateActionFeedback();
   refreshBatchServiceHealth();
@@ -235,7 +243,8 @@ function bindEvents() {
   });
   nodes.accountTemplateSelect.addEventListener("change", handleTemplateSelectionChange);
   nodes.templatePlatform.addEventListener("change", handleTemplatePlatformChange);
-  nodes.templateProfileUrl.addEventListener("input", syncFlowStepState);
+  nodes.templateProfileUrl.addEventListener("input", handleTemplateProfileUrlInput);
+  nodes.manageProfileUrl?.addEventListener("input", handleManageProfileUrlInput);
   nodes.scanProfileButton.addEventListener("click", handleProfileScan);
   nodes.selectAllProfileSamplesButton.addEventListener("click", selectAllProfileSamples);
   nodes.clearProfileSamplesButton.addEventListener("click", clearProfileSamplesSelection);
@@ -909,7 +918,7 @@ function syncTemplateForm() {
   nodes.templateName.value = template.name || "";
   nodes.templatePlatform.value = template.platform || "tiktok";
   nodes.templateAccountHandle.value = template.accountHandle || "";
-  nodes.templateProfileUrl.value = template.profileUrl || "";
+  syncProfileUrlInputs(template.profileUrl || "");
   nodes.templateContentPositioning.value = template.contentPositioning || "";
   nodes.templateRhythm.value = template.rhythm || "";
   nodes.templatePreferredModel.value = template.preferredModel || "veo-3-fast";
@@ -921,6 +930,28 @@ function syncTemplateForm() {
   nodes.templateRewriteRules.value = template.rewriteRules || "";
   nodes.templateSampleVideoUrls.value = (template.sampleVideoUrls || []).join("\n");
   updatePlatformDependentUi();
+}
+
+function syncProfileUrlInputs(value) {
+  const nextValue = value || "";
+  nodes.templateProfileUrl.value = nextValue;
+  if (nodes.manageProfileUrl) {
+    nodes.manageProfileUrl.value = nextValue;
+  }
+}
+
+function handleTemplateProfileUrlInput() {
+  if (nodes.manageProfileUrl && nodes.manageProfileUrl.value !== nodes.templateProfileUrl.value) {
+    nodes.manageProfileUrl.value = nodes.templateProfileUrl.value;
+  }
+  syncFlowStepState();
+}
+
+function handleManageProfileUrlInput() {
+  if (nodes.templateProfileUrl.value !== nodes.manageProfileUrl.value) {
+    nodes.templateProfileUrl.value = nodes.manageProfileUrl.value;
+  }
+  syncFlowStepState();
 }
 
 function applyTemplateToGenerationFields() {
@@ -1046,6 +1077,7 @@ function renderProfileScanState() {
   nodes.profileMinViewsFilter.disabled = !canUseScanActions;
 
   if (!currentProfileScan) {
+    renderManageScanSummary();
     if (canAutoScan) {
       nodes.profileScanStatus.textContent = "系统自动";
       nodes.profileScanStatus.classList.remove("is-ok", "is-error");
@@ -1063,6 +1095,7 @@ function renderProfileScanState() {
   }
 
   if (!canAutoScan) {
+    renderManageScanSummary();
     nodes.profileSampleSort.value = profileSampleSortMode;
     nodes.profileMinViewsFilter.value = String(profileMinViewsFilter);
     nodes.profileScanStatus.textContent = "手动模式";
@@ -1074,6 +1107,7 @@ function renderProfileScanState() {
   }
 
   if (!hasSamePlatformScan) {
+    renderManageScanSummary();
     nodes.profileScanStatus.textContent = "待重扫";
     nodes.profileScanStatus.classList.remove("is-ok");
     nodes.profileScanStatus.classList.add("is-error");
@@ -1088,6 +1122,7 @@ function renderProfileScanState() {
   nodes.profileScanStatus.classList.add("is-ok");
   nodes.profileScanStatus.classList.remove("is-error");
   nodes.profileScanResult.textContent = buildProfileScanResultText();
+  renderManageScanSummary();
   renderProfileSampleList();
 }
 
@@ -1125,6 +1160,9 @@ async function handleProfileScan() {
   nodes.profileScanStatus.textContent = "扫描中";
   nodes.profileScanStatus.classList.remove("is-ok", "is-error");
   nodes.profileScanResult.textContent = `正在打开${getPlatformLabel(platform)}主页并抓公开样本，请等页面加载完成。`;
+  if (nodes.profileSamplePanel) {
+    nodes.profileSamplePanel.open = true;
+  }
   setActionFeedback("正在抓取主页公开内容，完成后会自动生成模板并加入模板列表。");
 
   try {
@@ -1136,6 +1174,9 @@ async function handleProfileScan() {
     applyDistilledTemplateToForm(scan);
     upsertTemplateFromScan(scan);
     renderProfileScanState();
+    if (nodes.profileSamplePanel) {
+      nodes.profileSamplePanel.open = true;
+    }
     const coveredCount = scan.videos.filter((item) => item.thumbnailUrl).length;
     const withViewsCount = scan.videos.filter((item) => Number(item.stats?.views || 0) > 0).length;
     const withDurationCount = scan.videos.filter((item) => Number(item.durationSeconds || 0) > 0).length;
@@ -1151,6 +1192,10 @@ async function handleProfileScan() {
     nodes.profileScanStatus.classList.add("is-error");
     nodes.profileScanStatus.classList.remove("is-ok");
     nodes.profileScanResult.textContent = error instanceof Error ? error.message : String(error);
+    renderManageScanSummary();
+    if (nodes.profileSamplePanel) {
+      nodes.profileSamplePanel.open = true;
+    }
     setActionFeedback(`主页扫描失败：${error instanceof Error ? error.message : String(error)}`, true);
   } finally {
     nodes.scanProfileButton.disabled = false;
@@ -1459,6 +1504,37 @@ function buildProfileScanResultText() {
   return `${summary}\n\n${comparison}`;
 }
 
+function renderManageScanSummary() {
+  if (
+    !nodes.manageScanSummary ||
+    !nodes.manageScanSummaryTitle ||
+    !nodes.manageScanSummaryMeta ||
+    !nodes.manageScanSummaryBody
+  ) {
+    return;
+  }
+
+  if (!currentProfileScan?.videos?.length) {
+    nodes.manageScanSummary.hidden = true;
+    nodes.manageScanSummaryMeta.innerHTML = "";
+    return;
+  }
+
+  const sampleCount = currentProfileScan.videos.length;
+  const coveredCount = currentProfileScan.videos.filter((item) => item.thumbnailUrl).length;
+  const withViewsCount = currentProfileScan.videos.filter((item) => Number(item.stats?.views || 0) > 0).length;
+  const templateName = nodes.templateName.value.trim() || currentProfileScan.accountHandle || "新模板";
+  nodes.manageScanSummary.hidden = false;
+  nodes.manageScanSummaryTitle.textContent = `已提炼：${templateName}`;
+  nodes.manageScanSummaryMeta.innerHTML = `
+    <span class="countBadge">${getPlatformLabel(currentProfileScan.platform || "tiktok")}</span>
+    <span class="countBadge">${sampleCount} 条样本</span>
+    <span class="countBadge">${coveredCount} 条有封面</span>
+    <span class="countBadge">${withViewsCount} 条带播放</span>
+  `;
+  nodes.manageScanSummaryBody.textContent = buildProfileScanResultText();
+}
+
 function selectAllProfileSamples() {
   if (!currentProfileScan?.videos?.length) return;
   selectedProfileVideoUrls = new Set(getVisibleProfileVideos().map((video) => video.videoUrl));
@@ -1633,7 +1709,7 @@ function applyDistilledTemplateToForm(scan) {
   nodes.templateName.value = distilled.name || "";
   nodes.templatePlatform.value = distilled.platform || "tiktok";
   nodes.templateAccountHandle.value = distilled.accountHandle || "";
-  nodes.templateProfileUrl.value = distilled.profileUrl || "";
+  syncProfileUrlInputs(distilled.profileUrl || "");
   nodes.templateContentPositioning.value = distilled.contentPositioning || "";
   nodes.hookStyle.value = distilled.hookStyle || nodes.hookStyle.value;
   nodes.templateRhythm.value = distilled.rhythm || "";
@@ -1872,6 +1948,9 @@ function syncFlowStepState() {
   if (nodes.profileScanStatus) {
     nodes.profileScanStatus.textContent = hasProfileUrl ? "主页参考：已填写" : "主页参考：系统自动";
   }
+  if (nodes.manageProfileStatus) {
+    nodes.manageProfileStatus.textContent = hasProfileUrl ? "主页链接：已填写，可直接提炼" : "系统自动识别平台链接";
+  }
   if (nodes.stepTemplateCard) {
     nodes.stepTemplateCard.open = hasProfileUrl;
   }
@@ -2063,6 +2142,9 @@ function updatePlatformDependentUi() {
   nodes.scanProfileButton.disabled = !isProfileAutoScanSupported(platform);
   nodes.templateProfileUrl.placeholder =
     platform === "douyin" ? "https://www.douyin.com/user/xxxx" : "https://www.tiktok.com/@account_name";
+  if (nodes.manageProfileUrl) {
+    nodes.manageProfileUrl.placeholder = nodes.templateProfileUrl.placeholder;
+  }
   nodes.clipcatReferencePlatform.value = platform;
   nodes.clipcatVoiceLanguage.value = defaultVoiceLanguage;
   nodes.clipcatVoiceLanguage.disabled = true;

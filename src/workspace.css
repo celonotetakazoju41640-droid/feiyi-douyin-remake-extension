@@ -280,15 +280,16 @@ h1 {
 
 .profileScanResult {
   margin: 0;
-  min-height: 120px;
+  min-height: 88px;
   max-height: 260px;
   overflow: auto;
   padding: 12px;
-  border-radius: 8px;
-  background: #0f172a;
-  color: #dbeafe;
+  border: 1px solid #eadcc6;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffdf8 0%, #fbf5ea 100%);
+  color: #4f4537;
   white-space: pre-wrap;
-  font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .profileSampleList {
@@ -4912,6 +4913,60 @@ body {
 .historyOverviewCard {
   gap: 12px;
   background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
+}
+
+.manageProfileEntry {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.manageProfileUrlField input {
+  max-width: 100%;
+}
+
+.manageProfileEntryHints {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.manageScanSummary {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid #ead7b6;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffaf1 0%, #fff7ea 100%);
+}
+
+.manageScanSummary[hidden] {
+  display: none !important;
+}
+
+.manageScanSummaryHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.manageScanSummaryHead strong {
+  color: #2c241b;
+  font-size: 14px;
+}
+
+.manageScanSummaryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manageScanSummaryBody {
+  margin: 0;
+  color: #6c5f4c;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .currentResultSummary {

@@ -341,6 +341,23 @@
                       <button id="newTemplateButton" class="ghostButton" type="button">新建空模型</button>
                     </div>
                   </div>
+                  <div class="manageProfileEntry">
+                    <label class="fieldBlock manageProfileUrlField">
+                      主页链接
+                      <input id="manageProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name" />
+                    </label>
+                    <div class="textInlineHintRow manageProfileEntryHints">
+                      <span class="textInlineHint">在这里直接贴对标主页，再点上面的提炼按钮</span>
+                      <span id="manageProfileStatus" class="textInlineHint">系统自动识别平台链接</span>
+                    </div>
+                  </div>
+                  <div id="manageScanSummary" class="manageScanSummary" hidden>
+                    <div class="manageScanSummaryHead">
+                      <strong id="manageScanSummaryTitle">蒸馏结果会显示在这里</strong>
+                      <div id="manageScanSummaryMeta" class="manageScanSummaryMeta"></div>
+                    </div>
+                    <p id="manageScanSummaryBody" class="manageScanSummaryBody">抓取成功后，这里会先告诉你这次提炼出了什么。</p>
+                  </div>
                 </section>
               </section>
 
@@ -462,7 +479,7 @@
                 </div>
               </details>
 
-              <details class="advancedPanel innerBackstagePanel">
+              <details id="profileSamplePanel" class="advancedPanel innerBackstagePanel">
                 <summary>展开主页蒸馏样本和筛片</summary>
                 <div class="advancedPanelBody">
                   <pre id="profileScanResult" class="profileScanResult">还没有主页扫描结果。</pre>
