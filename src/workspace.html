@@ -100,20 +100,9 @@
                           </div>
                           <span class="uploadTileLabel">商品图</span>
                         </label>
-                        <label class="simpleUploadButtonTile">
-                          <input id="modelImageFile" type="file" accept="image/*" />
-                          <div class="simpleUploadButtonInner">
-                            <span class="referenceUploadIcon">＋</span>
-                            <strong>上传</strong>
-                          </div>
-                          <img id="modelHeroImage" alt="模特图预览" hidden />
-                          <div id="sampleModel" class="sampleProduct simpleHiddenSample"></div>
-                          <span class="uploadTileLabel">模特图</span>
-                        </label>
                       </div>
                       <div class="uploadStatusRow" aria-label="素材状态">
                         <span id="productUploadStatus" class="uploadStatusBadge">商品图：未上传</span>
-                        <span id="modelUploadStatus" class="uploadStatusBadge">模特图：可选</span>
                       </div>
                     </section>
 
@@ -608,7 +597,7 @@
         <button id="closeOnboardingButton" class="onboardingCloseButton" type="button" aria-label="关闭使用要点">×</button>
         <div class="onboardingHead">
           <span class="wizardEyebrow">开始前先看</span>
-          <h2 id="onboardingTitle">这 6 条会直接影响复刻结果</h2>
+          <h2 id="onboardingTitle">这 5 条会直接影响复刻结果</h2>
           <p>这不是教程页，只是把最容易踩坑的规则提前讲清楚。看完再开始，生成结果会稳很多。</p>
         </div>
         <div class="onboardingRuleGrid">
@@ -617,23 +606,19 @@
             <p>想控制商品外观、材质和包装，就传清晰产品图。不要把细节拼成一张长图。</p>
           </article>
           <article class="onboardingRuleCard">
-            <strong>2. 模特图只在要固定人物时才传</strong>
-            <p>不需要固定人物时可以不传，避免系统把注意力分散到角色而不是商品卖点。</p>
-          </article>
-          <article class="onboardingRuleCard">
-            <strong>3. 主页参考是辅助，不是硬依赖</strong>
+            <strong>2. 主页参考是辅助，不是硬依赖</strong>
             <p>有对标主页就贴，没有也能直接生成。系统会先复用现成模型，没有再自动提炼。</p>
           </article>
           <article class="onboardingRuleCard">
-            <strong>4. 平台语言已经自动切好</strong>
+            <strong>3. 平台语言已经自动切好</strong>
             <p>TikTok 默认出英文提示词，抖音默认中文。普通使用不用自己再切语言开关。</p>
           </article>
           <article class="onboardingRuleCard">
-            <strong>5. 如果已有脚本，要写明不要改动</strong>
+            <strong>4. 如果已有脚本，要写明不要改动</strong>
             <p>把“不要改动脚本，只补镜头和表达”直接写进创作要求，避免系统帮你重写结构。</p>
           </article>
           <article class="onboardingRuleCard">
-            <strong>6. 这里生成的是任务，不是直接成片</strong>
+            <strong>5. 这里生成的是任务，不是直接成片</strong>
             <p>历史记录页会给你提示词和提交入口。真正在视频工具里跑的时候，参考图也要继续带上。</p>
           </article>
         </div>

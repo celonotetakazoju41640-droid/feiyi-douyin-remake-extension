@@ -2278,13 +2278,6 @@ textarea {
   height: 280px;
 }
 
-#sampleModel {
-  background:
-    radial-gradient(circle at 48% 28%, #f8fafc 0 18%, transparent 19%),
-    radial-gradient(circle at 50% 64%, #f8fafc 0 26%, transparent 27%),
-    linear-gradient(135deg, #c7d2fe, #fbcfe8);
-}
-
 .referencePanel[hidden] {
   display: none;
 }

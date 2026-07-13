@@ -41,9 +41,6 @@ const nodes = {
   thumbnailFallback: document.querySelector("#thumbnailFallback"),
   videoHandle: document.querySelector("#videoHandle"),
   videoUrlText: document.querySelector("#videoUrlText"),
-  modelImageFile: document.querySelector("#modelImageFile"),
-  modelHeroImage: document.querySelector("#modelHeroImage"),
-  modelUploadStatus: document.querySelector("#modelUploadStatus"),
   templateGuideCard: document.querySelector("#templateGuideCard"),
   templateGuideSummary: document.querySelector("#templateGuideSummary"),
   jumpToManageButton: document.querySelector("#jumpToManageButton"),
@@ -168,7 +165,6 @@ let currentPackage = null;
 let projects = loadProjects();
 let accountTemplates = loadAccountTemplates();
 let selectedTemplateId = accountTemplates[0]?.id || "";
-let modelPreviewUrl = "";
 let productPreviewUrl = "";
 let referencePreviewUrl = "";
 let activeDetailTab = "summary";
@@ -227,7 +223,6 @@ function init() {
 }
 
 function bindEvents() {
-  nodes.modelImageFile?.addEventListener("change", handleModelImageChange);
   nodes.referenceVideoFile.addEventListener("change", handleReferenceVideoChange);
   nodes.productImages.addEventListener("change", handleProductImagesChange);
   nodes.targetDurationControl?.addEventListener("input", handleTargetDurationControlChange);
@@ -308,27 +303,6 @@ function bindEvents() {
   nodes.retryHealthButton.addEventListener("click", () => {
     setActionFeedback("这是本地版工作台，不需要额外启动。");
   });
-}
-
-function handleModelImageChange() {
-  const file = nodes.modelImageFile?.files?.[0];
-  if (modelPreviewUrl) {
-    URL.revokeObjectURL(modelPreviewUrl);
-    modelPreviewUrl = "";
-  }
-  if (!file) {
-    nodes.modelHeroImage.hidden = true;
-    renderAssetStatus();
-    updateGenerateButtonState();
-    return;
-  }
-
-  modelPreviewUrl = URL.createObjectURL(file);
-  nodes.modelHeroImage.src = modelPreviewUrl;
-  nodes.modelHeroImage.hidden = false;
-  renderAssetStatus();
-  updateGenerateButtonState();
-  updateActionFeedback();
 }
 
 function handleReferenceVideoChange() {
@@ -2637,14 +2611,13 @@ function updateResultButtons() {
 
 function updateActionFeedback() {
   const hasTemplate = Boolean(getSelectedTemplate());
-  const hasModelImage = Boolean(nodes.modelImageFile?.files?.length);
   const hasImages = Boolean(nodes.productImages.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
-  if (!hasTemplate && !hasImages && !hasModelImage && !hasPrompt) {
+  if (!hasTemplate && !hasImages && !hasPrompt) {
     setActionFeedback("先选模型，再上传产品图。主页链接不填也能直接生成。");
     return;
   }
-  if (!hasImages && !hasModelImage && !hasPrompt) {
+  if (!hasImages && !hasPrompt) {
     setActionFeedback("先上传产品图；主页链接只是补充参考，不填也能生成。");
     return;
   }
@@ -2656,11 +2629,7 @@ function updateActionFeedback() {
     setActionFeedback("产品图已经准备好，再补一句你想要的风格就能生成。");
     return;
   }
-  setActionFeedback(
-    hasModelImage
-      ? "素材和要求都已准备，系统会自动处理模型和语言，可以直接生成。"
-      : "产品图和要求都已准备，可以直接生成；需要的话也能一键提交。"
-  );
+  setActionFeedback("产品图和要求都已准备，系统会自动处理模型和语言，可以直接生成。");
 }
 
 function renderAssetStatus() {
@@ -2669,12 +2638,6 @@ function renderAssetStatus() {
     nodes.productUploadStatus.textContent = productCount ? `商品图：已上传 ${productCount} 张` : "商品图：未上传";
     nodes.productUploadStatus.classList.toggle("is-ready", productCount > 0);
     nodes.productUploadStatus.classList.toggle("is-optional", false);
-  }
-  if (nodes.modelUploadStatus) {
-    const hasModel = Boolean(nodes.modelImageFile?.files?.length);
-    nodes.modelUploadStatus.textContent = hasModel ? "模特图：已上传" : "模特图：可选";
-    nodes.modelUploadStatus.classList.toggle("is-ready", hasModel);
-    nodes.modelUploadStatus.classList.toggle("is-optional", !hasModel);
   }
 }
 
@@ -2769,7 +2732,7 @@ function getWizardStepConfig(step) {
     },
     2: {
       title: "上传素材",
-      description: "先传产品图。模特图只是可选参考，不需要时可以跳过。",
+      description: "先传产品图，系统会自动拆一版商品卖点和使用场景。",
       nextLabel: "下一步"
     },
     3: {
