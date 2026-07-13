@@ -332,15 +332,21 @@
                 <section class="simpleFlowCard manageOverviewCard">
                   <div class="contentSectionHead">
                     <div>
-                      <strong>当前要做什么</strong>
-                      <p>先选或新建一个模型，再决定是手动维护，还是贴主页链接去提炼。</p>
+                      <strong>常用操作</strong>
+                      <p>先选当前模型，再贴主页或直接做视频深蒸馏。</p>
                     </div>
                     <div class="resultActions managePrimaryActions">
                       <button id="scanProfileButton" class="primaryButton" type="button">提炼主页模型</button>
                       <button id="saveTemplateButton" class="ghostButton" type="button">保存模型</button>
-                      <button id="deleteTemplateButton" class="ghostButton" type="button">删除模型</button>
                       <button id="newTemplateButton" class="ghostButton" type="button">新建空模型</button>
+                      <button id="deleteTemplateButton" class="ghostButton" type="button">删除模型</button>
                     </div>
+                  </div>
+                  <div class="manageQuickGrid">
+                    <label class="fieldBlock">
+                      当前模型
+                      <select id="manageTemplateSelect"></select>
+                    </label>
                   </div>
                   <div class="manageProfileEntry">
                     <label class="fieldBlock manageProfileUrlField">
@@ -395,52 +401,55 @@
                 </section>
               </section>
 
-              <section class="contentSection">
-                <section class="simpleFlowCard manageBasicsCard">
-                  <div class="contentSectionHead">
-                    <strong>模型基础信息</strong>
-                    <p>先把模型名、账号、定位和基础节奏定下来。</p>
-                  </div>
-                  <div class="settingsGrid backstageGrid manageBasicsGrid">
-                    <label class="fieldBlock">
-                      模型名称
-                      <input id="templateName" type="text" placeholder="扫描后自动命名，也可以自己改" />
-                    </label>
-                    <label class="fieldBlock">
-                      对标账号
-                      <input id="templateAccountHandle" type="text" placeholder="@account_name" />
-                    </label>
-                    <label class="fieldBlock">
-                      抓样本数量
-                      <select id="profileSampleLimit">
-                        <option value="6">6 条</option>
-                        <option value="9">9 条</option>
-                        <option value="12">12 条</option>
-                      </select>
-                    </label>
-                    <label class="fieldBlock">
-                      默认模型
-                      <input id="templatePreferredModel" type="text" value="veo-3-fast" />
-                    </label>
-                    <label class="fieldBlock">
-                      内容定位
-                      <input id="templateContentPositioning" type="text" placeholder="比如：家清去污、情绪带货、对比实验" />
-                    </label>
-                    <label class="fieldBlock">
-                      节奏
-                      <input id="templateRhythm" type="text" placeholder="比如：3 秒强钩子，15 秒内完成证明" />
-                    </label>
-                    <label class="fieldBlock backstageWideField">
-                      结构拆解
-                      <textarea id="templateStructure" rows="3" placeholder="比如：钩子 -> 脏污问题 -> 喷产品 -> 近景证明 -> 收口。"></textarea>
-                    </label>
-                    <label class="fieldBlock backstageWideField">
-                      表达 DNA
-                      <textarea id="templateExpressionDna" rows="3" placeholder="比如：短句先抛钩子，命令式开场明显，先结果后解释。"></textarea>
-                    </label>
-                  </div>
-                </section>
-              </section>
+              <details class="advancedPanel innerBackstagePanel manageBasicsPanel">
+                <summary>展开模型字段</summary>
+                <div class="advancedPanelBody">
+                  <section class="simpleFlowCard manageBasicsCard">
+                    <div class="contentSectionHead">
+                      <strong>模型基础信息</strong>
+                      <p>需要手动修模型名、定位、节奏或结构时，再展开这里。</p>
+                    </div>
+                    <div class="settingsGrid backstageGrid manageBasicsGrid">
+                      <label class="fieldBlock">
+                        模型名称
+                        <input id="templateName" type="text" placeholder="扫描后自动命名，也可以自己改" />
+                      </label>
+                      <label class="fieldBlock">
+                        对标账号
+                        <input id="templateAccountHandle" type="text" placeholder="@account_name" />
+                      </label>
+                      <label class="fieldBlock">
+                        抓样本数量
+                        <select id="profileSampleLimit">
+                          <option value="6">6 条</option>
+                          <option value="9">9 条</option>
+                          <option value="12">12 条</option>
+                        </select>
+                      </label>
+                      <label class="fieldBlock">
+                        默认模型
+                        <input id="templatePreferredModel" type="text" value="veo-3-fast" />
+                      </label>
+                      <label class="fieldBlock">
+                        内容定位
+                        <input id="templateContentPositioning" type="text" placeholder="比如：家清去污、情绪带货、对比实验" />
+                      </label>
+                      <label class="fieldBlock">
+                        节奏
+                        <input id="templateRhythm" type="text" placeholder="比如：3 秒强钩子，15 秒内完成证明" />
+                      </label>
+                      <label class="fieldBlock backstageWideField">
+                        结构拆解
+                        <textarea id="templateStructure" rows="3" placeholder="比如：钩子 -> 脏污问题 -> 喷产品 -> 近景证明 -> 收口。"></textarea>
+                      </label>
+                      <label class="fieldBlock backstageWideField">
+                        表达 DNA
+                        <textarea id="templateExpressionDna" rows="3" placeholder="比如：短句先抛钩子，命令式开场明显，先结果后解释。"></textarea>
+                      </label>
+                    </div>
+                  </section>
+                </div>
+              </details>
 
               <details class="advancedPanel innerBackstagePanel">
                 <summary>展开深层规则与参考控制</summary>

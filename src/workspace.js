@@ -77,6 +77,7 @@ const nodes = {
   clipcatVoiceLanguage: document.querySelector("#clipcatVoiceLanguage"),
   clipcatExtraRules: document.querySelector("#clipcatExtraRules"),
   accountTemplateSelect: document.querySelector("#accountTemplateSelect"),
+  manageTemplateSelect: document.querySelector("#manageTemplateSelect"),
   templateDeepDistillSummary: document.querySelector("#templateDeepDistillSummary"),
   manageProfileUrl: document.querySelector("#manageProfileUrl"),
   manageProfileStatus: document.querySelector("#manageProfileStatus"),
@@ -267,6 +268,7 @@ function bindEvents() {
     button.addEventListener("click", () => setCurrentView(button.dataset.viewNav || "generate"));
   });
   nodes.accountTemplateSelect.addEventListener("change", handleTemplateSelectionChange);
+  nodes.manageTemplateSelect?.addEventListener("change", handleManageTemplateSelectionChange);
   nodes.templatePlatform.addEventListener("change", handleTemplatePlatformChange);
   nodes.templateProfileUrl.addEventListener("input", handleTemplateProfileUrlInput);
   nodes.manageProfileUrl?.addEventListener("input", handleManageProfileUrlInput);
@@ -798,6 +800,19 @@ function handleTemplateSelectionChange() {
   setActionFeedback("已切换对标账户模板。");
 }
 
+function handleManageTemplateSelectionChange() {
+  if (!nodes.manageTemplateSelect) return;
+  selectedTemplateId = nodes.manageTemplateSelect.value;
+  currentProfileScan = null;
+  selectedProfileVideoUrls = new Set();
+  renderTemplateOptions();
+  syncTemplateForm();
+  applyTemplateToGenerationFields();
+  renderTemplateGuide();
+  renderProfileScanState();
+  setActionFeedback("已切换当前蒸馏模型。");
+}
+
 function handleTemplatePlatformChange() {
   updatePlatformDependentUi();
   renderProfileScanState();
@@ -903,6 +918,9 @@ function renderTemplateOptions() {
         `<option value="${escapeHtml(template.id)}" ${template.id === selectedTemplateId ? "selected" : ""}>${escapeHtml(template.name)}</option>`
     )
     .join("");
+  if (nodes.manageTemplateSelect) {
+    nodes.manageTemplateSelect.innerHTML = nodes.accountTemplateSelect.innerHTML;
+  }
 }
 
 function isTemplateGuideNeeded(template) {

@@ -4978,6 +4978,11 @@ body {
   margin-top: 2px;
 }
 
+.manageQuickGrid {
+  display: grid;
+  gap: 8px;
+}
+
 .manageProfileUrlField input {
   max-width: 100%;
 }
@@ -5137,6 +5142,10 @@ body {
 .manageDeepDistillHints {
   justify-content: space-between;
   gap: 10px;
+}
+
+.manageBasicsPanel {
+  margin-top: 0;
 }
 
 .deepDistillVideoList {
