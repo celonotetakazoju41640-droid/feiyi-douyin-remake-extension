@@ -14,9 +14,11 @@
 - 已完成：Task 2 storyboard prompt 生成，TikTok 会产出包含 `Product / Scene / Host / Supporting cast / Continuity` 的英文故事版提示词。
 - 已完成：Task 3 workspace 最小接线，生成页已可录入主场景、连续性、故事版开关和多人角色；历史页已新增故事版图详情展示。
 - 已完成：蒸馏管理里的视频深蒸馏交互优化，读取本地视频与自动分析已拆成两段状态，补了可见进度，并把视频卡片改成默认折叠，避免页面过长。
+- 已完成：Task 4 Kie 本地代理最小实现，`/api/storyboards` 创建接口、`/api/storyboards/:taskId` 查询接口、Kie 请求体映射和状态映射已接入本地服务。
 - 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
 - 已补充验证：`node --test tests/extension-shell.test.mjs tests/remake-core.test.mjs`、`node --check src/workspace.js`、`git diff --check`。
-- 未开始：Task 4 及之后的 Kie 服务代理、README 同步和真实链路验收。
+- 已补充验证：`node --test tests/video-batch-service.test.mjs`、`node --check scripts/video-batch-service.mjs`、`git diff --check`。
+- 未开始：Task 5 及之后的前端故事版动作接线、README 同步和真实链路验收。
 
 ---
 

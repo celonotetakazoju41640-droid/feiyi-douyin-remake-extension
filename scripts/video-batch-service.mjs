@@ -16,6 +16,7 @@ const projectEnvCandidates = [
 await mkdir(runtimeDir, { recursive: true });
 const fileEnv = await loadMergedEnv(projectEnvCandidates);
 const config = mergeNonEmptyEnv(fileEnv, pickProcessEnv());
+const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 
 const server = createServer(async (request, response) => {
   try {
@@ -114,15 +115,127 @@ const server = createServer(async (request, response) => {
       });
     }
 
+    if (request.method === "POST" && request.url === "/api/storyboards") {
+      const body = await readJsonBody(request);
+      const result = await createStoryboardTask(body, config);
+      return sendJson(response, 200, result);
+    }
+
+    if (request.method === "GET" && request.url.startsWith("/api/storyboards/")) {
+      const taskId = decodeURIComponent(request.url.split("/api/storyboards/")[1].split("?")[0] || "");
+      const result = await getStoryboardTask(taskId, config);
+      return sendJson(response, 200, result);
+    }
+
     sendJson(response, 404, { message: "接口不存在。" });
   } catch (error) {
     sendJson(response, 500, { message: error instanceof Error ? error.message : String(error) });
   }
 });
 
-server.listen(port, host, () => {
-  console.log(`[feiyi-video-batch-service] listening on http://${host}:${port}`);
-});
+if (isDirectRun) {
+  server.listen(port, host, () => {
+    console.log(`[feiyi-video-batch-service] listening on http://${host}:${port}`);
+  });
+}
+
+export function buildKieStoryboardTaskRequest({ model, prompt, aspectRatio }) {
+  return {
+    model: String(model || "").trim(),
+    callBackUrl: "",
+    input: {
+      prompt: String(prompt || "").trim(),
+      aspect_ratio: String(aspectRatio || "9:16").trim() || "9:16"
+    }
+  };
+}
+
+export function mapKieStoryboardStatus(raw = "") {
+  const value = String(raw || "").trim().toLowerCase();
+  if (["queued", "submitted", "pending"].includes(value)) return "queued";
+  if (["running", "processing", "in_progress"].includes(value)) return "running";
+  if (["success", "succeeded", "completed"].includes(value)) return "succeeded";
+  if (["failed", "error", "cancelled"].includes(value)) return "failed";
+  return "queued";
+}
+
+async function createStoryboardTask(body, config) {
+  if (!config.KIE_API_KEY) {
+    throw new Error("当前本地服务没有读到 KIE_API_KEY，暂时不能生成故事版图。");
+  }
+
+  const prompt = String(body.prompt || "").trim();
+  if (!prompt) {
+    throw new Error("没有收到故事版提示词，暂时不能创建故事版图任务。");
+  }
+
+  const payload = buildKieStoryboardTaskRequest({
+    model: body.model || config.KIE_GPT_IMAGE_MODEL || "gpt-image/1.5-text-to-image",
+    prompt,
+    aspectRatio: String(body.aspectRatio || "9:16").trim()
+  });
+
+  const response = await fetch(`${getKieBaseUrl(config)}/jobs/createTask`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${config.KIE_API_KEY}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(readKieError(data) || `${response.status} ${response.statusText}`);
+  }
+
+  return {
+    ok: true,
+    provider: "kie-gpt-image",
+    taskId: String(data.data?.taskId || data.taskId || "").trim(),
+    status: "queued",
+    imageUrl: "",
+    errorMessage: ""
+  };
+}
+
+async function getStoryboardTask(taskId, config) {
+  const normalizedTaskId = String(taskId || "").trim();
+  if (!normalizedTaskId) {
+    throw new Error("没有收到故事版任务 ID。");
+  }
+  if (!config.KIE_API_KEY) {
+    throw new Error("当前本地服务没有读到 KIE_API_KEY，暂时不能查询故事版图任务。");
+  }
+
+  const response = await fetch(`${getKieBaseUrl(config)}/jobs/recordInfo?taskId=${encodeURIComponent(normalizedTaskId)}`, {
+    method: "GET",
+    headers: {
+      authorization: `Bearer ${config.KIE_API_KEY}`
+    }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(readKieError(data) || `${response.status} ${response.statusText}`);
+  }
+
+  const record = data.data || data.record || data;
+  const imageUrl = String(
+    record?.response?.resultUrls?.[0]
+      || record?.response?.resultUrl
+      || record?.resultUrls?.[0]
+      || record?.resultUrl
+      || ""
+  ).trim();
+
+  return {
+    ok: true,
+    provider: "kie-gpt-image",
+    taskId: normalizedTaskId,
+    status: mapKieStoryboardStatus(record?.status || data.status || ""),
+    imageUrl,
+    errorMessage: String(record?.errorMessage || data.errorMessage || "").trim()
+  };
+}
 
 async function analyzeDeepDistillVideo(video, config) {
   const prompt = buildDeepDistillPrompt(video);
@@ -312,6 +425,14 @@ function getGeminiTokenGroup(config) {
   return config.GEMINI_TOKEN_GROUP || "";
 }
 
+function getKieBaseUrl(config) {
+  return String(config.KIE_API_BASE_URL || "https://api.kie.ai/api/v1").replace(/\/$/, "");
+}
+
+function readKieError(payload = {}) {
+  return String(payload?.message || payload?.error?.message || "").trim();
+}
+
 function pickProcessEnv() {
   const keys = [
     "TEXT_API_KEY",
@@ -328,7 +449,10 @@ function pickProcessEnv() {
     "GEMINI_MODEL",
     "GEMINI_VISION_MODEL",
     "TEXT_TOKEN_GROUP",
-    "GEMINI_TOKEN_GROUP"
+    "GEMINI_TOKEN_GROUP",
+    "KIE_API_KEY",
+    "KIE_API_BASE_URL",
+    "KIE_GPT_IMAGE_MODEL"
   ];
   return Object.fromEntries(keys.map((key) => [key, process.env[key] || ""]));
 }
