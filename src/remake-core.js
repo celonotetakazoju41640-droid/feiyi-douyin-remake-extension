@@ -189,6 +189,87 @@ function normalizeSellingPoints(value) {
   return splitLines(value);
 }
 
+function createDefaultCast(input = {}) {
+  const rawCast = Array.isArray(input.cast) ? input.cast : [];
+  const normalizedCast = rawCast
+    .map((member, index) => {
+      const roleType = String(
+        member?.roleType || (index === 0 ? "host" : "supporting")
+      ).trim() || (index === 0 ? "host" : "supporting");
+      const id = String(member?.id || member?.castId || "").trim()
+        || safeSlug(`${roleType}-${index + 1}`);
+      const label = String(member?.label || member?.name || member?.displayName || "").trim();
+      const normalizedRoleType = roleType === "support" ? "supporting" : roleType;
+
+      return {
+        id,
+        roleType: normalizedRoleType,
+        label: label || (normalizedRoleType === "host" ? "主讲人" : `配角${index}`),
+        presenceRule: String(member?.presenceRule || (normalizedRoleType === "host" ? "always" : "selective")).trim(),
+        appearanceLock: String(member?.appearanceLock || "").trim(),
+        behaviorRule: String(member?.behaviorRule || "").trim(),
+        voiceRule: String(member?.voiceRule || (normalizedRoleType === "host" ? "primary" : "silent")).trim()
+      };
+    })
+    .filter((member) => member.id);
+
+  if (normalizedCast.length) {
+    const hasHost = normalizedCast.some((member) => member.roleType === "host");
+    if (hasHost) {
+      return normalizedCast;
+    }
+    return normalizedCast.map((member, index) => ({
+      ...member,
+      roleType: index === 0 ? "host" : member.roleType || "supporting"
+    }));
+  }
+
+  return [
+    {
+      id: "host-1",
+      roleType: "host",
+      label: "主讲人",
+      presenceRule: "always",
+      appearanceLock: "",
+      behaviorRule: "负责讲解、展示商品、推动主线",
+      voiceRule: "primary"
+    }
+  ];
+}
+
+function normalizeScenePlan(raw = {}) {
+  const primaryLocation = String(raw.primaryLocation || "").trim();
+  const environmentStyle = String(raw.environmentStyle || "").trim();
+  const continuityRule = String(raw.continuityRule || "").trim();
+  const shots = Array.isArray(raw.shots)
+    ? raw.shots.map((shot = {}) => ({
+        scenePurpose: String(shot.scenePurpose || "").trim(),
+        primaryCastId: String(shot.primaryCastId || "").trim(),
+        supportingCastIds: Array.isArray(shot.supportingCastIds)
+          ? shot.supportingCastIds.map((item) => String(item).trim()).filter(Boolean)
+          : [],
+        castBeats: Array.isArray(shot.castBeats)
+          ? shot.castBeats
+              .map((beat = {}) => ({
+                castId: String(beat.castId || "").trim(),
+                beat: String(beat.beat || beat.action || "").trim()
+              }))
+              .filter((beat) => beat.castId || beat.beat)
+          : [],
+        storyboardFrameGoal: String(shot.storyboardFrameGoal || "").trim(),
+        storyboardPrompt: String(shot.storyboardPrompt || "").trim(),
+        continuityNotes: String(shot.continuityNotes || "").trim()
+      }))
+    : [];
+
+  return {
+    primaryLocation,
+    environmentStyle,
+    continuityRule,
+    shots
+  };
+}
+
 function buildShotDefinitions(input) {
   const productName = input.productName || "当前商品";
   const firstPoint = input.sellingPoints[0] || "核心卖点";
@@ -197,9 +278,15 @@ function buildShotDefinitions(input) {
   const cta = input.cta || "引导用户查看评论区或主页";
   const templateName = input.accountTemplate.name || "当前对标模板";
   const isEnglish = normalizePlatform(input.accountTemplate.platform || input.clipcatConfig?.referencePlatform || "tiktok") !== "douyin";
+  const cast = Array.isArray(input.cast) ? input.cast : createDefaultCast();
+  const primaryCast = cast.find((member) => member.roleType === "host") || cast[0] || { id: "host-1" };
+  const defaultSupportingCastIds = cast
+    .filter((member) => member.id !== primaryCast.id)
+    .map((member) => member.id);
+  const normalizedScenePlan = normalizeScenePlan(input.scenePlan);
 
-  if (isEnglish) {
-    return [
+  const baseShots = isEnglish
+    ? [
       {
         title: "Hook shot",
         purpose: `Grab attention in the ${input.hookStyle} style of ${templateName}`,
@@ -242,57 +329,80 @@ function buildShotDefinitions(input) {
         productRole: `Repeat ${productName} and lock in the memory point.`,
         lineIntent: cta
       }
-    ];
-  }
+    ]
+    : [
+        {
+          title: "钩子镜头",
+          purpose: `按${templateName}的${input.hookStyle}风格抓住注意力`,
+          action: "人物先出现异常反应或误会场面，立刻建立悬念。",
+          productRole: "先不直接讲产品，先让观众留下来看。",
+          lineIntent: "抛出让人想继续看的问题。"
+        },
+        {
+          title: "问题放大",
+          purpose: "把痛点讲清楚",
+          action: "把场景中的真实问题拍具体，比如异味、脏污、尴尬或麻烦。",
+          productRole: `铺垫${productName}为什么会出现。`,
+          lineIntent: `放大与“${firstPoint}”相关的问题。`
+        },
+        {
+          title: "解决方案出场",
+          purpose: "自然带出产品",
+          action: `人物拿出${productName}或让它进入画面中心。`,
+          productRole: `明确产品名称，并首次解释“${firstPoint}”。`,
+          lineIntent: "不要硬讲参数，先让观众明白它解决什么。"
+        },
+        {
+          title: "卖点细化",
+          purpose: "讲第二层理由",
+          action: "给产品特写、使用动作或前后变化。",
+          productRole: `解释“${secondPoint}”，让产品显得可信。`,
+          lineIntent: "用生活化表达替代空泛夸张词。"
+        },
+        {
+          title: "结果证明",
+          purpose: "展示使用后的结果",
+          action: "切到前后对比、人物反应、家庭或场景改善。",
+          productRole: `补足“${thirdPoint}”或场景适配。`,
+          lineIntent: "让结果替代长篇解释。"
+        },
+        {
+          title: "收口与引导",
+          purpose: "完成转化收口",
+          action: "人物回到稳定状态，商品再次清晰露出。",
+          productRole: `再次强调${productName}，完成记忆点。`,
+          lineIntent: cta
+        }
+      ];
 
-  return [
-    {
-      title: "钩子镜头",
-      purpose: `按${templateName}的${input.hookStyle}风格抓住注意力`,
-      action: "人物先出现异常反应或误会场面，立刻建立悬念。",
-      productRole: "先不直接讲产品，先让观众留下来看。",
-      lineIntent: "抛出让人想继续看的问题。"
-    },
-    {
-      title: "问题放大",
-      purpose: "把痛点讲清楚",
-      action: "把场景中的真实问题拍具体，比如异味、脏污、尴尬或麻烦。",
-      productRole: `铺垫${productName}为什么会出现。`,
-      lineIntent: `放大与“${firstPoint}”相关的问题。`
-    },
-    {
-      title: "解决方案出场",
-      purpose: "自然带出产品",
-      action: `人物拿出${productName}或让它进入画面中心。`,
-      productRole: `明确产品名称，并首次解释“${firstPoint}”。`,
-      lineIntent: "不要硬讲参数，先让观众明白它解决什么。"
-    },
-    {
-      title: "卖点细化",
-      purpose: "讲第二层理由",
-      action: "给产品特写、使用动作或前后变化。",
-      productRole: `解释“${secondPoint}”，让产品显得可信。`,
-      lineIntent: "用生活化表达替代空泛夸张词。"
-    },
-    {
-      title: "结果证明",
-      purpose: "展示使用后的结果",
-      action: "切到前后对比、人物反应、家庭或场景改善。",
-      productRole: `补足“${thirdPoint}”或场景适配。`,
-      lineIntent: "让结果替代长篇解释。"
-    },
-    {
-      title: "收口与引导",
-      purpose: "完成转化收口",
-      action: "人物回到稳定状态，商品再次清晰露出。",
-      productRole: `再次强调${productName}，完成记忆点。`,
-      lineIntent: cta
-    }
-  ];
+  return baseShots.map((shot, index) => {
+    const sceneShot = normalizedScenePlan.shots[index] || {};
+    return {
+      ...shot,
+      scenePurpose: sceneShot.scenePurpose || shot.purpose,
+      primaryCastId: sceneShot.primaryCastId || primaryCast.id || "host-1",
+      supportingCastIds: sceneShot.supportingCastIds?.length
+        ? sceneShot.supportingCastIds
+        : defaultSupportingCastIds,
+      castBeats: sceneShot.castBeats?.length
+        ? sceneShot.castBeats
+        : [
+            {
+              castId: primaryCast.id || "host-1",
+              beat: shot.action
+            }
+          ],
+      storyboardFrameGoal: sceneShot.storyboardFrameGoal || "锁住这个镜头最关键的连续性信息",
+      storyboardPrompt: sceneShot.storyboardPrompt || "",
+      continuityNotes: sceneShot.continuityNotes || normalizedScenePlan.continuityRule || "人物外观、商品外观、主场景保持一致"
+    };
+  });
 }
 
 export function buildRemakePackage(rawInput) {
   const accountTemplate = normalizeAccountTemplate(rawInput.accountTemplate);
+  const cast = createDefaultCast(rawInput);
+  const scenePlan = normalizeScenePlan(rawInput.scenePlan);
   const mergedReferenceSummary = mergeReferenceSummaryWithDeepDistill(
     String(rawInput.referenceSummary || "").trim(),
     accountTemplate
@@ -309,6 +419,10 @@ export function buildRemakePackage(rawInput) {
     generationCount: Number(rawInput.generationCount || 3),
     aspectRatio: String(rawInput.aspectRatio || "9:16").trim(),
     voiceDialect: String(rawInput.voiceDialect || "普通话").trim(),
+    storyboardEnabled: Boolean(rawInput.storyboardEnabled),
+    storyboardMode: "optional",
+    cast,
+    scenePlan,
     clipcatConfig: normalizeClipcatConfig({
       tiktokUrl: rawInput.tiktokUrl,
       referencePlatform: rawInput.referencePlatform || accountTemplate.platform,
@@ -338,6 +452,10 @@ export function buildRemakePackage(rawInput) {
       generationCount: input.generationCount,
       aspectRatio: input.aspectRatio,
       voiceDialect: input.voiceDialect,
+      storyboardEnabled: input.storyboardEnabled,
+      storyboardMode: input.storyboardMode,
+      cast: input.cast,
+      scenePlan: input.scenePlan,
       accountTemplate,
       clipcatConfig: input.clipcatConfig
     },
@@ -699,6 +817,23 @@ function finalizePackage(base) {
 
   const promptVariants = buildPromptVariants(base.project, base.shots);
   const batchVideoTasks = buildBatchVideoTasks(base.project, promptVariants, distilledFramework);
+  const storyboardTasks = base.project.storyboardEnabled
+    ? [
+        {
+          unitId: "unit-01",
+          shotRange: [1, base.shots.length],
+          provider: "kie-gpt-image",
+          status: "idle",
+          prompt: buildStoryboardPrompt(base.project, base.shots, promptLocale),
+          taskId: "",
+          imageUrl: "",
+          errorMessage: "",
+          createdAt: "",
+          updatedAt: "",
+          taskTitle: "Storyboard Unit 01",
+        }
+      ]
+    : [];
 
   return {
     project: base.project,
@@ -710,6 +845,7 @@ function finalizePackage(base) {
     },
     promptVariants,
     batchVideoTasks,
+    storyboardTasks,
     reviewChecklist: [
       "人物前后是否一致",
       "商品关键镜头是否清晰",
@@ -719,6 +855,59 @@ function finalizePackage(base) {
       "是否符合当前对标账户模板的节奏和转化方式"
     ]
   };
+}
+
+function buildStoryboardPrompt(project, shots, locale = "zh") {
+  const safeProject = project || {};
+  const safeShots = Array.isArray(shots) ? shots : [];
+  const cast = Array.isArray(safeProject.cast) ? safeProject.cast : [];
+  const scenePlan = safeProject.scenePlan || {};
+
+  if (locale === "en") {
+    const castLines = cast.map((member) => {
+      const prefix = member.roleType === "host" ? "Host" : "Supporting cast";
+      return `${prefix}: ${member.label || member.id}; role: ${member.behaviorRule || "not provided"}; appearance lock: ${member.appearanceLock || "not provided"}; voice: ${member.voiceRule || "not provided"}.`;
+    });
+    const shotLines = safeShots.map((shot) => {
+      const beatText = Array.isArray(shot.castBeats) && shot.castBeats.length
+        ? shot.castBeats.map((beat) => `${beat.castId}: ${beat.beat}`).join(" | ")
+        : "not provided";
+      return `Shot ${shot.shotNumber}: purpose ${shot.scenePurpose || shot.purpose || "not provided"}; action ${shot.action || "not provided"}; frame goal ${shot.storyboardFrameGoal || "not provided"}; cast beats ${beatText}.`;
+    });
+
+    return [
+      `Create a 9:16 storyboard board for ${safeProject.productName || "the product"}.`,
+      `Product: ${safeProject.productName || "Not provided"}`,
+      `Scene: ${scenePlan.primaryLocation || "Not provided"}`,
+      `Environment style: ${scenePlan.environmentStyle || "Not provided"}`,
+      `Continuity: ${scenePlan.continuityRule || "Keep the cast, product, and lighting consistent."}`,
+      ...castLines,
+      ...shotLines,
+      "Negative constraints: no product distortion, no cast drift, no scene jumping, no unreadable labels."
+    ].join("\n");
+  }
+
+  const castLines = cast.map((member) => {
+    const prefix = member.roleType === "host" ? "主讲人" : "配角";
+    return `${prefix}：${member.label || member.id}；职责：${member.behaviorRule || "未提供"}；外观锁定：${member.appearanceLock || "未提供"}；口播规则：${member.voiceRule || "未提供"}。`;
+  });
+  const shotLines = safeShots.map((shot) => {
+    const beatText = Array.isArray(shot.castBeats) && shot.castBeats.length
+      ? shot.castBeats.map((beat) => `${beat.castId}：${beat.beat}`).join(" | ")
+      : "未提供";
+    return `镜头 ${shot.shotNumber}：目标 ${shot.scenePurpose || shot.purpose || "未提供"}；动作 ${shot.action || "未提供"}；定格目标 ${shot.storyboardFrameGoal || "未提供"}；角色动作 ${beatText}。`;
+  });
+
+  return [
+    `请为${safeProject.productName || "当前商品"}生成 9:16 竖版故事版叙事图。`,
+    `商品：${safeProject.productName || "未提供"}`,
+    `主场景：${scenePlan.primaryLocation || "未提供"}`,
+    `环境风格：${scenePlan.environmentStyle || "未提供"}`,
+    `连续性要求：${scenePlan.continuityRule || "保持人物、商品和光线一致。"}`,
+    ...castLines,
+    ...shotLines,
+    "负面约束：不要商品变形，不要人物漂移，不要场景跳变，不要不可读文字。"
+  ].join("\n");
 }
 
 function getPromptLocale(project = {}) {

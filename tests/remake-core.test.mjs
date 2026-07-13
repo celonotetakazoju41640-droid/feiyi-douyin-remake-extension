@@ -328,6 +328,120 @@ test("buildRemakePackage uses more native english phrasing for TikTok prompts", 
   assert.match(pkg.promptVariants[0].summary, /Keep it grounded in creator-led proof/i);
 });
 
+test("buildRemakePackage keeps single-person projects compatible when storyboard is off", () => {
+  const pkg = buildRemakePackage({
+    projectName: "single-host-project",
+    referenceSummary: "Open with a simple creator-led product demo.",
+    productName: "demo product",
+    sellingPoints: ["Fast result", "Easy to use"],
+    storyboardEnabled: false,
+    accountTemplate: {
+      name: "Solo host template",
+      platform: "tiktok",
+      defaultVoiceLanguage: "英文"
+    }
+  });
+
+  assert.equal(pkg.project.storyboardMode, "optional");
+  assert.equal(pkg.project.cast.length, 1);
+  assert.equal(pkg.project.cast[0].roleType, "host");
+  assert.equal(pkg.project.cast[0].id, "host-1");
+  assert.equal(pkg.project.cast[0].label, "主讲人");
+  assert.equal(pkg.storyboardTasks.length, 0);
+  assert.ok(pkg.batchVideoTasks.length > 0);
+});
+
+test("buildRemakePackage builds host and supporting cast beats into shots", () => {
+  const pkg = buildRemakePackage({
+    projectName: "two-person-project",
+    referenceSummary: "Host leads, support reacts, then product proof lands.",
+    productName: "demo product",
+    sellingPoints: ["Fast result", "Easy to use"],
+    storyboardEnabled: true,
+    cast: [
+      {
+        id: "host-1",
+        roleType: "host",
+        label: "主讲人",
+        presenceRule: "always",
+        appearanceLock: "same host throughout",
+        behaviorRule: "Lead the explanation and hold the product",
+        voiceRule: "primary"
+      },
+      {
+        id: "support-1",
+        roleType: "supporting",
+        label: "配角A",
+        presenceRule: "selective",
+        appearanceLock: "same friend throughout",
+        behaviorRule: "React and witness the result",
+        voiceRule: "silent"
+      }
+    ],
+    scenePlan: {
+      primaryLocation: "modern kitchen",
+      environmentStyle: "bright lifestyle daylight",
+      continuityRule: "same counter and same daylight direction",
+      shots: [
+        {
+          scenePurpose: "Hook the viewer with a host-led reaction",
+          primaryCastId: "host-1",
+          supportingCastIds: ["support-1"],
+          castBeats: [
+            { castId: "host-1", beat: "Host spots the problem first" },
+            { castId: "support-1", beat: "Support reacts to the tension" }
+          ],
+          storyboardFrameGoal: "Frame both cast members in the first beat"
+        }
+      ]
+    },
+    accountTemplate: {
+      name: "Two-person template",
+      platform: "tiktok",
+      defaultVoiceLanguage: "英文"
+    }
+  });
+
+  assert.equal(pkg.project.cast.length, 2);
+  assert.equal(pkg.project.cast[1].roleType, "supporting");
+  assert.equal(pkg.shots[0].primaryCastId, "host-1");
+  assert.deepEqual(pkg.shots[0].supportingCastIds, ["support-1"]);
+  assert.equal(pkg.shots[0].castBeats.length, 2);
+  assert.ok(pkg.storyboardTasks.length > 0);
+  assert.equal(pkg.storyboardTasks[0].unitId, "unit-01");
+  assert.deepEqual(pkg.storyboardTasks[0].shotRange, [1, 6]);
+  assert.equal(pkg.storyboardTasks[0].provider, "kie-gpt-image");
+  assert.equal(pkg.storyboardTasks[0].status, "idle");
+  assert.equal(pkg.storyboardTasks[0].imageUrl, "");
+  assert.equal(pkg.storyboardTasks[0].errorMessage, "");
+});
+
+test("buildRemakePackage creates a storyboard prompt with cast, scene, and continuity instructions", () => {
+  const pkg = buildRemakePackage({
+    projectName: "storyboard-demo",
+    referenceSummary: "host demonstrates, friend reacts",
+    productName: "odor remover box",
+    sellingPoints: ["Fast visible result", "Easy to use"],
+    storyboardEnabled: true,
+    scenePlan: {
+      primaryLocation: "modern kitchen",
+      environmentStyle: "bright lifestyle daylight",
+      continuityRule: "same counter and same daylight direction"
+    },
+    cast: [
+      { id: "host-1", roleType: "host", label: "主讲人", behaviorRule: "负责讲解和展示产品", voiceRule: "primary" },
+      { id: "support-1", roleType: "supporting", label: "配角A", behaviorRule: "负责反应和见证结果", voiceRule: "silent" }
+    ],
+    accountTemplate: { name: "Demo template", platform: "tiktok", defaultVoiceLanguage: "英文" }
+  });
+
+  assert.match(pkg.storyboardTasks[0].prompt, /Product:/i);
+  assert.match(pkg.storyboardTasks[0].prompt, /Scene:/i);
+  assert.match(pkg.storyboardTasks[0].prompt, /Host:/i);
+  assert.match(pkg.storyboardTasks[0].prompt, /Supporting cast:/i);
+  assert.match(pkg.storyboardTasks[0].prompt, /Continuity:/i);
+});
+
 test("buildProfileSelectionComparisonSummary highlights selected sample drift", () => {
   const fullScan = {
     profileUrl: "https://www.tiktok.com/@lab",

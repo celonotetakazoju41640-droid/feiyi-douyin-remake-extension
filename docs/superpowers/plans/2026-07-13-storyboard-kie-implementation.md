@@ -8,6 +8,13 @@
 
 **Tech Stack:** Chrome Extension, 原生 ES Modules, Node HTTP server, node:test, Kie async image API, 本地 runtime JSON 持久化
 
+## 当前进度
+
+- 已完成：Task 1 core 数据结构落地，`project.cast / scenePlan / shots.* / storyboardTasks` 已接入 package。
+- 已完成：Task 2 storyboard prompt 生成，TikTok 会产出包含 `Product / Scene / Host / Supporting cast / Continuity` 的英文故事版提示词。
+- 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
+- 未开始：Task 3 及之后的 workspace UI、Kie 服务代理、README 同步和真实链路验收。
+
 ---
 
 ## File Structure
