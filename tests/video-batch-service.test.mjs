@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildKieStoryboardTaskRequest,
+  buildDeepDistillPrompt,
   mapKieStoryboardStatus
 } from "../scripts/video-batch-service.mjs";
 
@@ -24,4 +25,21 @@ test("mapKieStoryboardStatus normalizes provider states", () => {
   assert.equal(mapKieStoryboardStatus("completed"), "succeeded");
   assert.equal(mapKieStoryboardStatus("error"), "failed");
   assert.equal(mapKieStoryboardStatus("unknown"), "queued");
+});
+
+test("buildDeepDistillPrompt asks for timeline-based structure analysis instead of generic summary", () => {
+  const prompt = buildDeepDistillPrompt({
+    fileName: "demo.mp4",
+    relativePath: "folder/demo.mp4",
+    durationSeconds: 28,
+    frames: [
+      { label: "开场首帧", second: 0 },
+      { label: "商品首次强露出", second: 8.4 }
+    ]
+  });
+
+  assert.match(prompt, /关键帧时间线/);
+  assert.match(prompt, /多人互动|配角反应|见证式对照/);
+  assert.match(prompt, /sceneProgression 必须按时间顺序描述/);
+  assert.match(prompt, /summary 必须写成一条能直接指导复刻的结构总结/);
 });

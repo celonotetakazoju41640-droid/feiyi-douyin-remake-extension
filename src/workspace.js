@@ -1708,12 +1708,14 @@ function buildDeepDistillTimestamps(durationSeconds = 0) {
   const duration = Math.max(Number(durationSeconds || 0), 1);
   const raw = [
     { label: "开场首帧", second: 0 },
-    { label: "前段钩子", second: duration * 0.08 },
-    { label: "前段推进", second: duration * 0.18 },
-    { label: "中段结构", second: duration * 0.38 },
-    { label: "卖点证明", second: duration * 0.62 },
-    { label: "后段收口", second: duration * 0.86 },
-    { label: "结尾状态", second: Math.max(duration - 0.4, 0) }
+    { label: "首秒钩子", second: Math.min(duration * 0.03, 0.8) },
+    { label: "前段冲突", second: duration * 0.1 },
+    { label: "前段推进", second: duration * 0.2 },
+    { label: "商品首次强露出", second: duration * 0.33 },
+    { label: "中段结构", second: duration * 0.5 },
+    { label: "卖点证明", second: duration * 0.68 },
+    { label: "后段收口", second: duration * 0.84 },
+    { label: "结尾状态", second: Math.max(duration - 0.25, 0) }
   ];
   const seen = new Set();
   return raw

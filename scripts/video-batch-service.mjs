@@ -291,26 +291,45 @@ async function analyzeDeepDistillVideo(video, config) {
   };
 }
 
-function buildDeepDistillPrompt(video) {
+export function buildDeepDistillPrompt(video) {
   const durationSeconds = Number(video.durationSeconds || 0);
-  const frameCount = Array.isArray(video.frames) ? video.frames.length : 0;
+  const frames = Array.isArray(video.frames) ? video.frames : [];
+  const frameCount = frames.length;
+  const frameTimeline = frames.length
+    ? frames
+        .map((frame, index) => {
+          const label = String(frame.label || `帧 ${index + 1}`).trim();
+          const second = Number(frame.second || 0);
+          return `${index + 1}. ${label}（约第 ${second} 秒）`;
+        })
+        .join("；")
+    : "未提供关键帧时间线";
   return [
-    "你是短视频复刻分析师，任务是根据同一条短视频的多张关键帧，反推这条视频最值得复刻的画面结构。",
+    "你是短视频复刻分析师，任务是根据同一条短视频的多张关键帧，反推出这条视频最值得复刻的结构骨架。",
+    "不要泛泛而谈，不要复述商品行业常识，要尽量根据时间线判断镜头推进和叙事动作。",
     "分析重点不是文案，而是：",
-    "1. 是否 0 帧商品起手",
-    "2. 商品第一次强露出大概在第几秒",
-    "3. 前 3 秒钩子更像哪一类",
-    "4. 画面情绪曲线怎么走",
-    "5. 镜头节奏是快切、停留、推进还是对比证明",
-    "6. 卖点证明方式是什么",
-    "7. 结尾收口方式是什么",
-    "8. 画面是如何从开场推进到结果的",
-    "9. 这条视频的视觉 DNA 是什么",
+    "1. 是否 0 帧商品起手，还是人物/问题/冲突先起手",
+    "2. 商品第一次强露出大概在第几秒，露出方式是什么",
+    "3. 前 3 秒钩子更像哪一类：问题、误会、冲突、结果先看、人物反应、多人互动",
+    "4. 画面情绪曲线怎么走，前后段有没有明显抬升或释放",
+    "5. 镜头节奏是快切、停留、推进、对比证明，还是多人对照烘托",
+    "6. 卖点证明方式是什么，要写具体动作，不要只写“展示卖点”",
+    "7. 结尾收口方式是什么，是否回到商品定格、结果复述、轻 CTA 或情绪落点",
+    "8. 画面是如何从开场推进到结果的，要按时间顺序写清楚",
+    "9. 这条视频的视觉 DNA 是什么，要写镜头距离、构图、人物关系、商品露出方式",
+    "10. 如果关键帧里能看出多人互动、配角反应、见证式对照，也要明确写出来",
     "",
     `当前视频名：${String(video.fileName || "未命名视频").trim()}`,
     `相对路径：${String(video.relativePath || "").trim() || "未提供"}`,
     `时长：${durationSeconds > 0 ? `${durationSeconds} 秒` : "未知"}`,
     `抽样帧数：${frameCount} 张`,
+    `关键帧时间线：${frameTimeline}`,
+    "",
+    "输出要求：",
+    "- 每个字段尽量写具体、短句、可执行，不要空话。",
+    "- sceneProgression 必须按时间顺序描述，至少写出开场 -> 推进 -> 证明 -> 收口。",
+    "- summary 必须写成一条能直接指导复刻的结构总结，不超过 60 个字。",
+    "- 如果证据不足，可以写“待判断”，但不要乱猜。",
     "",
     "请按以下 JSON 结构返回：",
     JSON.stringify(
