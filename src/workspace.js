@@ -2644,6 +2644,7 @@ function renderCurrentResultSummary() {
   const taskCount = currentPackage.batchVideoTasks?.length || 0;
   const shotCount = currentPackage.shots?.length || 0;
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
+  const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
   nodes.currentResultSummary.hidden = false;
   nodes.currentResultSummary.innerHTML = `
     <div class="currentResultSummaryHead">
@@ -2654,9 +2655,42 @@ function renderCurrentResultSummary() {
         <span class="countBadge">${escapeHtml(currentPackage.project.aspectRatio || "9:16")}</span>
       </div>
     </div>
+    <div class="currentResultSummaryGrid">
+      <span class="currentResultChip">模板：${escapeHtml(resultSnapshot.templateName)}</span>
+      <span class="currentResultChip">节奏：${escapeHtml(resultSnapshot.rhythm)}</span>
+      <span class="currentResultChip">钩子：${escapeHtml(resultSnapshot.hook)}</span>
+      <span class="currentResultChip">证明：${escapeHtml(resultSnapshot.proof)}</span>
+      <span class="currentResultChip">收口：${escapeHtml(resultSnapshot.cta)}</span>
+    </div>
     <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
-    <div class="currentResultSummaryNote">当前摘要：${escapeHtml(currentPackage.project.referenceSummary || "还没有摘要")}</div>
+    <div class="currentResultSummaryNote">${escapeHtml(resultSnapshot.overview)}</div>
   `;
+}
+
+function buildCurrentResultSnapshot(pkg) {
+  const template = pkg?.project?.accountTemplate || {};
+  const breakdown = Array.isArray(pkg?.distilledFramework?.breakdown) ? pkg.distilledFramework.breakdown : [];
+  const proof = pickBreakdownValue(breakdown, "高频证明方式") || pickBreakdownValue(breakdown, "高频卖点证明") || "按模板证明结构";
+  const cta = pickBreakdownValue(breakdown, "高频收口方式") || template.ctaStyle || pkg?.project?.cta || "轻转化收口";
+  const rhythm = pickBreakdownValue(breakdown, "高频镜头节奏") || template.rhythm || "快节奏";
+  const hook = pickBreakdownValue(breakdown, "高频钩子") || template.hookStyle || pkg?.project?.hookStyle || "强钩子";
+  const templateName = template.name || "未选模板";
+  const visualDna = pickBreakdownValue(breakdown, "视觉 DNA 共性") || pickBreakdownValue(breakdown, "表达 DNA") || "当前模板视觉风格";
+  return {
+    templateName,
+    rhythm,
+    hook,
+    proof,
+    cta,
+    overview: `当前这次结果按“${templateName}”在出，前段更偏“${hook}”，中段用“${proof}”做卖点证明，整体节奏偏“${rhythm}”，结尾按“${cta}”收口，视觉执行更贴近“${visualDna}”。`
+  };
+}
+
+function pickBreakdownValue(lines, label) {
+  const target = Array.isArray(lines)
+    ? lines.find((line) => String(line || "").startsWith(`${label}：`))
+    : "";
+  return target ? String(target).slice(`${label}：`.length).trim() : "";
 }
 
 function updateGenerateButtonState() {
