@@ -4906,6 +4906,59 @@ body {
   justify-content: flex-start;
 }
 
+.templateDeepDistillSummary {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid #eadcc5;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fffdf9 0%, #fff8ef 100%);
+}
+
+.templateDeepDistillSummary[hidden] {
+  display: none !important;
+}
+
+.templateDeepDistillSummaryHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.templateDeepDistillSummaryHead strong {
+  color: #2c241b;
+  font-size: 13px;
+}
+
+.templateDeepDistillSummaryGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.templateDeepDistillChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid #e9dbc3;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #6d604e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.templateDeepDistillSummaryText {
+  margin: 0;
+  color: #6d604e;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .historyOverviewCard,
 .historyDetailCard,
 .historyListCard,

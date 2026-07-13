@@ -77,6 +77,7 @@ const nodes = {
   clipcatVoiceLanguage: document.querySelector("#clipcatVoiceLanguage"),
   clipcatExtraRules: document.querySelector("#clipcatExtraRules"),
   accountTemplateSelect: document.querySelector("#accountTemplateSelect"),
+  templateDeepDistillSummary: document.querySelector("#templateDeepDistillSummary"),
   manageProfileUrl: document.querySelector("#manageProfileUrl"),
   manageProfileStatus: document.querySelector("#manageProfileStatus"),
   manageScanSummary: document.querySelector("#manageScanSummary"),
@@ -944,6 +945,86 @@ function renderTemplateGuide() {
   `;
 }
 
+function renderTemplateDeepDistillSummary() {
+  if (!nodes.templateDeepDistillSummary) return;
+  const template = getSelectedTemplate();
+  const deepSummary = buildTemplateDeepDistillSnapshot(template);
+  if (!deepSummary) {
+    nodes.templateDeepDistillSummary.hidden = true;
+    nodes.templateDeepDistillSummary.innerHTML = "";
+    return;
+  }
+
+  nodes.templateDeepDistillSummary.hidden = false;
+  nodes.templateDeepDistillSummary.innerHTML = `
+    <div class="templateDeepDistillSummaryHead">
+      <strong>当前模板视频重点</strong>
+      <span class="countBadge">${deepSummary.videoCount} 条样本</span>
+    </div>
+    <div class="templateDeepDistillSummaryGrid">
+      <span class="templateDeepDistillChip">0 帧起手：${escapeHtml(deepSummary.zeroFrameBias)}</span>
+      <span class="templateDeepDistillChip">钩子：${escapeHtml(deepSummary.hookTypes || "未提炼")}</span>
+      <span class="templateDeepDistillChip">节奏：${escapeHtml(deepSummary.shotRhythms || "未提炼")}</span>
+      <span class="templateDeepDistillChip">证明：${escapeHtml(deepSummary.proofStyles || "未提炼")}</span>
+      <span class="templateDeepDistillChip">收口：${escapeHtml(deepSummary.ctaStyles || "未提炼")}</span>
+      <span class="templateDeepDistillChip">情绪：${escapeHtml(deepSummary.emotionCurves || "未提炼")}</span>
+    </div>
+    <p class="templateDeepDistillSummaryText">${escapeHtml(deepSummary.summary)}</p>
+  `;
+}
+
+function buildTemplateDeepDistillSnapshot(templateLike = {}) {
+  const videos = Array.isArray(templateLike?.deepDistillVideos) ? templateLike.deepDistillVideos : [];
+  if (!videos.length) return null;
+
+  const zeroFrameYesCount = videos.filter((video) => video.analysis?.isZeroFrameProductHook === "是").length;
+  const zeroFrameNoCount = videos.filter((video) => video.analysis?.isZeroFrameProductHook === "否").length;
+  const zeroFrameBias =
+    zeroFrameYesCount > zeroFrameNoCount
+      ? `偏 0 帧起手`
+      : zeroFrameNoCount > zeroFrameYesCount
+        ? `偏非 0 帧起手`
+        : "待继续观察";
+
+  const hookTypes = pickTopTemplateDeepDistillValues(videos, "hookType");
+  const emotionCurves = pickTopTemplateDeepDistillValues(videos, "emotionCurve");
+  const shotRhythms = pickTopTemplateDeepDistillValues(videos, "shotRhythm");
+  const proofStyles = pickTopTemplateDeepDistillValues(videos, "proofStyle");
+  const ctaStyles = pickTopTemplateDeepDistillValues(videos, "ctaStyle");
+
+  return {
+    videoCount: videos.length,
+    zeroFrameBias,
+    hookTypes,
+    emotionCurves,
+    shotRhythms,
+    proofStyles,
+    ctaStyles,
+    summary: [
+      `${videos.length} 条视频样本里，${zeroFrameBias}`,
+      hookTypes ? `前 3 秒更常见“${hookTypes}”` : "",
+      shotRhythms ? `镜头节奏更偏“${shotRhythms}”` : "",
+      proofStyles ? `卖点证明更偏“${proofStyles}”` : ""
+    ]
+      .filter(Boolean)
+      .join("，")
+  };
+}
+
+function pickTopTemplateDeepDistillValues(videos, field, limit = 2) {
+  const counts = new Map();
+  videos.forEach((video) => {
+    const value = String(video.analysis?.[field] || "").trim();
+    if (!value) return;
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+  return Array.from(counts.entries())
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, limit)
+    .map(([value]) => value)
+    .join(" / ");
+}
+
 function syncTemplateForm() {
   const template = getSelectedTemplate();
   if (!template) return;
@@ -964,6 +1045,7 @@ function syncTemplateForm() {
   currentDeepDistillVideos = cloneDeepDistillVideos(template.deepDistillVideos || []);
   currentDeepDistillFiles = new Map();
   renderDeepDistillVideoList();
+  renderTemplateDeepDistillSummary();
   updatePlatformDependentUi();
 }
 
@@ -1112,6 +1194,7 @@ function setDeepDistillStatus(message, isError = false) {
 function renderDeepDistillVideoList() {
   if (!nodes.deepDistillVideoList) return;
   updateDeepDistillActionState();
+  renderTemplateDeepDistillSummary();
   if (!currentDeepDistillVideos.length) {
     nodes.deepDistillVideoList.innerHTML =
       '<p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和深蒸馏字段。</p>';
