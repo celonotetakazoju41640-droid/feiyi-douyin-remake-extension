@@ -229,9 +229,13 @@ function buildShotDefinitions(input) {
 
 export function buildRemakePackage(rawInput) {
   const accountTemplate = normalizeAccountTemplate(rawInput.accountTemplate);
+  const mergedReferenceSummary = mergeReferenceSummaryWithDeepDistill(
+    String(rawInput.referenceSummary || "").trim(),
+    accountTemplate
+  );
   const input = {
     projectName: String(rawInput.projectName || "未命名复刻项目").trim(),
-    referenceSummary: String(rawInput.referenceSummary || "").trim(),
+    referenceSummary: mergedReferenceSummary,
     productName: String(rawInput.productName || "").trim(),
     sellingPoints: normalizeSellingPoints(rawInput.sellingPoints),
     hookStyle: String(rawInput.hookStyle || accountTemplate.hookStyle || "强钩子").trim(),
@@ -664,6 +668,7 @@ function normalizeClipcatConfig(value = {}) {
 
 function buildDistilledFramework(project) {
   const template = normalizeAccountTemplate(project.accountTemplate);
+  const deepDistillSummary = buildDeepDistillSummary(template);
   const summary = [
     `${template.name} 的蒸馏框架：`,
     `内容定位是“${template.contentPositioning || "未填写"}”，`,
@@ -674,7 +679,8 @@ function buildDistilledFramework(project) {
     `判断规则优先“${template.decisionHeuristics || "未填写"}”，`,
     `要避开“${template.antiPatterns || "未填写"}”，`,
     `近期主页信号是“${template.recentSignals || "未填写"}”，`,
-    `收口方式偏向“${template.ctaStyle || "轻转化"}”。`
+    `收口方式偏向“${template.ctaStyle || "轻转化"}”。`,
+    deepDistillSummary ? `视频深蒸馏补充：${deepDistillSummary.summary}` : ""
   ].join("");
 
   return {
@@ -693,7 +699,20 @@ function buildDistilledFramework(project) {
       `近期变化：${template.recentSignals || "未填写"}`,
       `收口风格：${template.ctaStyle || "未填写"}`,
       `改写边界：${template.rewriteRules || "未填写"}`,
-      `样本链接数：${template.sampleVideoUrls.length}`
+      `样本链接数：${template.sampleVideoUrls.length}`,
+      ...(deepDistillSummary
+        ? [
+            `视频深蒸馏样本数：${deepDistillSummary.videoCount}`,
+            `0 帧起手倾向：${deepDistillSummary.zeroFrameBias}`,
+            `高频钩子：${deepDistillSummary.hookTypes || "未填写"}`,
+            `高频情绪曲线：${deepDistillSummary.emotionCurves || "未填写"}`,
+            `高频镜头节奏：${deepDistillSummary.shotRhythms || "未填写"}`,
+            `高频证明方式：${deepDistillSummary.proofStyles || "未填写"}`,
+            `高频收口方式：${deepDistillSummary.ctaStyles || "未填写"}`,
+            `画面推进共性：${deepDistillSummary.sceneProgressions || "未填写"}`,
+            `视觉 DNA 共性：${deepDistillSummary.visualDna || "未填写"}`
+          ]
+        : [])
     ]
   };
 }
@@ -701,32 +720,45 @@ function buildDistilledFramework(project) {
 function buildPromptVariants(project, shots) {
   const template = normalizeAccountTemplate(project.accountTemplate);
   const dnaFocus = summarizeTemplateDna(template);
+  const deepDistillSummary = buildDeepDistillSummary(template);
   return [
     {
       key: "safe",
       title: "稳妥版",
-      summary: `优先保留结构清晰和商品可见，按“${template.expressionDna || "生活化稳定表达"}”收住画面，不追求过强变化。`,
+      summary: `优先保留结构清晰和商品可见，按“${template.expressionDna || "生活化稳定表达"}”收住画面，不追求过强变化。${
+        deepDistillSummary ? ` 画面执行上参考“${deepDistillSummary.shotRhythms || "当前模板镜头节奏"}”。` : ""
+      }`,
       videoShots: shots.map(
         (shot) =>
-          `稳妥版：镜头 ${shot.shotNumber}，${shot.purpose}。动作：${shot.action}。保持生活化、人物稳定、商品清晰，表达上贴近“${template.expressionDna || "短句清楚说明"}”，同时避开“${template.antiPatterns || "照抄原人物和原字幕"}”。`
+          `稳妥版：镜头 ${shot.shotNumber}，${shot.purpose}。动作：${shot.action}。保持生活化、人物稳定、商品清晰，表达上贴近“${template.expressionDna || "短句清楚说明"}”，同时避开“${template.antiPatterns || "照抄原人物和原字幕"}”。${
+            deepDistillSummary ? ` 画面节奏优先参考“${deepDistillSummary.shotRhythms || "当前模板镜头节奏"}”，证明方式优先参考“${deepDistillSummary.proofStyles || "当前模板证明方式"}”。` : ""
+          }`
       )
     },
     {
       key: "fast",
       title: "快节奏版",
-      summary: `适合更强钩子和更短停留时间，优先放大“${template.recentSignals || "近期高表现节奏"}”。`,
+      summary: `适合更强钩子和更短停留时间，优先放大“${template.recentSignals || "近期高表现节奏"}”。${
+        deepDistillSummary ? ` 前 3 秒参考“${deepDistillSummary.hookTypes || "当前模板钩子"}”。` : ""
+      }`,
       videoShots: shots.map(
         (shot) =>
-          `快节奏版：镜头 ${shot.shotNumber}，节奏更快，直接推进 ${shot.purpose}。动作：${shot.action}。删掉多余停顿，优先复用“${template.decisionHeuristics || "先痛点后证明"}”这类推进顺序。`
+          `快节奏版：镜头 ${shot.shotNumber}，节奏更快，直接推进 ${shot.purpose}。动作：${shot.action}。删掉多余停顿，优先复用“${template.decisionHeuristics || "先痛点后证明"}”这类推进顺序。${
+            deepDistillSummary ? ` 前段情绪推进参考“${deepDistillSummary.emotionCurves || "当前模板情绪曲线"}”。` : ""
+          }`
       )
     },
     {
       key: "conversion",
       title: "强转化版",
-      summary: `强化${project.productName || "当前商品"}卖点解释和收口引导，让结构更贴近“${dnaFocus}”。`,
+      summary: `强化${project.productName || "当前商品"}卖点解释和收口引导，让结构更贴近“${dnaFocus}”。${
+        deepDistillSummary ? ` 卖点证明和收口参考“${deepDistillSummary.proofStyles || "当前模板证明方式"} / ${deepDistillSummary.ctaStyles || "当前模板收口方式"}”。` : ""
+      }`,
       videoShots: shots.map(
         (shot) =>
-          `强转化版：镜头 ${shot.shotNumber}，突出 ${project.productName || "当前商品"} 的作用。动作：${shot.action}。优先按“${template.decisionHeuristics || "先痛点、再证明、后收口"}”组织镜头，并把结尾收束到“${template.ctaStyle || "评论区或主页转化"}”。`
+          `强转化版：镜头 ${shot.shotNumber}，突出 ${project.productName || "当前商品"} 的作用。动作：${shot.action}。优先按“${template.decisionHeuristics || "先痛点、再证明、后收口"}”组织镜头，并把结尾收束到“${template.ctaStyle || "评论区或主页转化"}”。${
+            deepDistillSummary ? ` 证明结构优先沿用“${deepDistillSummary.sceneProgressions || "当前模板画面推进"}”。` : ""
+          }`
       )
     }
   ];
@@ -734,6 +766,7 @@ function buildPromptVariants(project, shots) {
 
 function buildBatchVideoTasks(project, promptVariants, distilledFramework) {
   const template = normalizeAccountTemplate(project.accountTemplate);
+  const deepDistillSummary = buildDeepDistillSummary(template);
   const count = Math.max(1, Number(project.generationCount || promptVariants.length || 1));
   const tasks = [];
 
@@ -768,6 +801,20 @@ function buildBatchVideoTasks(project, promptVariants, distilledFramework) {
         `批次风格：${variant.title}`,
         `版本策略：${variant.summary}`,
         `蒸馏摘要：${distilledFramework.summary}`,
+        ...(deepDistillSummary
+          ? [
+              `视频深蒸馏样本数：${deepDistillSummary.videoCount}`,
+              `0 帧起手倾向：${deepDistillSummary.zeroFrameBias}`,
+              `高频钩子类型：${deepDistillSummary.hookTypes || "未填写"}`,
+              `高频情绪曲线：${deepDistillSummary.emotionCurves || "未填写"}`,
+              `高频镜头节奏：${deepDistillSummary.shotRhythms || "未填写"}`,
+              `高频卖点证明：${deepDistillSummary.proofStyles || "未填写"}`,
+              `高频收口方式：${deepDistillSummary.ctaStyles || "未填写"}`,
+              `画面推进共性：${deepDistillSummary.sceneProgressions || "未填写"}`,
+              `视觉 DNA 共性：${deepDistillSummary.visualDna || "未填写"}`,
+              `执行要求：如果当前商品适合，优先参考这些视频深蒸馏共性去组织前 3 秒钩子、商品强露出位置、证明节奏和结尾收口。`
+            ]
+          : []),
         `改写边界：${template.rewriteRules || "保留结构，不直接照抄。"}`
       ].join("\n"),
       imagePrompt: `商品主图数量：${project.clipcatConfig?.productImageCount || 0}，保持商品外观稳定。`,
@@ -800,6 +847,86 @@ function summarizeTemplateDna(template) {
     .filter(Boolean)
     .slice(0, 2)
     .join(" / ") || "当前模板节奏和表达 DNA";
+}
+
+function mergeReferenceSummaryWithDeepDistill(referenceSummary, template) {
+  const base = String(referenceSummary || "").trim();
+  const deepDistillSummary = buildDeepDistillSummary(template);
+  if (!deepDistillSummary) {
+    return base;
+  }
+  const deepSection = [
+    "视频深蒸馏补充：",
+    `- 样本数：${deepDistillSummary.videoCount}`,
+    `- 0 帧起手倾向：${deepDistillSummary.zeroFrameBias}`,
+    `- 高频钩子：${deepDistillSummary.hookTypes || "未填写"}`,
+    `- 高频情绪曲线：${deepDistillSummary.emotionCurves || "未填写"}`,
+    `- 高频镜头节奏：${deepDistillSummary.shotRhythms || "未填写"}`,
+    `- 高频证明方式：${deepDistillSummary.proofStyles || "未填写"}`,
+    `- 高频收口方式：${deepDistillSummary.ctaStyles || "未填写"}`,
+    `- 画面推进共性：${deepDistillSummary.sceneProgressions || "未填写"}`,
+    `- 视觉 DNA：${deepDistillSummary.visualDna || "未填写"}`
+  ].join("\n");
+  return [base, deepSection].filter(Boolean).join("\n\n");
+}
+
+function buildDeepDistillSummary(templateLike = {}) {
+  const template = normalizeAccountTemplate(templateLike);
+  const videos = Array.isArray(template.deepDistillVideos) ? template.deepDistillVideos : [];
+  if (!videos.length) return null;
+
+  const zeroFrameYesCount = videos.filter((video) => video.analysis?.isZeroFrameProductHook === "是").length;
+  const zeroFrameNoCount = videos.filter((video) => video.analysis?.isZeroFrameProductHook === "否").length;
+  const zeroFrameBias =
+    zeroFrameYesCount > zeroFrameNoCount
+      ? `偏 0 帧商品起手（${zeroFrameYesCount}/${videos.length}）`
+      : zeroFrameNoCount > zeroFrameYesCount
+        ? `偏非 0 帧商品起手（${zeroFrameNoCount}/${videos.length}）`
+        : "待继续观察";
+
+  const hookTypes = pickTopDeepDistillValues(videos, "hookType");
+  const emotionCurves = pickTopDeepDistillValues(videos, "emotionCurve");
+  const shotRhythms = pickTopDeepDistillValues(videos, "shotRhythm");
+  const proofStyles = pickTopDeepDistillValues(videos, "proofStyle");
+  const ctaStyles = pickTopDeepDistillValues(videos, "ctaStyle");
+  const sceneProgressions = pickTopDeepDistillValues(videos, "sceneProgression", 2);
+  const visualDna = pickTopDeepDistillValues(videos, "visualDna", 2);
+
+  return {
+    videoCount: videos.length,
+    zeroFrameBias,
+    hookTypes,
+    emotionCurves,
+    shotRhythms,
+    proofStyles,
+    ctaStyles,
+    sceneProgressions,
+    visualDna,
+    summary: [
+      `${videos.length} 条视频样本里，${zeroFrameBias}`,
+      hookTypes ? `钩子更常见“${hookTypes}”` : "",
+      emotionCurves ? `情绪推进更常见“${emotionCurves}”` : "",
+      shotRhythms ? `镜头节奏更常见“${shotRhythms}”` : "",
+      proofStyles ? `证明方式更常见“${proofStyles}”` : "",
+      ctaStyles ? `收口方式更常见“${ctaStyles}”` : ""
+    ]
+      .filter(Boolean)
+      .join("，")
+  };
+}
+
+function pickTopDeepDistillValues(videos, field, limit = 3) {
+  const counts = new Map();
+  videos.forEach((video) => {
+    const value = String(video.analysis?.[field] || "").trim();
+    if (!value) return;
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+  return Array.from(counts.entries())
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, limit)
+    .map(([value]) => value)
+    .join(" / ");
 }
 
 function getAverageViews(scan) {
