@@ -12,8 +12,10 @@
 
 - 已完成：Task 1 core 数据结构落地，`project.cast / scenePlan / shots.* / storyboardTasks` 已接入 package。
 - 已完成：Task 2 storyboard prompt 生成，TikTok 会产出包含 `Product / Scene / Host / Supporting cast / Continuity` 的英文故事版提示词。
+- 已完成：Task 3 workspace 最小接线，生成页已可录入主场景、连续性、故事版开关和多人角色；历史页已新增故事版图详情展示。
 - 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
-- 未开始：Task 3 及之后的 workspace UI、Kie 服务代理、README 同步和真实链路验收。
+- 已补充验证：`node --test tests/extension-shell.test.mjs tests/remake-core.test.mjs`、`node --check src/workspace.js`、`git diff --check`。
+- 未开始：Task 4 及之后的 Kie 服务代理、README 同步和真实链路验收。
 
 ---
 

@@ -66,6 +66,12 @@ const nodes = {
   voiceDialect: document.querySelector("#voiceDialect"),
   generationCount: document.querySelector("#generationCount"),
   aspectRatioSelect: document.querySelector("#aspectRatioSelect"),
+  scenePrimaryLocation: document.querySelector("#scenePrimaryLocation"),
+  sceneEnvironmentStyle: document.querySelector("#sceneEnvironmentStyle"),
+  sceneContinuityRule: document.querySelector("#sceneContinuityRule"),
+  storyboardEnabled: document.querySelector("#storyboardEnabled"),
+  castList: document.querySelector("#castList"),
+  addSupportingCast: document.querySelector("#addSupportingCast"),
   hookStyle: document.querySelector("#hookStyle"),
   visualStyle: document.querySelector("#visualStyle"),
   ctaText: document.querySelector("#ctaText"),
@@ -186,6 +192,7 @@ let profileScanStageKey = "idle";
 let currentDeepDistillVideos = [];
 let currentDeepDistillFiles = new Map();
 let deepDistillAnalysisRunning = false;
+let currentCastDraft = [createDefaultCastDraftMember("host")];
 
 function setProfileScanStage(stageKey, progressValue = null) {
   profileScanStageKey = stageKey || "idle";
@@ -210,6 +217,7 @@ function init() {
   applyTemplateToGenerationFields();
   renderProfileScanState();
   renderProjects();
+  renderCastList();
   renderAssetStatus();
   renderTemplateGuide();
   renderManageScanSummary();
@@ -231,6 +239,8 @@ function bindEvents() {
     updateGenerateButtonState();
     updateActionFeedback();
   });
+  nodes.storyboardEnabled?.addEventListener("change", updateActionFeedback);
+  nodes.addSupportingCast?.addEventListener("click", handleAddSupportingCast);
   nodes.referenceBrief?.addEventListener("input", () => {
     updateGenerateButtonState();
     updateActionFeedback();
@@ -356,6 +366,129 @@ function handleProductImagesChange() {
   syncFlowStepState();
 }
 
+function createDefaultCastDraftMember(roleType = "supporting", index = 0) {
+  const safeRoleType = roleType === "host" ? "host" : "supporting";
+  const suffix = safeRoleType === "host" ? 1 : index + 1;
+  return {
+    id: safeRoleType === "host" ? "host-1" : `support-${suffix}`,
+    roleType: safeRoleType,
+    label: safeRoleType === "host" ? "主讲人" : `配角${suffix}`,
+    presenceRule: safeRoleType === "host" ? "always" : "selective",
+    appearanceLock: "",
+    behaviorRule: safeRoleType === "host" ? "负责讲解和展示商品" : "负责反应和烘托",
+    voiceRule: safeRoleType === "host" ? "primary" : "silent"
+  };
+}
+
+function normalizeCastDraft(cast = []) {
+  const normalized = Array.isArray(cast) ? cast.map((member = {}, index) => ({
+    id: String(member.id || member.castId || (index === 0 ? "host-1" : `support-${index}`)).trim(),
+    roleType: String(member.roleType || (index === 0 ? "host" : "supporting")).trim() === "support" ? "supporting" : String(member.roleType || (index === 0 ? "host" : "supporting")).trim(),
+    label: String(member.label || member.name || (index === 0 ? "主讲人" : `配角${index}`)).trim(),
+    presenceRule: String(member.presenceRule || (index === 0 ? "always" : "selective")).trim(),
+    appearanceLock: String(member.appearanceLock || "").trim(),
+    behaviorRule: String(member.behaviorRule || "").trim(),
+    voiceRule: String(member.voiceRule || (index === 0 ? "primary" : "silent")).trim()
+  })) : [];
+
+  if (!normalized.length) {
+    return [createDefaultCastDraftMember("host")];
+  }
+
+  const hostIndex = normalized.findIndex((member) => member.roleType === "host");
+  if (hostIndex === -1) {
+    normalized[0].roleType = "host";
+    normalized[0].id = "host-1";
+    normalized[0].label = normalized[0].label || "主讲人";
+    normalized[0].presenceRule = normalized[0].presenceRule || "always";
+    normalized[0].voiceRule = normalized[0].voiceRule || "primary";
+  } else if (hostIndex > 0) {
+    const [host] = normalized.splice(hostIndex, 1);
+    normalized.unshift(host);
+  }
+
+  return normalized.map((member, index) => ({
+    ...member,
+    id: index === 0 ? "host-1" : member.id || `support-${index}`,
+    roleType: index === 0 ? "host" : "supporting",
+    label: member.label || (index === 0 ? "主讲人" : `配角${index}`),
+    presenceRule: member.presenceRule || (index === 0 ? "always" : "selective"),
+    voiceRule: member.voiceRule || (index === 0 ? "primary" : "silent")
+  }));
+}
+
+function renderCastList() {
+  if (!nodes.castList) return;
+  currentCastDraft = normalizeCastDraft(currentCastDraft);
+  nodes.castList.innerHTML = currentCastDraft
+    .map((member, index) => `
+      <section class="castRow" data-cast-index="${index}">
+        <div class="castRowMeta">
+          <div>
+            <strong>${escapeHtml(member.roleType === "host" ? "主讲人" : `配角 ${index}`)}</strong>
+            <span>${escapeHtml(member.id)}</span>
+          </div>
+          ${member.roleType === "host" ? '<span class="countBadge">固定主讲</span>' : `<button class="ghostButton" type="button" data-cast-remove="${index}">删除配角</button>`}
+        </div>
+        <label class="fieldBlock">
+          角色名称
+          <input type="text" data-cast-field="label" value="${escapeHtml(member.label)}" />
+        </label>
+        <label class="fieldBlock">
+          在场规则
+          <select data-cast-field="presenceRule">
+            <option value="always" ${member.presenceRule === "always" ? "selected" : ""}>always</option>
+            <option value="selective" ${member.presenceRule === "selective" ? "selected" : ""}>selective</option>
+          </select>
+        </label>
+        <label class="fieldBlock castWideField">
+          行为职责
+          <input type="text" data-cast-field="behaviorRule" value="${escapeHtml(member.behaviorRule)}" />
+        </label>
+        <label class="fieldBlock castWideField">
+          外观锁定
+          <input type="text" data-cast-field="appearanceLock" value="${escapeHtml(member.appearanceLock)}" placeholder="例如：same friend throughout / 同一套居家服" />
+        </label>
+      </section>
+    `)
+    .join("");
+
+  nodes.castList.querySelectorAll("[data-cast-field]").forEach((field) => {
+    field.addEventListener("input", handleCastFieldChange);
+    field.addEventListener("change", handleCastFieldChange);
+  });
+  nodes.castList.querySelectorAll("[data-cast-remove]").forEach((button) => {
+    button.addEventListener("click", () => removeSupportingCast(Number(button.dataset.castRemove)));
+  });
+}
+
+function handleCastFieldChange(event) {
+  const row = event.target.closest("[data-cast-index]");
+  if (!row) return;
+  const index = Number(row.dataset.castIndex);
+  const field = event.target.dataset.castField;
+  if (Number.isNaN(index) || !field || !currentCastDraft[index]) return;
+  currentCastDraft[index] = {
+    ...currentCastDraft[index],
+    [field]: String(event.target.value || "").trim()
+  };
+}
+
+function handleAddSupportingCast() {
+  const supportCount = currentCastDraft.filter((member) => member.roleType === "supporting").length;
+  currentCastDraft = normalizeCastDraft([
+    ...currentCastDraft,
+    createDefaultCastDraftMember("supporting", supportCount)
+  ]);
+  renderCastList();
+}
+
+function removeSupportingCast(index) {
+  if (index <= 0) return;
+  currentCastDraft = currentCastDraft.filter((_, memberIndex) => memberIndex !== index);
+  renderCastList();
+}
+
 async function handleGenerate() {
   const template = await prepareTemplateForGeneration();
   const productName = nodes.productName.value.trim();
@@ -391,6 +524,13 @@ async function handleGenerate() {
     referencePlatform: nodes.clipcatReferencePlatform.value,
     voiceLanguage: nodes.clipcatVoiceLanguage.value,
     extraRules: nodes.clipcatExtraRules.value.trim(),
+    storyboardEnabled: Boolean(nodes.storyboardEnabled?.checked),
+    scenePlan: {
+      primaryLocation: nodes.scenePrimaryLocation?.value.trim() || "",
+      environmentStyle: nodes.sceneEnvironmentStyle?.value.trim() || "",
+      continuityRule: nodes.sceneContinuityRule?.value.trim() || ""
+    },
+    cast: normalizeCastDraft(currentCastDraft),
     productImageCount: nodes.productImages.files?.length || 0,
     accountTemplate: template
   });
@@ -522,13 +662,20 @@ function renderProjectDetail() {
           `${task.taskTitle}\n任务编号：${task.taskId}\n模型：${task.model}\n时长：${task.durationSeconds} 秒\n状态：${task.status}\n模板：${task.accountTemplateName}\n\n${task.prompt}`
       )
       .join("\n\n"),
+    storyboards: (currentPackage.storyboardTasks || [])
+      .map(
+        (task) =>
+          `${task.unitId || "unit-01"}\n状态：${task.status}\nProvider：${task.provider}\n${task.imageUrl ? `预览：${task.imageUrl}` : "暂无图片"}${task.errorMessage ? `\n失败原因：${task.errorMessage}` : ""}\n\n${task.prompt || "当前还没有故事版提示词。"}`
+      )
+      .join("\n\n"),
     review: currentPackage.reviewChecklist.map((item) => `- ${item}`).join("\n")
   };
 
   const metaTextMap = {
     distilled: "这里是按对标账户模板抽出来的框架，不是照抄原视频。",
     variants: "这里给你 3 套候选版本：稳妥、快节奏、强转化。",
-    batch: "这里是一组准备发给本地视频服务的批量任务。"
+    batch: "这里是一组准备发给本地视频服务的批量任务。",
+    storyboards: "这里是故事版中间层，先看角色、场景和连续性是否合理。"
   };
 
   nodes.projectDetailPanel.innerHTML = `
@@ -540,6 +687,7 @@ function renderProjectDetail() {
         ["prompts", "提示词"],
         ["variants", "候选版本"],
         ["batch", "批量任务"],
+        ["storyboards", "故事版图"],
         ["review", "审片清单"]
       ]
         .map(
@@ -2567,6 +2715,20 @@ function syncFormWithCurrentPackage() {
   nodes.clipcatReferencePlatform.value = currentPackage.project.clipcatConfig?.referencePlatform || "tiktok";
   nodes.clipcatVoiceLanguage.value = currentPackage.project.clipcatConfig?.voiceLanguage || "英文";
   nodes.clipcatExtraRules.value = currentPackage.project.clipcatConfig?.extraRules || "";
+  if (nodes.scenePrimaryLocation) {
+    nodes.scenePrimaryLocation.value = currentPackage.project.scenePlan?.primaryLocation || "";
+  }
+  if (nodes.sceneEnvironmentStyle) {
+    nodes.sceneEnvironmentStyle.value = currentPackage.project.scenePlan?.environmentStyle || "";
+  }
+  if (nodes.sceneContinuityRule) {
+    nodes.sceneContinuityRule.value = currentPackage.project.scenePlan?.continuityRule || "";
+  }
+  if (nodes.storyboardEnabled) {
+    nodes.storyboardEnabled.checked = Boolean(currentPackage.project.storyboardEnabled);
+  }
+  currentCastDraft = normalizeCastDraft(currentPackage.project.cast || []);
+  renderCastList();
 
   const template = normalizeAccountTemplate(currentPackage.project.accountTemplate);
   const existingIndex = accountTemplates.findIndex((item) => item.id === template.id);
@@ -2650,6 +2812,7 @@ function renderCurrentResultSummary() {
   }
   const taskCount = currentPackage.batchVideoTasks?.length || 0;
   const shotCount = currentPackage.shots?.length || 0;
+  const storyboardCount = currentPackage.storyboardTasks?.length || 0;
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
   nodes.currentResultSummary.hidden = false;
@@ -2659,6 +2822,7 @@ function renderCurrentResultSummary() {
       <div class="currentResultSummaryMeta">
         <span class="countBadge">${shotCount} 个镜头</span>
         <span class="countBadge">${taskCount} 条任务</span>
+        <span class="countBadge">${storyboardCount} 张故事版</span>
         <span class="countBadge">${escapeHtml(currentPackage.project.aspectRatio || "9:16")}</span>
       </div>
     </div>

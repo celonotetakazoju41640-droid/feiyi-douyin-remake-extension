@@ -190,9 +190,47 @@
                     <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
                   </section>
 
+                  <section class="generateSettingsCard generateStoryboardCard">
+                    <div class="contentSectionHead">
+                      <strong>4. 故事版中间层</strong>
+                      <p>可选补主场景和角色结构，方便后面接故事版叙事图。</p>
+                    </div>
+                    <div class="generateControlGrid simpleSettingsGrid">
+                      <label class="fieldBlock">
+                        主场景说明
+                        <input id="scenePrimaryLocation" type="text" placeholder="例如：现代厨房 / 客厅沙发区 / 办公桌场景" />
+                      </label>
+                      <label class="fieldBlock">
+                        环境风格
+                        <input id="sceneEnvironmentStyle" type="text" placeholder="例如：bright lifestyle daylight / clean home demo" />
+                      </label>
+                      <label class="fieldBlock sceneContinuityField">
+                        连续性要求
+                        <input id="sceneContinuityRule" type="text" placeholder="例如：同一台面、同一人物、同一光线方向" />
+                      </label>
+                      <div class="fieldBlock storyboardToggleField">
+                        <span>故事版图</span>
+                        <label class="checkboxRow">
+                          <input id="storyboardEnabled" type="checkbox" />
+                          <span>生成故事版叙事图任务</span>
+                        </label>
+                      </div>
+                    </div>
+                    <section class="castEditorCard">
+                      <div class="contentSectionHead castEditorHead">
+                        <div>
+                          <strong>角色结构</strong>
+                          <p>默认 1 个主讲人，可按需要补配角或多人烘托。</p>
+                        </div>
+                        <button id="addSupportingCast" type="button" class="ghostButton">新增配角</button>
+                      </div>
+                      <div id="castList" class="castList"></div>
+                    </section>
+                  </section>
+
                   <section class="generateAssistCard generateAssistInlineCard">
                     <div class="contentSectionHead">
-                      <strong>4. 主页参考</strong>
+                      <strong>5. 主页参考</strong>
                       <p>不填也能生成，填了优先参考主页风格</p>
                     </div>
                     <div class="generateAssistInlineRow">
