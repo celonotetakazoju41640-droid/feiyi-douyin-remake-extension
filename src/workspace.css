@@ -4883,8 +4883,8 @@ body {
 }
 
 .templateGuideCard {
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 12px;
   background: linear-gradient(180deg, #fffaf1 0%, #fff8ec 100%);
   border-color: #e7d4ad;
 }
@@ -4940,6 +4940,12 @@ body {
 .templateGuideActions {
   justify-content: flex-start;
   gap: 8px;
+}
+
+.templateGuideActions .primaryButton,
+.templateGuideActions .ghostButton {
+  min-height: 38px;
+  padding: 8px 12px;
 }
 
 .templateDeepDistillSummary {
@@ -5004,8 +5010,13 @@ body {
 }
 
 .historyOverviewCard {
-  gap: 12px;
+  gap: 10px;
   background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
+}
+
+.historyDetailCard,
+.historyListCard {
+  gap: 10px;
 }
 
 .manageLeadSection {
@@ -5210,6 +5221,17 @@ body {
   flex-wrap: wrap;
 }
 
+.manageDeepDistillActions {
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.manageSecondaryCard .ghostButton,
+.manageSecondaryCard .primaryButton {
+  min-height: 38px;
+  padding: 8px 12px;
+}
+
 .manageBasicsPanel {
   margin-top: 0;
 }
@@ -5356,6 +5378,12 @@ body {
 
 .historySeriesList {
   width: 100%;
+}
+
+.historyEmptyCard {
+  min-height: 84px;
+  display: grid;
+  align-content: center;
 }
 
 .historyToolDetails {
