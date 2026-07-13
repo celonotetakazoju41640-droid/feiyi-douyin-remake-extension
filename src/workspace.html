@@ -356,7 +356,39 @@
                       <strong id="manageScanSummaryTitle">蒸馏结果会显示在这里</strong>
                       <div id="manageScanSummaryMeta" class="manageScanSummaryMeta"></div>
                     </div>
+                    <div id="manageScanProgress" class="manageScanProgress" hidden>
+                      <div class="manageScanProgressTrack">
+                        <div id="manageScanProgressFill" class="manageScanProgressFill"></div>
+                      </div>
+                      <span id="manageScanProgressText" class="manageScanProgressText">0%</span>
+                    </div>
+                    <div id="manageScanSteps" class="manageScanSteps" hidden></div>
                     <p id="manageScanSummaryBody" class="manageScanSummaryBody">抓取成功后，这里会先告诉你这次提炼出了什么。</p>
+                  </div>
+                </section>
+              </section>
+
+              <section class="contentSection">
+                <section class="simpleFlowCard manageDeepDistillCard">
+                  <div class="contentSectionHead">
+                    <div>
+                      <strong>视频深蒸馏</strong>
+                      <p>直接选择本地文件夹里的视频，先沉淀镜头节奏、情绪和商品露出结构。</p>
+                    </div>
+                    <div class="resultActions manageDeepDistillActions">
+                      <label class="ghostButton manageFolderButton">
+                        选择本地视频文件夹
+                        <input id="deepDistillFolderInput" type="file" accept="video/*" webkitdirectory multiple hidden />
+                      </label>
+                      <button id="clearDeepDistillVideosButton" class="ghostButton" type="button">清空当前视频</button>
+                    </div>
+                  </div>
+                  <div class="textInlineHintRow manageDeepDistillHints">
+                    <span class="textInlineHint">不会上传视频，只读取你本机当前选中的文件夹内容</span>
+                    <span id="deepDistillStatus" class="textInlineHint">还没有读取本地视频</span>
+                  </div>
+                  <div id="deepDistillVideoList" class="deepDistillVideoList">
+                    <p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和深蒸馏字段。</p>
                   </div>
                 </section>
               </section>

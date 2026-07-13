@@ -97,7 +97,8 @@ export function createEmptyAccountTemplate() {
     defaultDurationSeconds: 30,
     defaultVoiceLanguage: "英文",
     preferredModel: "veo-3-fast",
-    sampleVideoUrls: []
+    sampleVideoUrls: [],
+    deepDistillVideos: []
   };
 }
 
@@ -110,6 +111,9 @@ export function normalizeAccountTemplate(raw = {}) {
   const sampleVideoUrls = Array.isArray(raw.sampleVideoUrls)
     ? raw.sampleVideoUrls.map((item) => String(item).trim()).filter(Boolean)
     : splitLines(raw.sampleVideoUrls);
+  const deepDistillVideos = Array.isArray(raw.deepDistillVideos)
+    ? raw.deepDistillVideos.map(normalizeDeepDistillVideo).filter(Boolean)
+    : [];
   const name = String(raw.name || raw.accountHandle || "未命名模板").trim();
 
   return {
@@ -131,7 +135,34 @@ export function normalizeAccountTemplate(raw = {}) {
     defaultDurationSeconds: Number(raw.defaultDurationSeconds || 30),
     defaultVoiceLanguage: String(raw.defaultVoiceLanguage || getDefaultVoiceLanguageForPlatform(platform)).trim(),
     preferredModel: String(raw.preferredModel || "veo-3-fast").trim(),
-    sampleVideoUrls
+    sampleVideoUrls,
+    deepDistillVideos
+  };
+}
+
+function normalizeDeepDistillVideo(raw = {}) {
+  const id = String(raw.id || "").trim();
+  const fileName = String(raw.fileName || "").trim();
+  if (!id && !fileName) return null;
+  return {
+    id: id || safeSlug(fileName || `deep-video-${Date.now()}`),
+    fileName,
+    relativePath: String(raw.relativePath || "").trim(),
+    durationSeconds: Number(raw.durationSeconds || 0),
+    sizeBytes: Number(raw.sizeBytes || 0),
+    lastModified: Number(raw.lastModified || 0),
+    analysis: {
+      isZeroFrameProductHook: String(raw.analysis?.isZeroFrameProductHook || "待判断").trim(),
+      firstStrongProductSecond: String(raw.analysis?.firstStrongProductSecond || "").trim(),
+      hookType: String(raw.analysis?.hookType || "").trim(),
+      emotionCurve: String(raw.analysis?.emotionCurve || "").trim(),
+      shotRhythm: String(raw.analysis?.shotRhythm || "").trim(),
+      proofStyle: String(raw.analysis?.proofStyle || "").trim(),
+      ctaStyle: String(raw.analysis?.ctaStyle || "").trim(),
+      sceneProgression: String(raw.analysis?.sceneProgression || "").trim(),
+      visualDna: String(raw.analysis?.visualDna || "").trim(),
+      summary: String(raw.analysis?.summary || "").trim()
+    }
   };
 }
 

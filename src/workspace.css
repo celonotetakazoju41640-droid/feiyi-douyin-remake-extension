@@ -616,6 +616,10 @@ h1 {
   .shotCardGrid {
     grid-template-columns: 1fr;
   }
+
+  .deepDistillVideoGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .referenceCard img {
@@ -4962,11 +4966,190 @@ body {
   gap: 8px;
 }
 
+.manageScanProgress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.manageScanProgress[hidden] {
+  display: none !important;
+}
+
+.manageScanProgressTrack {
+  position: relative;
+  overflow: hidden;
+  min-height: 8px;
+  border-radius: 999px;
+  background: #f1e3c7;
+}
+
+.manageScanProgressFill {
+  width: 0%;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d8aa48 0%, #edc979 100%);
+  transition: width 0.35s ease;
+}
+
+.manageScanProgressText {
+  color: #6d5b3f;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.manageScanSteps {
+  display: grid;
+  gap: 0;
+  border: 1px solid #efe1c7;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  overflow: hidden;
+}
+
+.manageScanSteps[hidden] {
+  display: none !important;
+}
+
+.manageScanStep {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 14px;
+}
+
+.manageScanStep + .manageScanStep {
+  border-top: 1px solid #f1e6d3;
+}
+
+.manageScanStepIcon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid #ddd0b5;
+  color: #9b8969;
+  font-size: 13px;
+  font-weight: 900;
+  background: #fffaf1;
+}
+
+.manageScanStep.is-active .manageScanStepIcon {
+  border-color: #9cb8ff;
+  color: #2563eb;
+  background: #eef4ff;
+}
+
+.manageScanStep.is-done .manageScanStepIcon {
+  border-color: #b8d8be;
+  color: #2f6a39;
+  background: #f2fbf3;
+}
+
+.manageScanStep.is-error .manageScanStepIcon {
+  border-color: #efb7b5;
+  color: #b42318;
+  background: #fff3f2;
+}
+
+.manageScanStepTitle {
+  color: #2f261d;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.manageScanStepDesc {
+  margin-top: 2px;
+  color: #786956;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .manageScanSummaryBody {
   margin: 0;
   color: #6c5f4c;
   font-size: 12px;
   line-height: 1.55;
+}
+
+.manageFolderButton {
+  position: relative;
+  overflow: hidden;
+}
+
+.manageDeepDistillHints {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.deepDistillVideoList {
+  display: grid;
+  gap: 10px;
+}
+
+.deepDistillVideoCard {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #eadcc4;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf9 0%, #fff8ee 100%);
+}
+
+.deepDistillVideoHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.deepDistillVideoMeta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.deepDistillVideoMeta strong {
+  color: #2f261d;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.deepDistillVideoPath {
+  color: #7d6e58;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.deepDistillVideoBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.deepDistillVideoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.deepDistillVideoGrid .backstageWideField {
+  grid-column: 1 / -1;
+}
+
+.deepDistillVideoList .emptyState {
+  margin: 0;
+  padding: 14px;
+  border: 1px dashed #e4d4b6;
+  border-radius: 14px;
+  background: rgba(255, 252, 245, 0.85);
+  color: #786956;
 }
 
 .currentResultSummary {

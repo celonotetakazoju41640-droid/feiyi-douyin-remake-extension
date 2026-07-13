@@ -82,7 +82,15 @@ const nodes = {
   manageScanSummary: document.querySelector("#manageScanSummary"),
   manageScanSummaryTitle: document.querySelector("#manageScanSummaryTitle"),
   manageScanSummaryMeta: document.querySelector("#manageScanSummaryMeta"),
+  manageScanProgress: document.querySelector("#manageScanProgress"),
+  manageScanProgressFill: document.querySelector("#manageScanProgressFill"),
+  manageScanProgressText: document.querySelector("#manageScanProgressText"),
+  manageScanSteps: document.querySelector("#manageScanSteps"),
   manageScanSummaryBody: document.querySelector("#manageScanSummaryBody"),
+  deepDistillFolderInput: document.querySelector("#deepDistillFolderInput"),
+  clearDeepDistillVideosButton: document.querySelector("#clearDeepDistillVideosButton"),
+  deepDistillStatus: document.querySelector("#deepDistillStatus"),
+  deepDistillVideoList: document.querySelector("#deepDistillVideoList"),
   templateName: document.querySelector("#templateName"),
   templatePlatform: document.querySelector("#templatePlatform"),
   templateAccountHandle: document.querySelector("#templateAccountHandle"),
@@ -170,6 +178,19 @@ let excludedProfileVideoUrls = new Set();
 let currentWizardStep = 1;
 let onboardingVisible = false;
 let currentView = "generate";
+let profileScanUiState = "idle";
+let profileScanUiMessage = "";
+let profileScanProgressValue = 0;
+let profileScanProgressTimer = null;
+let profileScanStageKey = "idle";
+let currentDeepDistillVideos = [];
+
+function setProfileScanStage(stageKey, progressValue = null) {
+  profileScanStageKey = stageKey || "idle";
+  if (typeof progressValue === "number") {
+    updateProfileScanProgress(progressValue);
+  }
+}
 
 init();
 
@@ -246,6 +267,8 @@ function bindEvents() {
   nodes.templateProfileUrl.addEventListener("input", handleTemplateProfileUrlInput);
   nodes.manageProfileUrl?.addEventListener("input", handleManageProfileUrlInput);
   nodes.scanProfileButton.addEventListener("click", handleProfileScan);
+  nodes.deepDistillFolderInput?.addEventListener("change", handleDeepDistillFolderChange);
+  nodes.clearDeepDistillVideosButton?.addEventListener("click", clearDeepDistillVideos);
   nodes.selectAllProfileSamplesButton.addEventListener("click", selectAllProfileSamples);
   nodes.clearProfileSamplesButton.addEventListener("click", clearProfileSamplesSelection);
   nodes.keepCoveredProfileSamplesButton.addEventListener("click", keepCoveredProfileSamples);
@@ -797,7 +820,8 @@ function saveCurrentTemplate() {
     defaultDurationSeconds: Number(nodes.targetDuration.value || 30),
     defaultVoiceLanguage: nodes.clipcatVoiceLanguage.value,
     preferredModel: nodes.templatePreferredModel.value.trim() || "veo-3-fast",
-    sampleVideoUrls: splitLines(nodes.templateSampleVideoUrls.value)
+    sampleVideoUrls: splitLines(nodes.templateSampleVideoUrls.value),
+    deepDistillVideos: currentDeepDistillVideos
   });
 
   const index = accountTemplates.findIndex((item) => item.id === template.id);
@@ -929,6 +953,8 @@ function syncTemplateForm() {
   nodes.templateRecentSignals.value = template.recentSignals || "";
   nodes.templateRewriteRules.value = template.rewriteRules || "";
   nodes.templateSampleVideoUrls.value = (template.sampleVideoUrls || []).join("\n");
+  currentDeepDistillVideos = cloneDeepDistillVideos(template.deepDistillVideos || []);
+  renderDeepDistillVideoList();
   updatePlatformDependentUi();
 }
 
@@ -964,6 +990,223 @@ function applyTemplateToGenerationFields() {
   nodes.clipcatVoiceLanguage.value = template.defaultVoiceLanguage || "英文";
   nodes.clipcatExtraRules.value = template.rewriteRules || "";
   updatePlatformDependentUi();
+}
+
+function cloneDeepDistillVideos(videos = []) {
+  return Array.isArray(videos)
+    ? videos.map((video) => ({
+        ...video,
+        analysis: {
+          isZeroFrameProductHook: video.analysis?.isZeroFrameProductHook || "待判断",
+          firstStrongProductSecond: video.analysis?.firstStrongProductSecond || "",
+          hookType: video.analysis?.hookType || "",
+          emotionCurve: video.analysis?.emotionCurve || "",
+          shotRhythm: video.analysis?.shotRhythm || "",
+          proofStyle: video.analysis?.proofStyle || "",
+          ctaStyle: video.analysis?.ctaStyle || "",
+          sceneProgression: video.analysis?.sceneProgression || "",
+          visualDna: video.analysis?.visualDna || "",
+          summary: video.analysis?.summary || ""
+        }
+      }))
+    : [];
+}
+
+async function handleDeepDistillFolderChange(event) {
+  const files = Array.from(event.target.files || []).filter((file) => String(file.type || "").startsWith("video/"));
+  if (!files.length) {
+    setDeepDistillStatus("没读到可用视频，请重新选择本地视频文件夹。", true);
+    renderDeepDistillVideoList();
+    return;
+  }
+
+  setDeepDistillStatus(`正在读取 ${files.length} 条本地视频...`);
+  setActionFeedback("正在读取本地文件夹视频元数据，完成后会自动写回当前模型。");
+
+  const nextVideos = [];
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    setDeepDistillStatus(`正在读取 ${index + 1} / ${files.length}：${file.name}`);
+    nextVideos.push(await buildDeepDistillVideoFromFile(file));
+  }
+
+  currentDeepDistillVideos = nextVideos;
+  renderDeepDistillVideoList();
+  saveCurrentTemplate();
+  setDeepDistillStatus(`已读取 ${nextVideos.length} 条本地视频，并保存到当前模型。`);
+  if (nodes.deepDistillFolderInput) {
+    nodes.deepDistillFolderInput.value = "";
+  }
+}
+
+async function buildDeepDistillVideoFromFile(file) {
+  const durationSeconds = await readVideoDurationFromFile(file);
+  const relativePath = String(file.webkitRelativePath || file.name || "").trim();
+  const normalizedName = String(file.name || "未命名视频").trim();
+  return {
+    id: safeLocalSlug(relativePath || `${normalizedName}-${Date.now()}`),
+    fileName: normalizedName,
+    relativePath,
+    durationSeconds,
+    sizeBytes: Number(file.size || 0),
+    lastModified: Number(file.lastModified || Date.now()),
+    analysis: {
+      isZeroFrameProductHook: "待判断",
+      firstStrongProductSecond: durationSeconds > 0 ? "0-1 秒待确认" : "",
+      hookType: "",
+      emotionCurve: "",
+      shotRhythm: "",
+      proofStyle: "",
+      ctaStyle: "",
+      sceneProgression: "",
+      visualDna: "",
+      summary: ""
+    }
+  };
+}
+
+function readVideoDurationFromFile(file) {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    const finish = (value = 0) => {
+      URL.revokeObjectURL(url);
+      resolve(Math.max(0, Math.round(Number(value || 0))));
+    };
+    video.preload = "metadata";
+    video.onloadedmetadata = () => finish(video.duration);
+    video.onerror = () => finish(0);
+    video.src = url;
+  });
+}
+
+function clearDeepDistillVideos() {
+  currentDeepDistillVideos = [];
+  renderDeepDistillVideoList();
+  saveCurrentTemplate();
+  setDeepDistillStatus("已清空当前模型下的视频深蒸馏样本。");
+}
+
+function setDeepDistillStatus(message, isError = false) {
+  if (!nodes.deepDistillStatus) return;
+  nodes.deepDistillStatus.textContent = message;
+  nodes.deepDistillStatus.classList.toggle("is-error", Boolean(isError));
+  nodes.deepDistillStatus.classList.toggle("is-ok", !isError && /已|完成|保存/.test(message));
+}
+
+function renderDeepDistillVideoList() {
+  if (!nodes.deepDistillVideoList) return;
+  if (!currentDeepDistillVideos.length) {
+    nodes.deepDistillVideoList.innerHTML =
+      '<p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和深蒸馏字段。</p>';
+    setDeepDistillStatus("还没有读取本地视频");
+    return;
+  }
+
+  nodes.deepDistillVideoList.innerHTML = currentDeepDistillVideos
+    .map(
+      (video, index) => `
+        <article class="deepDistillVideoCard" data-deep-video-id="${escapeHtml(video.id)}">
+          <div class="deepDistillVideoHead">
+            <div class="deepDistillVideoMeta">
+              <strong>${escapeHtml(video.fileName || `视频 ${index + 1}`)}</strong>
+              <div class="deepDistillVideoPath">${escapeHtml(video.relativePath || "本地文件")}</div>
+            </div>
+            <div class="deepDistillVideoBadges">
+              <span class="countBadge">${Number(video.durationSeconds || 0)} 秒</span>
+              <span class="countBadge">${formatFileSize(video.sizeBytes || 0)}</span>
+              <button class="ghostButton" type="button" data-remove-deep-video="${escapeHtml(video.id)}">删除</button>
+            </div>
+          </div>
+          <div class="deepDistillVideoGrid">
+            <label class="fieldBlock">
+              0 帧起手
+              <select data-deep-video-field="isZeroFrameProductHook">
+                ${["待判断", "是", "否"]
+                  .map((option) => `<option value="${option}" ${video.analysis?.isZeroFrameProductHook === option ? "selected" : ""}>${option}</option>`)
+                  .join("")}
+              </select>
+            </label>
+            <label class="fieldBlock">
+              商品强露出秒点
+              <input data-deep-video-field="firstStrongProductSecond" type="text" value="${escapeHtml(video.analysis?.firstStrongProductSecond || "")}" placeholder="比如：0 秒、3 秒、8 秒" />
+            </label>
+            <label class="fieldBlock">
+              钩子类型
+              <input data-deep-video-field="hookType" type="text" value="${escapeHtml(video.analysis?.hookType || "")}" placeholder="比如：0 帧商品、误会、冲突、问题开场" />
+            </label>
+            <label class="fieldBlock">
+              情绪曲线
+              <input data-deep-video-field="emotionCurve" type="text" value="${escapeHtml(video.analysis?.emotionCurve || "")}" placeholder="比如：紧张 -> 好奇 -> 结果释放" />
+            </label>
+            <label class="fieldBlock">
+              镜头节奏
+              <input data-deep-video-field="shotRhythm" type="text" value="${escapeHtml(video.analysis?.shotRhythm || "")}" placeholder="比如：0-3 秒快切，后半段放慢证明" />
+            </label>
+            <label class="fieldBlock">
+              卖点证明
+              <input data-deep-video-field="proofStyle" type="text" value="${escapeHtml(video.analysis?.proofStyle || "")}" placeholder="比如：前后对比、真人反应、实验结果" />
+            </label>
+            <label class="fieldBlock">
+              收口方式
+              <input data-deep-video-field="ctaStyle" type="text" value="${escapeHtml(video.analysis?.ctaStyle || "")}" placeholder="比如：商品定格、结果复述、轻 CTA" />
+            </label>
+            <label class="fieldBlock backstageWideField">
+              场景推进
+              <textarea data-deep-video-field="sceneProgression" rows="2" placeholder="按时间顺序写：开场冲突 -> 商品出场 -> 证明 -> 收口">${escapeHtml(video.analysis?.sceneProgression || "")}</textarea>
+            </label>
+            <label class="fieldBlock backstageWideField">
+              视觉 DNA
+              <textarea data-deep-video-field="visualDna" rows="2" placeholder="比如：近景压迫、手持跟拍、字幕节奏、暖冷色倾向">${escapeHtml(video.analysis?.visualDna || "")}</textarea>
+            </label>
+            <label class="fieldBlock backstageWideField">
+              一句话总结
+              <textarea data-deep-video-field="summary" rows="2" placeholder="一句话写清这条视频最该学的框架">${escapeHtml(video.analysis?.summary || "")}</textarea>
+            </label>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+
+  setDeepDistillStatus(`当前模型已保存 ${currentDeepDistillVideos.length} 条深蒸馏视频。`);
+
+  nodes.deepDistillVideoList.querySelectorAll("[data-deep-video-id]").forEach((card) => {
+    const videoId = card.dataset.deepVideoId;
+    card.querySelectorAll("[data-deep-video-field]").forEach((input) => {
+      input.addEventListener("input", () => updateDeepDistillVideoField(videoId, input.dataset.deepVideoField, input.value));
+      input.addEventListener("change", () => updateDeepDistillVideoField(videoId, input.dataset.deepVideoField, input.value));
+    });
+  });
+
+  nodes.deepDistillVideoList.querySelectorAll("[data-remove-deep-video]").forEach((button) => {
+    button.addEventListener("click", () => removeDeepDistillVideo(button.dataset.removeDeepVideo));
+  });
+}
+
+function updateDeepDistillVideoField(videoId, field, value) {
+  if (!videoId || !field) return;
+  currentDeepDistillVideos = currentDeepDistillVideos.map((video) =>
+    video.id === videoId
+      ? {
+          ...video,
+          analysis: {
+            ...video.analysis,
+            [field]: String(value || "").trim()
+          }
+        }
+      : video
+  );
+}
+
+function removeDeepDistillVideo(videoId) {
+  if (!videoId) return;
+  currentDeepDistillVideos = currentDeepDistillVideos.filter((video) => video.id !== videoId);
+  renderDeepDistillVideoList();
+  saveCurrentTemplate();
+  setDeepDistillStatus(
+    currentDeepDistillVideos.length ? `已删除 1 条视频，当前还剩 ${currentDeepDistillVideos.length} 条。` : "当前模型下已没有视频深蒸馏样本。"
+  );
 }
 
 function handleTargetDurationControlChange() {
@@ -1157,9 +1400,15 @@ async function handleProfileScan() {
   }
 
   nodes.scanProfileButton.disabled = true;
+  nodes.scanProfileButton.textContent = "抓取中...";
+  startProfileScanProgress();
+  setProfileScanStage("open", 10);
   nodes.profileScanStatus.textContent = "扫描中";
   nodes.profileScanStatus.classList.remove("is-ok", "is-error");
   nodes.profileScanResult.textContent = `正在打开${getPlatformLabel(platform)}主页并抓公开样本，请等页面加载完成。`;
+  profileScanUiState = "scanning";
+  profileScanUiMessage = `正在打开${getPlatformLabel(platform)}主页抓公开样本。这个过程中页面可能会短暂打开后自动关闭，属于正常流程。`;
+  renderManageScanSummary();
   if (nodes.profileSamplePanel) {
     nodes.profileSamplePanel.open = true;
   }
@@ -1168,6 +1417,10 @@ async function handleProfileScan() {
   try {
     const scan = await scanProfileByPlatform(profileUrl, Number(nodes.profileSampleLimit.value || 6), platform);
     currentProfileScan = scan;
+    profileScanUiState = "success";
+    profileScanUiMessage = "";
+    stopProfileScanProgress();
+    setProfileScanStage("apply", 100);
     selectedProfileVideoUrls = new Set(scan.videos.map((item) => item.videoUrl));
     pinnedProfileVideoUrls = [];
     excludedProfileVideoUrls = new Set();
@@ -1185,20 +1438,26 @@ async function handleProfileScan() {
     );
   } catch (error) {
     currentProfileScan = null;
+    profileScanUiState = "error";
+    const normalizedError = normalizeProfileScanError(error, platform);
+    profileScanUiMessage = normalizedError.message;
+    setProfileScanStage(normalizedError.stageKey, getProfileScanStageProgress(normalizedError.stageKey));
+    stopProfileScanProgress();
     selectedProfileVideoUrls = new Set();
     pinnedProfileVideoUrls = [];
     excludedProfileVideoUrls = new Set();
     nodes.profileScanStatus.textContent = "扫描失败";
     nodes.profileScanStatus.classList.add("is-error");
     nodes.profileScanStatus.classList.remove("is-ok");
-    nodes.profileScanResult.textContent = error instanceof Error ? error.message : String(error);
+    nodes.profileScanResult.textContent = normalizedError.message;
     renderManageScanSummary();
     if (nodes.profileSamplePanel) {
       nodes.profileSamplePanel.open = true;
     }
-    setActionFeedback(`主页扫描失败：${error instanceof Error ? error.message : String(error)}`, true);
+    setActionFeedback(`主页扫描失败：${normalizedError.message}`, true);
   } finally {
     nodes.scanProfileButton.disabled = false;
+    nodes.scanProfileButton.textContent = `提炼${getPlatformLabel(nodes.templatePlatform.value || "tiktok")}主页模板`;
   }
 }
 
@@ -1213,7 +1472,8 @@ function upsertTemplateFromScan(scan) {
   );
   const template = normalizeAccountTemplate({
     ...distilled,
-    id: existing?.id || `template-${Date.now()}`
+    id: existing?.id || `template-${Date.now()}`,
+    deepDistillVideos: existing?.deepDistillVideos || []
   });
   const index = accountTemplates.findIndex((item) => item.id === template.id);
   if (index === -1) {
@@ -1509,14 +1769,47 @@ function renderManageScanSummary() {
     !nodes.manageScanSummary ||
     !nodes.manageScanSummaryTitle ||
     !nodes.manageScanSummaryMeta ||
+    !nodes.manageScanProgress ||
+    !nodes.manageScanProgressFill ||
+    !nodes.manageScanProgressText ||
+    !nodes.manageScanSteps ||
     !nodes.manageScanSummaryBody
   ) {
+    return;
+  }
+
+  if (profileScanUiState === "scanning") {
+    nodes.manageScanSummary.hidden = false;
+    nodes.manageScanProgress.hidden = false;
+    nodes.manageScanSteps.hidden = false;
+    nodes.manageScanSummaryTitle.textContent = "正在抓取主页样本";
+    nodes.manageScanSummaryMeta.innerHTML = `
+      <span class="countBadge">${getPlatformLabel(nodes.templatePlatform.value || "tiktok")}</span>
+      <span class="countBadge">通常 5-15 秒</span>
+      <span class="countBadge">抓完会自动关闭页面</span>
+    `;
+    renderManageScanSteps();
+    nodes.manageScanSummaryBody.textContent =
+      profileScanUiMessage || "系统会临时打开主页抓公开样本，抓完后自动关闭，这是正常现象。请先不要重复点击。";
+    return;
+  }
+
+  if (profileScanUiState === "error" && profileScanUiMessage) {
+    nodes.manageScanSummary.hidden = false;
+    nodes.manageScanProgress.hidden = false;
+    nodes.manageScanSteps.hidden = false;
+    nodes.manageScanSummaryTitle.textContent = "这次蒸馏没有成功";
+    nodes.manageScanSummaryMeta.innerHTML = `<span class="countBadge">请检查链接或主页可见性</span>`;
+    renderManageScanSteps();
+    nodes.manageScanSummaryBody.textContent = profileScanUiMessage;
     return;
   }
 
   if (!currentProfileScan?.videos?.length) {
     nodes.manageScanSummary.hidden = true;
     nodes.manageScanSummaryMeta.innerHTML = "";
+    nodes.manageScanProgress.hidden = true;
+    nodes.manageScanSteps.hidden = true;
     return;
   }
 
@@ -1525,6 +1818,10 @@ function renderManageScanSummary() {
   const withViewsCount = currentProfileScan.videos.filter((item) => Number(item.stats?.views || 0) > 0).length;
   const templateName = nodes.templateName.value.trim() || currentProfileScan.accountHandle || "新模板";
   nodes.manageScanSummary.hidden = false;
+  nodes.manageScanProgress.hidden = false;
+  nodes.manageScanSteps.hidden = false;
+  profileScanUiState = "success";
+  profileScanUiMessage = "";
   nodes.manageScanSummaryTitle.textContent = `已提炼：${templateName}`;
   nodes.manageScanSummaryMeta.innerHTML = `
     <span class="countBadge">${getPlatformLabel(currentProfileScan.platform || "tiktok")}</span>
@@ -1532,7 +1829,138 @@ function renderManageScanSummary() {
     <span class="countBadge">${coveredCount} 条有封面</span>
     <span class="countBadge">${withViewsCount} 条带播放</span>
   `;
+  renderManageScanSteps();
   nodes.manageScanSummaryBody.textContent = buildProfileScanResultText();
+}
+
+function renderManageScanSteps() {
+  if (!nodes.manageScanSteps) return;
+  const steps = [
+    { key: "open", title: "打开主页", desc: "临时打开对标主页并等待页面加载。" },
+    { key: "collect", title: "抓取样本", desc: "收集公开视频卡片、文案、封面和播放数据。" },
+    { key: "distill", title: "生成模板", desc: "根据样本节奏和结构整理蒸馏模型。" },
+    { key: "apply", title: "回填结果", desc: "把结果写回前台并准备展开样本区。" }
+  ];
+  nodes.manageScanSteps.innerHTML = steps
+    .map((step, index) => {
+      const state = getManageScanStepState(step.key, index);
+      const icon = state === "done" ? "✓" : state === "active" ? "•" : state === "error" ? "!" : String(index + 1);
+      return `
+        <div class="manageScanStep ${state ? `is-${state}` : ""}">
+          <div class="manageScanStepIcon">${icon}</div>
+          <div>
+            <div class="manageScanStepTitle">${step.title}</div>
+            <div class="manageScanStepDesc">${step.desc}</div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function getManageScanStepState(stepKey, index) {
+  const order = ["open", "collect", "distill", "apply"];
+  const currentIndex = order.indexOf(profileScanStageKey);
+  const stepIndex = order.indexOf(stepKey);
+  if (profileScanUiState === "success") {
+    return "done";
+  }
+  if (profileScanUiState === "error") {
+    if (stepIndex < currentIndex) return "done";
+    if (stepIndex === currentIndex) return "error";
+    return "";
+  }
+  if (profileScanUiState === "scanning") {
+    if (stepIndex < currentIndex) return "done";
+    if (stepIndex === currentIndex) return "active";
+    return "";
+  }
+  return index === 0 ? "" : "";
+}
+
+function updateProfileScanProgress(value) {
+  profileScanProgressValue = Math.max(0, Math.min(100, Math.round(value)));
+  if (nodes.manageScanProgressFill) {
+    nodes.manageScanProgressFill.style.width = `${profileScanProgressValue}%`;
+  }
+  if (nodes.manageScanProgressText) {
+    nodes.manageScanProgressText.textContent = `${profileScanProgressValue}%`;
+  }
+}
+
+function getProfileScanStageProgress(stageKey) {
+  const progressMap = {
+    open: 12,
+    collect: 38,
+    distill: 74,
+    apply: 100
+  };
+  return progressMap[stageKey] || 18;
+}
+
+function stopProfileScanProgress() {
+  if (profileScanProgressTimer) {
+    clearInterval(profileScanProgressTimer);
+    profileScanProgressTimer = null;
+  }
+}
+
+function startProfileScanProgress() {
+  stopProfileScanProgress();
+  updateProfileScanProgress(8);
+  profileScanProgressTimer = setInterval(() => {
+    if (profileScanProgressValue >= 90) {
+      stopProfileScanProgress();
+      return;
+    }
+    const step = profileScanProgressValue < 40 ? 9 : profileScanProgressValue < 70 ? 5 : 2;
+    updateProfileScanProgress(profileScanProgressValue + step);
+  }, 700);
+}
+
+function normalizeProfileScanError(error, platform = "tiktok") {
+  const rawMessage = error instanceof Error ? error.message : String(error || "");
+  const normalized = String(rawMessage || "").trim();
+
+  if (/打开(?:TikTok|抖音)?主页超时/.test(normalized)) {
+    return {
+      stageKey: "open",
+      message: `主页打开超时了。通常是当前网络慢、主页加载卡住，或页面一直没进入可抓取状态。请先手动打开这个${getPlatformLabel(platform)}主页确认能正常显示。`
+    };
+  }
+
+  if (/找不到此账号|找不到此主页|account not found|not found/i.test(normalized)) {
+    return {
+      stageKey: "open",
+      message: "主页链接本身可能不对，或这个账号当前已经不可公开访问。请先确认链接、账号状态和地区可见性。"
+    };
+  }
+
+  if (/登录页|登录墙|访问限制|login/i.test(normalized)) {
+    return {
+      stageKey: "open",
+      message: "主页被登录页或访问限制拦住了，公开内容没有真正露出来。请先手动确认当前环境能直接打开这个主页。"
+    };
+  }
+
+  if (/没抓到公开视频卡片/i.test(normalized)) {
+    return {
+      stageKey: "collect",
+      message: "主页已经打开，但没有抓到可用的视频卡片。常见原因是首屏没有公开视频，或当前环境没有把卡片正常渲染出来。"
+    };
+  }
+
+  if (/没有抓到主页样本/i.test(normalized)) {
+    return {
+      stageKey: "collect",
+      message: "主页已经打开，但这次没有拿到任何可用样本。更像是页面数据没返回，或首屏没有能直接识别的公开视频。"
+    };
+  }
+
+  return {
+    stageKey: profileScanStageKey === "idle" ? "collect" : profileScanStageKey,
+    message: normalized || `这次${getPlatformLabel(platform)}主页蒸馏失败了，请重新试一次。`
+  };
 }
 
 function selectAllProfileSamples() {
@@ -2385,8 +2813,10 @@ async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
   }
 
   try {
+    setProfileScanStage("open", 12);
     await waitForTabComplete(createdTab.id, platform);
     await delay(platform === "douyin" ? 2800 : 2400);
+    setProfileScanStage("collect", 38);
 
     let result = null;
     const attempts = platform === "douyin" ? 3 : 1;
@@ -2409,6 +2839,9 @@ async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
       if (!result || scoreProfileScanQuality(nextResult) > scoreProfileScanQuality(result)) {
         result = nextResult;
       }
+      if (result?.videos?.length) {
+        setProfileScanStage("distill", 72);
+      }
       if (
         result.videos.length >= Math.min(Number(sampleLimit || 6), 3) &&
         scoreProfileScanQuality(result) >= 8 &&
@@ -2423,6 +2856,7 @@ async function scanProfilePage(profileUrl, sampleLimit, platform, scraper) {
     if (result.videos.length === 0) {
       throw new Error(result.pageIssueMessage || "主页里没抓到公开视频卡片，请换一个主页或手动打开主页后再试。");
     }
+    setProfileScanStage("distill", 84);
     return {
       ...result,
       platform
@@ -2563,6 +2997,22 @@ function formatCompactNumber(value) {
   if (number >= 1_000_000) return `${(number / 1_000_000).toFixed(number >= 10_000_000 ? 0 : 1).replace(/\.0$/, "")}M`;
   if (number >= 1_000) return `${(number / 1_000).toFixed(number >= 10_000 ? 0 : 1).replace(/\.0$/, "")}K`;
   return String(Math.round(number));
+}
+
+function formatFileSize(value) {
+  const size = Number(value || 0);
+  if (!Number.isFinite(size) || size <= 0) return "0 B";
+  if (size >= 1024 * 1024 * 1024) return `${(size / (1024 * 1024 * 1024)).toFixed(1).replace(/\.0$/, "")} GB`;
+  if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1).replace(/\.0$/, "")} MB`;
+  if (size >= 1024) return `${Math.round(size / 1024)} KB`;
+  return `${Math.round(size)} B`;
+}
+
+function safeLocalSlug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "") || `local-${Date.now()}`;
 }
 
 function delay(ms) {
