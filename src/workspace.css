@@ -4514,6 +4514,15 @@ body {
   gap: 10px;
 }
 
+.generateUploadCard .contentSectionHead,
+.generateComposerCard .contentSectionHead,
+.generateSettingsCard .contentSectionHead,
+.generateAssistCard .contentSectionHead {
+  display: grid;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
 .generateComposerCard {
   display: grid;
   gap: 10px;
@@ -4851,9 +4860,9 @@ body {
 
 .generateAssistInlineRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 12px;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 8px;
 }
 
 .generateReferenceField input {
@@ -4861,10 +4870,11 @@ body {
 }
 
 .generateAssistHints {
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
   align-items: center;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  white-space: normal;
 }
 
 .generateNotesDetails {
@@ -4873,7 +4883,8 @@ body {
 }
 
 .templateGuideCard {
-  gap: 12px;
+  gap: 10px;
+  padding: 12px 14px;
   background: linear-gradient(180deg, #fffaf1 0%, #fff8ec 100%);
   border-color: #e7d4ad;
 }
@@ -4928,6 +4939,7 @@ body {
 
 .templateGuideActions {
   justify-content: flex-start;
+  gap: 8px;
 }
 
 .templateDeepDistillSummary {
