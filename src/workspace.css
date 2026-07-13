@@ -4400,6 +4400,10 @@ body {
   border-top: 1px solid #f1e7d5;
 }
 
+.generateTaskSection {
+  padding-top: 6px;
+}
+
 .contentSectionHead {
   display: flex;
   align-items: flex-start;
@@ -4480,11 +4484,16 @@ body {
   line-height: 1.6;
 }
 
-.generateHeroPanel {
-  width: 100%;
+.generateTaskCard {
+  gap: 14px;
+  padding: 16px;
 }
 
-.generateHeroGrid {
+.generateTaskHead {
+  padding-bottom: 2px;
+}
+
+.generateTaskTop {
   display: grid;
   grid-template-columns: minmax(280px, 332px) minmax(0, 1fr);
   gap: 12px;
@@ -4501,11 +4510,14 @@ body {
 .generateUploadCard {
   align-content: start;
   align-self: start;
+  display: grid;
+  gap: 10px;
 }
 
 .generateComposerCard {
+  display: grid;
+  gap: 10px;
   align-content: start;
-  background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
 }
 
 .generateVideoDropTile {
@@ -4616,6 +4628,10 @@ body {
     10px -10px,
     -10px 0;
   background-size: 20px 20px;
+}
+
+.simpleProductTile {
+  width: 136px;
 }
 
 .uploadAssetBadge {
@@ -4824,8 +4840,20 @@ body {
 
 .generateAssistCard {
   gap: 10px;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 4px;
+  padding-bottom: 0;
+}
+
+.generateAssistInlineCard {
+  border-top: 1px dashed #ebdeca;
+  padding-top: 12px;
+}
+
+.generateAssistInlineRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
 }
 
 .generateReferenceField input {
@@ -4835,10 +4863,13 @@ body {
 .generateAssistHints {
   justify-content: space-between;
   gap: 10px;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .generateNotesDetails {
   max-width: 100%;
+  margin-top: -2px;
 }
 
 .templateGuideCard {
@@ -5541,7 +5572,7 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .generateHeroGrid {
+  .generateTaskTop {
     grid-template-columns: 1fr;
   }
 
@@ -5593,6 +5624,11 @@ body {
   .generateAssistHints {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .generateAssistInlineRow {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .historyStatGrid,

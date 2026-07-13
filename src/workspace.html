@@ -81,13 +81,20 @@
                 </section>
               </section>
 
-              <section class="contentSection">
-                <section class="generateHeroPanel">
-                  <div class="generateHeroGrid">
-                    <section class="simpleFlowCard generateUploadCard">
+              <section class="contentSection generateTaskSection">
+                <section class="simpleFlowCard generateTaskCard">
+                  <div class="contentSectionHead generateTaskHead">
+                    <div>
+                      <strong>创建任务</strong>
+                      <p>按顺序传产品图、补一句要求，再确认输出设定。</p>
+                    </div>
+                  </div>
+
+                  <div class="generateTaskTop">
+                    <section class="generateUploadCard">
                       <div class="contentSectionHead">
-                        <strong>上传素材</strong>
-                        <p>上传产品图后会自动拆卖点</p>
+                        <strong>1. 上传产品图</strong>
+                        <p>传图后会自动拆卖点</p>
                       </div>
                       <p class="simpleFlowIntro">商品图会决定产品外观、使用场景和主要卖点方向。</p>
                       <div class="simpleImageUploadRow">
@@ -106,9 +113,9 @@
                       </div>
                     </section>
 
-                    <section class="simpleFlowCard generateComposerCard">
+                    <section class="generateComposerCard">
                       <div class="contentSectionHead">
-                        <strong>创作要求</strong>
+                        <strong>2. 创作要求</strong>
                         <p>一句话写清你想怎么拍</p>
                       </div>
                       <div class="textFormRow generatePromptGrid">
@@ -131,90 +138,86 @@
                       </div>
                     </section>
                   </div>
-                </section>
-              </section>
 
-              <section class="contentSection">
-                <section class="simpleFlowCard generateSettingsCard">
-                  <div class="contentSectionHead">
-                    <strong>输出设定</strong>
-                    <p>先选模型，再决定平台、比例、时长和数量</p>
-                  </div>
-                  <div class="generateControlGrid simpleSettingsGrid simpleSettingsStrip">
-                    <label class="fieldBlock">
-                      蒸馏模型
-                      <select id="accountTemplateSelect"></select>
-                    </label>
-                    <label class="fieldBlock">
-                      发布平台
-                      <select id="templatePlatform">
-                        <option value="tiktok">TikTok</option>
-                        <option value="douyin">抖音</option>
-                      </select>
-                    </label>
-                    <label class="fieldBlock">
-                      视频比例
-                      <select id="aspectRatioSelect">
-                        <option value="9:16" selected>9:16</option>
-                        <option value="1:1">1:1</option>
-                        <option value="4:3">4:3</option>
-                        <option value="16:9">16:9</option>
-                      </select>
-                    </label>
-                    <label class="fieldBlock">
-                      生成时长
-                      <div class="durationInputWrap">
-                        <input id="targetDurationControl" type="number" min="1" max="60" step="1" value="45" />
-                        <span>秒</span>
+                  <section class="generateSettingsCard">
+                    <div class="contentSectionHead">
+                      <strong>3. 输出设定</strong>
+                      <p>先选模型，再决定平台、比例、时长和数量</p>
+                    </div>
+                    <div class="generateControlGrid simpleSettingsGrid simpleSettingsStrip">
+                      <label class="fieldBlock">
+                        蒸馏模型
+                        <select id="accountTemplateSelect"></select>
+                      </label>
+                      <label class="fieldBlock">
+                        发布平台
+                        <select id="templatePlatform">
+                          <option value="tiktok">TikTok</option>
+                          <option value="douyin">抖音</option>
+                        </select>
+                      </label>
+                      <label class="fieldBlock">
+                        视频比例
+                        <select id="aspectRatioSelect">
+                          <option value="9:16" selected>9:16</option>
+                          <option value="1:1">1:1</option>
+                          <option value="4:3">4:3</option>
+                          <option value="16:9">16:9</option>
+                        </select>
+                      </label>
+                      <label class="fieldBlock">
+                        生成时长
+                        <div class="durationInputWrap">
+                          <input id="targetDurationControl" type="number" min="1" max="60" step="1" value="45" />
+                          <span>秒</span>
+                        </div>
+                      </label>
+                      <label class="fieldBlock">
+                        口播语言
+                        <select id="voiceDialect"></select>
+                      </label>
+                      <label class="fieldBlock">
+                        生成数量
+                        <select id="generationCount">
+                          <option value="1">1 条</option>
+                          <option value="2">2 条</option>
+                          <option value="3">3 条</option>
+                          <option value="4">4 条</option>
+                          <option value="5">5 条</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
+                  </section>
+
+                  <section class="generateAssistCard generateAssistInlineCard">
+                    <div class="contentSectionHead">
+                      <strong>4. 主页参考</strong>
+                      <p>不填也能生成，填了优先参考主页风格</p>
+                    </div>
+                    <div class="generateAssistInlineRow">
+                      <label class="fieldBlock generateReferenceField">
+                        <input id="templateProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name" />
+                      </label>
+                      <div class="textInlineHintRow generateAssistHints">
+                        <span class="textInlineHint">平台语言自动切换</span>
+                        <span id="profileScanStatus" class="textInlineHint">自动判断</span>
                       </div>
-                    </label>
-                    <label class="fieldBlock">
-                      口播语言
-                      <select id="voiceDialect"></select>
-                    </label>
-                    <label class="fieldBlock">
-                      生成数量
-                      <select id="generationCount">
-                        <option value="1">1 条</option>
-                        <option value="2">2 条</option>
-                        <option value="3">3 条</option>
-                        <option value="4">4 条</option>
-                        <option value="5">5 条</option>
-                      </select>
-                    </label>
-                  </div>
-                  <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
-                </section>
-              </section>
+                    </div>
+                  </section>
 
-              <section class="contentSection">
-                <section class="simpleFlowCard generateAssistCard">
-                  <div class="contentSectionHead">
-                    <strong>主页参考</strong>
-                    <p>不填也能生成，填了优先参考主页风格</p>
-                  </div>
-                  <label class="fieldBlock generateReferenceField">
-                    <input id="templateProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name" />
-                  </label>
-                  <div class="textInlineHintRow generateAssistHints">
-                    <span class="textInlineHint">平台语言自动切换</span>
-                    <span id="profileScanStatus" class="textInlineHint">自动判断</span>
-                  </div>
+                  <details class="textDetails generateNotesDetails">
+                    <summary>展开自动拆出的卖点</summary>
+                    <label class="fieldBlock">
+                      自动拆出的卖点
+                      <textarea
+                        id="productNotes"
+                        rows="4"
+                        placeholder="上传产品图后会自动拆卖点，也可以手动补充。"
+                      ></textarea>
+                    </label>
+                  </details>
                 </section>
-              </section>
-
-              <section class="contentSection">
-                <details class="textDetails generateNotesDetails">
-                  <summary>展开自动拆出的卖点</summary>
-                  <label class="fieldBlock">
-                    自动拆出的卖点
-                    <textarea
-                      id="productNotes"
-                      rows="4"
-                      placeholder="上传产品图后会自动拆卖点，也可以手动补充。"
-                    ></textarea>
-                  </label>
-                </details>
               </section>
             </article>
           </section>
