@@ -255,7 +255,7 @@ function bindEvents() {
   nodes.jumpToManageButton?.addEventListener("click", () => setCurrentView("manage"));
   nodes.dismissTemplateGuideButton?.addEventListener("click", () => {
     nodes.templateGuideCard.hidden = true;
-    setActionFeedback("你也可以先继续填写，再回头补模板。");
+    setActionFeedback("你也可以先继续填写，再回头补模型。");
   });
   nodes.closeOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
   nodes.dismissOnboardingButton?.addEventListener("click", () => closeOnboarding(true));
@@ -301,12 +301,12 @@ function bindEvents() {
   nodes.copyBatchServiceCommandButton.addEventListener("click", copyBatchServiceCommand);
   nodes.refreshBatchServiceButton.addEventListener("click", refreshBatchServiceHealth);
   nodes.copyStartCommandButton.addEventListener("click", async () => {
-    const text = "这套工作台当前是本地静态版：上传产品图后会自动拆卖点，再补一句要求即可生成提示词和批量任务。";
+    const text = "这套工作台当前是本地版：上传产品图后会自动拆卖点，再补一句要求就能生成提示词和批量任务。";
     await navigator.clipboard.writeText(text);
     setActionFeedback("使用说明已复制。");
   });
   nodes.retryHealthButton.addEventListener("click", () => {
-    setActionFeedback("这是本地静态工作台，不需要额外启动服务。");
+    setActionFeedback("这是本地版工作台，不需要额外启动。");
   });
 }
 
@@ -389,7 +389,7 @@ async function handleGenerate() {
   const sellingPoints = splitLines(nodes.productNotes.value);
 
   if (!template) {
-    setActionFeedback("当前还没有可用模板，请补一个对标链接或稍后再试。", true);
+    setActionFeedback("当前还没有可用模型，请补一个主页链接或稍后再试。", true);
     return;
   }
   if (!productName) {
@@ -445,25 +445,25 @@ function renderProjects() {
   nodes.seriesCount.textContent = `${projects.length} 个项目`;
   nodes.seriesStats.innerHTML = `
     <div class="badge">最近沉淀 ${projects.length} 个结果</div>
-    <div class="badge">可选蒸馏模型 ${accountTemplates.length} 个</div>
+    <div class="badge">可用模型 ${accountTemplates.length} 个</div>
     <div class="badge">输出：提示词 / 提交入口 / 导出</div>
   `;
 
   if (projects.length === 0) {
     currentProjectId = null;
     currentPackage = null;
-    nodes.currentTaskStatusBadge.textContent = "等待生成";
+    nodes.currentTaskStatusBadge.textContent = "未生成";
     nodes.currentTaskUnitLabel.textContent = "第 1 条";
-    nodes.currentTaskHint.textContent = "先去生成页上传产品图并补一句要求，结果出来后会自动回到这里。";
-    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>当前还没有生成结果</strong><p>先去生成页完成一次生成。完成后，这里会承接项目摘要、提示词、批量任务和镜头细节。</p></div>`;
+    nodes.currentTaskHint.textContent = "先去生成页上传产品图，再补一句要求。生成后会自动回到这里。";
+    nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>还没有生成结果</strong><p>先去生成页完成一次生成。完成后，这里会承接项目摘要、提示词、批量任务和镜头细节。</p></div>`;
     nodes.shotEditorPanel.innerHTML = "";
-    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近记录</strong><p>第一次生成完成后，这里会保留最近结果、第一条提示词预览和切换入口。</p></div>`;
+    nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近记录</strong><p>第一次生成后，这里会保留最近结果、第一条提示词预览和切换入口。</p></div>`;
     renderCurrentResultSummary();
     updateResultButtons();
     return;
   }
 
-  nodes.currentTaskStatusBadge.textContent = "可提交";
+  nodes.currentTaskStatusBadge.textContent = "可继续";
   nodes.currentTaskUnitLabel.textContent = `第 1 条 / 共 ${currentPackage?.batchVideoTasks?.length || 1} 条`;
   nodes.currentTaskHint.textContent = currentPackage
     ? `当前项目：${currentPackage.project.projectName}。先检查摘要和提示词，再决定复制、提交或微调镜头。`
@@ -772,9 +772,9 @@ async function refreshBatchServiceHealth() {
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
     if (data.deepDistillSupported) {
-      nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可分析 / 可转发" : "可分析";
+      nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可分析 / 可提交" : "可分析";
     } else {
-      nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可转发" : "队列模式";
+      nodes.batchServiceStatus.textContent = data.mode === "proxy_ready" ? "可提交" : "仅本地";
     }
     nodes.batchServiceStatus.classList.add("is-ok");
     nodes.batchServiceStatus.classList.remove("is-error");
@@ -798,7 +798,7 @@ function handleTemplateSelectionChange() {
   applyTemplateToGenerationFields();
   renderTemplateGuide();
   renderProfileScanState();
-  setActionFeedback("已切换对标账户模板。");
+  setActionFeedback("已切换当前模型。");
 }
 
 function handleManageTemplateSelectionChange() {
@@ -811,7 +811,7 @@ function handleManageTemplateSelectionChange() {
   applyTemplateToGenerationFields();
   renderTemplateGuide();
   renderProfileScanState();
-  setActionFeedback("已切换当前蒸馏模型。");
+  setActionFeedback("已切换当前模型。");
 }
 
 function handleTemplatePlatformChange() {
@@ -1241,7 +1241,7 @@ function renderDeepDistillVideoList() {
   renderTemplateDeepDistillSummary();
   if (!currentDeepDistillVideos.length) {
     nodes.deepDistillVideoList.innerHTML =
-      '<p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和深蒸馏字段。</p>';
+      '<p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和分析结果。</p>';
     setDeepDistillStatus("还没有读取本地视频");
     return;
   }
@@ -1663,11 +1663,11 @@ function renderProfileScanState() {
   if (!currentProfileScan) {
     renderManageScanSummary();
     if (canAutoScan) {
-      nodes.profileScanStatus.textContent = "系统自动";
+      nodes.profileScanStatus.textContent = "自动判断";
       nodes.profileScanStatus.classList.remove("is-ok", "is-error");
       nodes.profileScanResult.textContent = "普通用户默认不需要手动蒸馏。你贴对标主页后，系统会在生成时自动尽量参考该风格。";
     } else {
-      nodes.profileScanStatus.textContent = "手动模式";
+      nodes.profileScanStatus.textContent = "手动填写";
       nodes.profileScanStatus.classList.add("is-error");
       nodes.profileScanStatus.classList.remove("is-ok");
       nodes.profileScanResult.textContent = "抖音版当前先保留手动模板沉淀。可直接填写内容定位、节奏、结构、表达 DNA 和样本链接。";
@@ -1682,7 +1682,7 @@ function renderProfileScanState() {
     renderManageScanSummary();
     nodes.profileSampleSort.value = profileSampleSortMode;
     nodes.profileMinViewsFilter.value = String(profileMinViewsFilter);
-    nodes.profileScanStatus.textContent = "手动模式";
+    nodes.profileScanStatus.textContent = "手动填写";
     nodes.profileScanStatus.classList.add("is-error");
     nodes.profileScanStatus.classList.remove("is-ok");
     nodes.profileScanResult.textContent = `抖音版当前先保留手动模板沉淀。已保留上次 TikTok 蒸馏样本 ${currentProfileScan.videos.length} 条，仅供参考；切回 TikTok 模式后可继续筛片和重蒸馏。`;
@@ -1692,7 +1692,7 @@ function renderProfileScanState() {
 
   if (!hasSamePlatformScan) {
     renderManageScanSummary();
-    nodes.profileScanStatus.textContent = "待重扫";
+    nodes.profileScanStatus.textContent = "需要重扫";
     nodes.profileScanStatus.classList.remove("is-ok");
     nodes.profileScanStatus.classList.add("is-error");
     nodes.profileScanResult.textContent = `当前暂存的是${getPlatformLabel(currentProfileScan.platform || "tiktok")}样本，和已选模板平台不一致。请重新扫描${getPlatformLabel(platform)}主页。`;
@@ -1715,13 +1715,13 @@ async function handleProfileScan() {
   const platform = nodes.templatePlatform.value || "tiktok";
   if (!profileUrl) {
     setActionFeedback("请先填对标主页链接。", true);
-    nodes.profileScanStatus.textContent = "缺链接";
+    nodes.profileScanStatus.textContent = "缺主页链接";
     nodes.profileScanStatus.classList.add("is-error");
     return;
   }
   if (!isProfileAutoScanSupported(platform)) {
     setActionFeedback("当前平台还没接入主页自动蒸馏，请先手动填写模板字段。", true);
-    nodes.profileScanStatus.textContent = "手动模式";
+    nodes.profileScanStatus.textContent = "手动填写";
     nodes.profileScanStatus.classList.add("is-error");
     nodes.profileScanStatus.classList.remove("is-ok");
     nodes.profileScanResult.textContent = "当前平台还没接入主页自动蒸馏，可直接填写内容定位、节奏、结构、表达 DNA 和样本链接。";
@@ -1735,7 +1735,7 @@ async function handleProfileScan() {
         : "主页链接格式不对，TikTok 账号主页应类似 https://www.tiktok.com/@account_name 。",
       true
     );
-    nodes.profileScanStatus.textContent = "链接错误";
+    nodes.profileScanStatus.textContent = "链接格式不对";
     nodes.profileScanStatus.classList.add("is-error");
     return;
   }
@@ -1744,7 +1744,7 @@ async function handleProfileScan() {
   nodes.scanProfileButton.textContent = "抓取中...";
   startProfileScanProgress();
   setProfileScanStage("open", 10);
-  nodes.profileScanStatus.textContent = "扫描中";
+  nodes.profileScanStatus.textContent = "提炼中";
   nodes.profileScanStatus.classList.remove("is-ok", "is-error");
   nodes.profileScanResult.textContent = `正在打开${getPlatformLabel(platform)}主页并抓公开样本，请等页面加载完成。`;
   profileScanUiState = "scanning";
@@ -1787,7 +1787,7 @@ async function handleProfileScan() {
     selectedProfileVideoUrls = new Set();
     pinnedProfileVideoUrls = [];
     excludedProfileVideoUrls = new Set();
-    nodes.profileScanStatus.textContent = "扫描失败";
+    nodes.profileScanStatus.textContent = "提炼失败";
     nodes.profileScanStatus.classList.add("is-error");
     nodes.profileScanStatus.classList.remove("is-ok");
     nodes.profileScanResult.textContent = normalizedError.message;
@@ -2139,7 +2139,7 @@ function renderManageScanSummary() {
     nodes.manageScanSummary.hidden = false;
     nodes.manageScanProgress.hidden = false;
     nodes.manageScanSteps.hidden = false;
-    nodes.manageScanSummaryTitle.textContent = "这次蒸馏没有成功";
+    nodes.manageScanSummaryTitle.textContent = "这次提炼没有成功";
     nodes.manageScanSummaryMeta.innerHTML = `<span class="countBadge">请检查链接或主页可见性</span>`;
     renderManageScanSteps();
     nodes.manageScanSummaryBody.textContent = profileScanUiMessage;
@@ -2641,11 +2641,11 @@ function updateActionFeedback() {
   const hasImages = Boolean(nodes.productImages.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
   if (!hasTemplate && !hasImages && !hasModelImage && !hasPrompt) {
-    setActionFeedback("先选蒸馏模型，再上传产品图。主页链接不填也能直接生成。");
+    setActionFeedback("先选模型，再上传产品图。主页链接不填也能直接生成。");
     return;
   }
   if (!hasImages && !hasModelImage && !hasPrompt) {
-    setActionFeedback("先上传产品图；模特图和主页链接都只是可选参考。");
+    setActionFeedback("先上传产品图；主页链接只是补充参考，不填也能生成。");
     return;
   }
   if (!hasImages) {
@@ -2658,8 +2658,8 @@ function updateActionFeedback() {
   }
   setActionFeedback(
     hasModelImage
-      ? "素材和要求都已准备，系统会自动处理模板和语言，可以直接生成。"
-      : "产品图和要求都已准备，可以直接生成；需要的话也能一键提交去跑视频。"
+      ? "素材和要求都已准备，系统会自动处理模型和语言，可以直接生成。"
+      : "产品图和要求都已准备，可以直接生成；需要的话也能一键提交。"
   );
 }
 
@@ -2749,10 +2749,10 @@ function updateGenerateButtonState() {
 function syncFlowStepState() {
   const hasProfileUrl = Boolean(nodes.templateProfileUrl.value.trim());
   if (nodes.profileScanStatus) {
-    nodes.profileScanStatus.textContent = hasProfileUrl ? "主页参考：已填写" : "主页参考：系统自动";
+    nodes.profileScanStatus.textContent = hasProfileUrl ? "主页参考：已填写" : "主页参考：自动判断";
   }
   if (nodes.manageProfileStatus) {
-    nodes.manageProfileStatus.textContent = hasProfileUrl ? "主页链接：已填写，可直接提炼" : "系统自动识别平台链接";
+    nodes.manageProfileStatus.textContent = hasProfileUrl ? "主页链接：已填写，可直接提炼" : "自动判断平台";
   }
   if (nodes.stepTemplateCard) {
     nodes.stepTemplateCard.open = hasProfileUrl;

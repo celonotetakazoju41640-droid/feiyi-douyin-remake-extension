@@ -26,7 +26,7 @@
 
       <section id="serviceHelpPanel" class="serviceHelpPanel" hidden>
         <div>
-          <strong>当前工作台说明</strong>
+          <strong>使用说明</strong>
           <p>左侧切栏目，右侧处理内容。</p>
         </div>
         <code id="startCommand">流程：选模型 -> 传图 -> 生成 -> 去历史记录提交。</code>
@@ -70,12 +70,12 @@
               <section id="templateGuideCard" class="contentSection" hidden>
                 <section class="simpleFlowCard templateGuideCard">
                   <div class="contentSectionHead">
-                    <strong>先补一个可用模板</strong>
-                    <p>当前这个模板还比较空，先补基础信息或直接去提炼主页模板。</p>
+                    <strong>先补一个可用模型</strong>
+                    <p>这个模型现在还比较空，先补基础信息，或者直接去提炼主页。</p>
                   </div>
                   <div id="templateGuideSummary" class="templateGuideSummary"></div>
                   <div class="resultActions templateGuideActions">
-                    <button id="jumpToManageButton" class="primaryButton" type="button">去蒸馏管理补模板</button>
+                    <button id="jumpToManageButton" class="primaryButton" type="button">去蒸馏管理补模型</button>
                     <button id="dismissTemplateGuideButton" class="ghostButton" type="button">先继续填写</button>
                   </div>
                 </section>
@@ -87,9 +87,9 @@
                     <section class="simpleFlowCard generateUploadCard">
                       <div class="contentSectionHead">
                         <strong>上传素材</strong>
-                        <p>产品图必填，模特图可选</p>
+                        <p>上传产品图后会自动拆卖点</p>
                       </div>
-                      <p class="simpleFlowIntro">商品图决定产品外观和卖点方向。模特图只在你想固定人物时再传。</p>
+                      <p class="simpleFlowIntro">商品图会决定产品外观、使用场景和主要卖点方向。</p>
                       <div class="simpleImageUploadRow">
                         <label class="simpleProductTile">
                           <input id="productImages" type="file" accept="image/*" multiple />
@@ -138,7 +138,7 @@
                       </label>
                       <div class="generatePrimaryActionRow">
                         <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>
-                        <p id="actionFeedback">先选择蒸馏模型，再上传产品图。</p>
+                        <p id="actionFeedback">先选模型，再上传产品图。</p>
                       </div>
                     </section>
                   </div>
@@ -149,7 +149,7 @@
                 <section class="simpleFlowCard generateSettingsCard">
                   <div class="contentSectionHead">
                     <strong>输出设定</strong>
-                    <p>先选模板，再决定平台、比例、时长和数量</p>
+                    <p>先选模型，再决定平台、比例、时长和数量</p>
                   </div>
                   <div class="generateControlGrid simpleSettingsGrid simpleSettingsStrip">
                     <label class="fieldBlock">
@@ -201,7 +201,7 @@
               <section class="contentSection">
                 <section class="simpleFlowCard generateAssistCard">
                   <div class="contentSectionHead">
-                    <strong>可选主页参考</strong>
+                    <strong>主页参考</strong>
                     <p>不填也能生成，填了优先参考主页风格</p>
                   </div>
                   <label class="fieldBlock generateReferenceField">
@@ -209,7 +209,7 @@
                   </label>
                   <div class="textInlineHintRow generateAssistHints">
                     <span class="textInlineHint">平台语言自动切换</span>
-                    <span id="profileScanStatus" class="textInlineHint">主页参考自动识别</span>
+                    <span id="profileScanStatus" class="textInlineHint">自动判断</span>
                   </div>
                 </section>
               </section>
@@ -235,7 +235,7 @@
               <header class="contentHeader">
                 <div class="historyHeaderBlock">
                   <h2>历史记录</h2>
-                  <p>这里负责看当前结果、复制任务、导出文件和提交去跑视频。</p>
+                  <p>这里看当前结果、复制任务、导出文件和提交生成。</p>
                 </div>
               </header>
 
@@ -247,7 +247,7 @@
                       <p id="currentTaskHint">生成后在这里复制、导出或提交。</p>
                     </div>
                     <div class="textResultMeta">
-                      <span id="currentTaskStatusBadge" class="countBadge">等待生成</span>
+                      <span id="currentTaskStatusBadge" class="countBadge">未生成</span>
                       <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
                       <span id="seriesCount" class="countBadge">0 个项目</span>
                     </div>
@@ -255,8 +255,8 @@
                   <div id="seriesStats" class="projectStatsGrid simpleResultStats historyStatGrid" aria-label="剧集生产统计"></div>
                   <div id="currentResultSummary" class="currentResultSummary"></div>
                   <div class="resultActions simpleResultActions historyPrimaryActions">
-                    <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交去跑视频</button>
-                    <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制提示词任务</button>
+                    <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交生成</button>
+                    <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制任务</button>
                     <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
                     <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
                   </div>
@@ -324,7 +324,7 @@
               <header class="contentHeader">
                 <div class="manageHeaderBlock">
                   <h2>蒸馏管理</h2>
-                  <p>这里维护蒸馏模型、主页样本和参考控制，不打扰普通生成流程。</p>
+                  <p>这里维护模型、主页样本和视频参考，不打扰普通生成流程。</p>
                 </div>
               </header>
 
@@ -355,13 +355,13 @@
                       <input id="manageProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name" />
                     </label>
                     <div class="textInlineHintRow manageProfileEntryHints">
-                      <span class="textInlineHint">在这里直接贴对标主页，再点上面的提炼按钮</span>
-                      <span id="manageProfileStatus" class="textInlineHint">系统自动识别平台链接</span>
+                      <span class="textInlineHint">直接贴主页链接，再点上面的提炼按钮</span>
+                      <span id="manageProfileStatus" class="textInlineHint">自动判断平台</span>
                     </div>
                   </div>
                   <div id="manageScanSummary" class="manageScanSummary" hidden>
                     <div class="manageScanSummaryHead">
-                      <strong id="manageScanSummaryTitle">蒸馏结果会显示在这里</strong>
+                      <strong id="manageScanSummaryTitle">提炼结果会显示在这里</strong>
                       <div id="manageScanSummaryMeta" class="manageScanSummaryMeta"></div>
                     </div>
                     <div id="manageScanProgress" class="manageScanProgress" hidden>
@@ -371,7 +371,7 @@
                       <span id="manageScanProgressText" class="manageScanProgressText">0%</span>
                     </div>
                     <div id="manageScanSteps" class="manageScanSteps" hidden></div>
-                    <p id="manageScanSummaryBody" class="manageScanSummaryBody">抓取成功后，这里会先告诉你这次提炼出了什么。</p>
+                    <p id="manageScanSummaryBody" class="manageScanSummaryBody">提炼完成后，这里会先告诉你这次拿到了什么。</p>
                   </div>
                 </section>
               </section>
@@ -394,10 +394,10 @@
                   </div>
                   <div class="textInlineHintRow manageDeepDistillHints">
                     <span class="textInlineHint">不会上传视频，只读取你本机当前选中的文件夹内容</span>
-                    <span id="deepDistillStatus" class="textInlineHint">还没有读取本地视频</span>
+                    <span id="deepDistillStatus" class="textInlineHint">还没读取本地视频</span>
                   </div>
                   <div id="deepDistillVideoList" class="deepDistillVideoList">
-                    <p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和深蒸馏字段。</p>
+                    <p class="emptyState">先选择一个本地视频文件夹。读取后，这里会保留视频样本和分析字段。</p>
                   </div>
                 </section>
               </section>
@@ -526,7 +526,7 @@
               <details id="profileSamplePanel" class="advancedPanel innerBackstagePanel">
                 <summary>展开主页蒸馏样本和筛片</summary>
                 <div class="advancedPanelBody">
-                  <pre id="profileScanResult" class="profileScanResult">还没有主页扫描结果。</pre>
+                  <pre id="profileScanResult" class="profileScanResult">还没有主页结果。</pre>
                   <div class="resultActions hiddenResultActions">
                     <button id="selectAllProfileSamplesButton" class="ghostButton" type="button" disabled>全选样本</button>
                     <button id="clearProfileSamplesButton" class="ghostButton" type="button" disabled>清空选择</button>
