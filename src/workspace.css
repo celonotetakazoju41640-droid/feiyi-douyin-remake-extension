@@ -5008,6 +5008,28 @@ body {
   background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
 }
 
+.manageLeadSection {
+  padding-top: 6px;
+}
+
+.manageLeadGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.managePrimaryCard,
+.manageSecondaryCard {
+  gap: 12px;
+}
+
+.managePrimaryHead {
+  display: grid;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
 .manageProfileEntry {
   display: grid;
   gap: 8px;
@@ -5030,8 +5052,9 @@ body {
 }
 
 .manageProfileEntryHints {
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .manageScanSummary {
@@ -5182,8 +5205,9 @@ body {
 }
 
 .manageDeepDistillHints {
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .manageBasicsPanel {
@@ -5649,6 +5673,10 @@ body {
   .manageControlGrid,
   .historyStatGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manageLeadGrid {
+    grid-template-columns: 1fr;
   }
 
   .manageBasicsGrid .backstageWideField,
