@@ -278,34 +278,55 @@
               <details class="advancedPanel textResultAdvanced historyToolDetails">
                 <summary>展开导入、本地服务和镜头微调</summary>
                 <div class="advancedPanelBody historyToolBody">
-                  <section class="simpleFlowCard historyToolCard">
-                    <div class="contentSectionHead">
-                      <strong>导入与批量导出</strong>
-                      <p>给高级用户处理历史项目和离线包。</p>
+                  <section class="simpleFlowCard historyToolCard historyToolQuickCard">
+                    <div class="contentSectionHead historyToolHead">
+                      <div>
+                        <strong>常用工具</strong>
+                        <p>先处理导入导出和本地服务，镜头微调放在下面。</p>
+                      </div>
                     </div>
-                    <div class="resultActions">
-                      <label class="ghostButton importButton">
-                        导入 JSON
-                        <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
-                      </label>
-                      <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+                    <div class="historyToolQuickGrid">
+                      <section class="historyMiniToolCard">
+                        <div class="contentSectionHead historyMiniToolHead">
+                          <div>
+                            <strong>导入与批量导出</strong>
+                            <p>给高级用户处理历史项目和离线包。</p>
+                          </div>
+                        </div>
+                        <div class="resultActions historyMiniToolActions">
+                          <label class="ghostButton importButton">
+                            导入 JSON
+                            <input id="importJsonInput" type="file" accept="application/json,.json" hidden />
+                          </label>
+                          <button id="downloadBundleButton" class="ghostButton" type="button" disabled>批量导出项目</button>
+                        </div>
+                      </section>
+
+                      <div id="batchServicePanel" class="batchServicePanel historyServicePanel">
+                        <div class="panelHead historyServiceHead">
+                          <div>
+                            <strong>本地视频任务服务</strong>
+                            <p>接住批量短视频任务，并读取你本机已有的 Packy / Gemini 配置。</p>
+                          </div>
+                          <span id="batchServiceStatus" class="statusBadge">未检测</span>
+                        </div>
+                        <code id="batchServiceCommand">node /Users/da/Desktop/飞蚁抖音复刻-Chrome扩展/scripts/video-batch-service.mjs</code>
+                        <div class="resultActions historyMiniToolActions">
+                          <button id="copyBatchServiceCommandButton" class="ghostButton" type="button">复制启动命令</button>
+                          <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
+                        </div>
+                      </div>
                     </div>
                   </section>
-                  <div id="batchServicePanel" class="batchServicePanel historyServicePanel">
-                    <div class="panelHead">
+                  <section class="simpleFlowCard historyToolCard historyEditorCard">
+                    <div class="contentSectionHead historyMiniToolHead">
                       <div>
-                        <strong>本地视频任务服务</strong>
-                        <p>这里负责接住批量短视频任务，并读取你本机已有的 Packy / Gemini 配置。</p>
+                        <strong>镜头微调</strong>
+                        <p>需要精修镜头目标、动作和口播意图时，再展开处理。</p>
                       </div>
-                      <span id="batchServiceStatus" class="statusBadge">未检测</span>
                     </div>
-                    <code id="batchServiceCommand">node /Users/da/Desktop/飞蚁抖音复刻-Chrome扩展/scripts/video-batch-service.mjs</code>
-                    <div class="resultActions">
-                      <button id="copyBatchServiceCommandButton" class="ghostButton" type="button">复制启动命令</button>
-                      <button id="refreshBatchServiceButton" class="ghostButton" type="button">检测服务</button>
-                    </div>
-                  </div>
-                  <div id="shotEditorPanel" class="shotEditorPanel"></div>
+                    <div id="shotEditorPanel" class="shotEditorPanel historyShotEditorPanel"></div>
+                  </section>
                 </div>
               </details>
             </article>

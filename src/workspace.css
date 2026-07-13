@@ -5339,15 +5339,67 @@ body {
 }
 
 .historyToolBody {
-  gap: 12px;
+  gap: 10px;
 }
 
 .historyToolCard {
   padding: 12px;
 }
 
+.historyToolQuickCard,
+.historyEditorCard {
+  gap: 10px;
+}
+
+.historyToolHead,
+.historyMiniToolHead {
+  display: grid;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.historyToolQuickGrid {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.95fr) minmax(0, 1.25fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.historyMiniToolCard {
+  display: grid;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #eadcc4;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf9 0%, #fff8ee 100%);
+}
+
+.historyMiniToolActions {
+  justify-content: flex-start;
+}
+
 .historyServicePanel {
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
   background: #fffaf3;
+}
+
+.historyServiceHead {
+  align-items: flex-start;
+}
+
+.historyServicePanel code {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.historyShotEditorPanel {
+  min-height: 0;
+}
+
+.historyShotEditorPanel:empty {
+  display: none;
 }
 
 .manageOverviewCard {
