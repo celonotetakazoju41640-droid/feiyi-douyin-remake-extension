@@ -22,32 +22,42 @@ export function inferProductInsightsFromAsset({
     {
       key: "cleaning",
       match: /(清洁|去污|除霉|除味|洗衣|油污|clean|cleaner|detergent|spray|degreaser|odor)/i,
-      sellingPoints: ["见效快，前后对比明显", "使用动作简单，镜头好证明", "适合厨房/卫生间/家务场景", "结果型表达比讲参数更容易转化"],
-      prompt: "先用脏污或异味场景开场，再让人物拿出产品，30秒内完成前后对比证明。"
+      sellingPointsZh: ["见效快，前后对比明显", "使用动作简单，镜头好证明", "适合厨房/卫生间/家务场景", "结果型表达比讲参数更容易转化"],
+      sellingPointsEn: ["Fast visible result with clear before-after proof", "Easy-to-show usage action that reads well on camera", "Fits kitchen, bathroom, and everyday home-cleaning scenes", "Result-led messaging converts better than feature dumping"],
+      promptZh: "先用脏污或异味场景开场，再让人物拿出产品，30秒内完成前后对比证明。",
+      promptEn: "Open on visible dirt or odor, bring in the product fast, and land the before-after proof within 30 seconds."
     },
     {
       key: "beauty",
       match: /(面膜|精华|口红|粉底|护肤|防晒|lip|serum|cream|beauty|skin|makeup)/i,
-      sellingPoints: ["上脸前后差异要清楚", "突出肤感/妆感/自然度", "适合通勤、出门、约会等生活场景", "镜头重点放在使用前后变化和人物反应"],
-      prompt: "先抛出人物出门前的困扰，再快速展示上脸过程和使用后状态，让结果比参数更先被看懂。"
+      sellingPointsZh: ["上脸前后差异要清楚", "突出肤感/妆感/自然度", "适合通勤、出门、约会等生活场景", "镜头重点放在使用前后变化和人物反应"],
+      sellingPointsEn: ["Make the before-after change obvious on skin", "Highlight texture, finish, and natural-looking payoff", "Fits commute, get-ready, and date-night lifestyle scenes", "Focus the camera on the application change and the reaction shot"],
+      promptZh: "先抛出人物出门前的困扰，再快速展示上脸过程和使用后状态，让结果比参数更先被看懂。",
+      promptEn: "Start from a real get-ready problem, move quickly through application, and make the post-use result easier to understand than any specs."
     },
     {
       key: "fashion",
       match: /(衣|裙|裤|鞋|包|穿搭|dress|shirt|shoe|bag|fashion|outfit)/i,
-      sellingPoints: ["上身/上脚效果要直接", "突出显瘦显高或百搭", "适合通勤、约会、出街等场景", "材质和细节特写要配合人物动作"],
-      prompt: "先给换装前后的落差，再让人物自然走动或转身，用上身效果带出购买理由。"
+      sellingPointsZh: ["上身/上脚效果要直接", "突出显瘦显高或百搭", "适合通勤、约会、出街等场景", "材质和细节特写要配合人物动作"],
+      sellingPointsEn: ["Show the on-body or on-foot effect immediately", "Highlight flattering shape, height, or easy styling", "Fits commute, date, and street-style scenes", "Pair material close-ups with natural movement"],
+      promptZh: "先给换装前后的落差，再让人物自然走动或转身，用上身效果带出购买理由。",
+      promptEn: "Show the before-after outfit gap first, then let the person move naturally so the fit itself sells the purchase reason."
     },
     {
       key: "food",
       match: /(咖啡|零食|饮料|茶|食品|coffee|snack|drink|tea|food)/i,
-      sellingPoints: ["第一口或冲泡瞬间有记忆点", "口感和方便性好表达", "适合居家/办公室/通勤场景", "人物即时反应容易带转化"],
-      prompt: "先用嘴馋、提神或加班场景开场，再展示冲泡/开袋/入口瞬间，让人物反应接住卖点。"
+      sellingPointsZh: ["第一口或冲泡瞬间有记忆点", "口感和方便性好表达", "适合居家/办公室/通勤场景", "人物即时反应容易带转化"],
+      sellingPointsEn: ["Make the first sip or prep moment memorable", "Taste and convenience are easy to communicate", "Fits home, office, and commute situations", "Immediate human reaction helps conversion"],
+      promptZh: "先用嘴馋、提神或加班场景开场，再展示冲泡/开袋/入口瞬间，让人物反应接住卖点。",
+      promptEn: "Open on craving, low energy, or overtime, then show the prep or first-bite moment and let the reaction carry the value."
     },
     {
       key: "digital",
       match: /(手机|支架|灯|耳机|充电|数码|phone|tripod|light|earbud|charger|digital|tech)/i,
-      sellingPoints: ["功能点可以直接演示", "上手门槛低，镜头好做对比", "适合桌面/通勤/拍摄场景", "强调效率提升比空讲配置更有效"],
-      prompt: "先给出一个低效或麻烦的瞬间，再让产品出场解决问题，用操作过程直接证明价值。"
+      sellingPointsZh: ["功能点可以直接演示", "上手门槛低，镜头好做对比", "适合桌面/通勤/拍摄场景", "强调效率提升比空讲配置更有效"],
+      sellingPointsEn: ["The core function can be demonstrated directly", "Low learning curve makes comparison shots easy", "Fits desk, commute, and creator-use scenes", "Show the efficiency gain instead of listing specs"],
+      promptZh: "先给出一个低效或麻烦的瞬间，再让产品出场解决问题，用操作过程直接证明价值。",
+      promptEn: "Start with a frustrating or inefficient moment, let the product fix it, and prove value through the actual operation."
     }
   ];
 
@@ -62,7 +72,10 @@ export function inferProductInsightsFromAsset({
   if (!matched) {
     return {
       suggestedProductName,
-      sellingPoints: ["使用场景要一眼看懂", "核心效果最好能直接证明", "人物反应和前后变化优先", "少讲参数，多讲结果"],
+      sellingPoints:
+        platform === "douyin"
+          ? ["使用场景要一眼看懂", "核心效果最好能直接证明", "人物反应和前后变化优先", "少讲参数，多讲结果"]
+          : ["Make the usage scene obvious at a glance", "Show the core result in a way that can be proven visually", "Prioritize reaction shots and before-after change", "Talk less about specs and more about the result"],
       suggestedPrompt:
         platform === "douyin"
           ? `围绕${suggestedProductName}做一个生活化短视频，先抛出问题，再用产品解决，最后给出直观看得懂的结果。`
@@ -72,8 +85,11 @@ export function inferProductInsightsFromAsset({
 
   return {
     suggestedProductName,
-    sellingPoints: matched.sellingPoints,
-    suggestedPrompt: platform === "douyin" ? `围绕${suggestedProductName}：${matched.prompt}` : `${suggestedProductName}: ${matched.prompt}`
+    sellingPoints: platform === "douyin" ? matched.sellingPointsZh : matched.sellingPointsEn,
+    suggestedPrompt:
+      platform === "douyin"
+        ? `围绕${suggestedProductName}：${matched.promptZh}`
+        : `${suggestedProductName}: ${matched.promptEn}`
   };
 }
 
@@ -180,6 +196,54 @@ function buildShotDefinitions(input) {
   const thirdPoint = input.sellingPoints[2] || secondPoint;
   const cta = input.cta || "引导用户查看评论区或主页";
   const templateName = input.accountTemplate.name || "当前对标模板";
+  const isEnglish = normalizePlatform(input.accountTemplate.platform || input.clipcatConfig?.referencePlatform || "tiktok") !== "douyin";
+
+  if (isEnglish) {
+    return [
+      {
+        title: "Hook shot",
+        purpose: `Grab attention in the ${input.hookStyle} style of ${templateName}`,
+        action: "Open on an abnormal reaction, misunderstanding, or tension beat to create immediate curiosity.",
+        productRole: "Do not explain the product yet. Earn the right to keep the viewer watching first.",
+        lineIntent: "Throw out a question or emotional tension point that makes the viewer stay."
+      },
+      {
+        title: "Problem escalation",
+        purpose: "Make the pain point concrete",
+        action: "Show the real problem in detail, such as odor, dirt, awkwardness, or inconvenience.",
+        productRole: `Set up why ${productName} needs to enter the scene.`,
+        lineIntent: `Amplify the problem that connects to "${firstPoint}".`
+      },
+      {
+        title: "Product entry",
+        purpose: "Introduce the solution naturally",
+        action: `Bring ${productName} into the center of the frame through a believable action.`,
+        productRole: `Name the product clearly and explain "${firstPoint}" first.`,
+        lineIntent: "Do not dump specs. Make the viewer understand what problem it solves."
+      },
+      {
+        title: "Selling-point proof",
+        purpose: "Add the second layer of reasons",
+        action: "Use close-ups, usage action, or before-after proof to make the product feel credible.",
+        productRole: `Explain "${secondPoint}" in a way the camera can prove.`,
+        lineIntent: "Prefer lifestyle phrasing over vague hype words."
+      },
+      {
+        title: "Result proof",
+        purpose: "Show the outcome after use",
+        action: "Cut to the before-after, the human reaction, or the improved scene condition.",
+        productRole: `Complete "${thirdPoint}" or reinforce where the product fits best.`,
+        lineIntent: "Let the result do more work than extra explanation."
+      },
+      {
+        title: "Close and CTA",
+        purpose: "Land the conversion cleanly",
+        action: "Return to a stable state and show the product clearly one more time.",
+        productRole: `Repeat ${productName} and lock in the memory point.`,
+        lineIntent: cta
+      }
+    ];
+  }
 
   return [
     {
@@ -620,12 +684,17 @@ export function buildExportBundle(pkg) {
 
 function finalizePackage(base) {
   const distilledFramework = buildDistilledFramework(base.project);
+  const promptLocale = getPromptLocale(base.project);
   const keyframes = base.shots.map((shot) =>
-    `竖屏短视频关键帧，9:16，${base.project.visualStyle}，镜头用途：${shot.title}，产品：${base.project.productName}，画面动作：${shot.action}，产品任务：${shot.productRole}，模板风格：${base.project.accountTemplate?.name || "当前模板"}，不要水印，不要字幕，不要平台按钮。`
+    promptLocale === "en"
+      ? `Vertical 9:16 short-form video keyframe, ${base.project.visualStyle}, shot purpose: ${shot.title}, product: ${base.project.productName}, screen action: ${shot.action}, product role: ${shot.productRole}, template style: ${base.project.accountTemplate?.name || "Current template"}, no watermark, no subtitles, no platform UI.`
+      : `竖屏短视频关键帧，9:16，${base.project.visualStyle}，镜头用途：${shot.title}，产品：${base.project.productName}，画面动作：${shot.action}，产品任务：${shot.productRole}，模板风格：${base.project.accountTemplate?.name || "当前模板"}，不要水印，不要字幕，不要平台按钮。`
   );
 
   const videoShots = base.shots.map((shot) =>
-    `基于已给关键帧做 image-to-video，镜头 ${shot.shotNumber}，时长 ${shot.durationSeconds} 秒，目标：${shot.purpose}，动作：${shot.action}，口播意图：${shot.lineIntent}，商品露出：${shot.productRole}，节奏要求：${base.project.accountTemplate?.rhythm || "快节奏"}，保持人物和场景一致。`
+    promptLocale === "en"
+      ? `Use the provided keyframe for image-to-video. Shot ${shot.shotNumber}, duration ${shot.durationSeconds}s, goal: ${shot.purpose}, action: ${shot.action}, voiceover intent: ${shot.lineIntent}, product visibility: ${shot.productRole}, pacing: ${base.project.accountTemplate?.rhythm || "fast-paced"}, keep the character and scene consistent.`
+      : `基于已给关键帧做 image-to-video，镜头 ${shot.shotNumber}，时长 ${shot.durationSeconds} 秒，目标：${shot.purpose}，动作：${shot.action}，口播意图：${shot.lineIntent}，商品露出：${shot.productRole}，节奏要求：${base.project.accountTemplate?.rhythm || "快节奏"}，保持人物和场景一致。`
   );
 
   const promptVariants = buildPromptVariants(base.project, base.shots);
@@ -650,6 +719,53 @@ function finalizePackage(base) {
       "是否符合当前对标账户模板的节奏和转化方式"
     ]
   };
+}
+
+function getPromptLocale(project = {}) {
+  return normalizePlatform(project?.clipcatConfig?.referencePlatform || project?.accountTemplate?.platform || "tiktok") === "douyin"
+    ? "zh"
+    : "en";
+}
+
+function getVariantTitle(key, locale = "zh") {
+  if (locale === "en") {
+    return {
+      safe: "Safe",
+      fast: "Fast",
+      conversion: "Conversion"
+    }[key] || "Variant";
+  }
+
+  return {
+    safe: "稳妥版",
+    fast: "快节奏版",
+    conversion: "强转化版"
+  }[key] || "候选版";
+}
+
+function buildGenerationDistilledSummary(project, locale = "zh") {
+  const template = normalizeAccountTemplate(project.accountTemplate);
+  const deepDistillSummary = buildDeepDistillSummary(template);
+
+  if (locale === "en") {
+    return [
+      `${template.name} distilled framework: `,
+      `positioning "${template.contentPositioning || "not provided"}", `,
+      `opening hook "${template.hookStyle || "strong hook"}", `,
+      `pacing "${template.rhythm || "fast-paced"}", `,
+      `structure "${template.structure || "Hook -> Problem -> Solution -> CTA"}", `,
+      `expression DNA "${template.expressionDna || "not provided"}", `,
+      `decision rule "${template.decisionHeuristics || "not provided"}", `,
+      `avoid "${template.antiPatterns || "not provided"}", `,
+      `recent signal "${template.recentSignals || "not provided"}", `,
+      `CTA style "${template.ctaStyle || "soft CTA"}".`,
+      deepDistillSummary
+        ? ` Deep-distill add-on: ${deepDistillSummary.videoCount} samples, zero-frame bias "${deepDistillSummary.zeroFrameBias}", hook types "${deepDistillSummary.hookTypes || "not provided"}", emotion curves "${deepDistillSummary.emotionCurves || "not provided"}", shot rhythms "${deepDistillSummary.shotRhythms || "not provided"}", proof styles "${deepDistillSummary.proofStyles || "not provided"}", CTA styles "${deepDistillSummary.ctaStyles || "not provided"}", scene progressions "${deepDistillSummary.sceneProgressions || "not provided"}", visual DNA "${deepDistillSummary.visualDna || "not provided"}".`
+        : ""
+    ].join("");
+  }
+
+  return buildDistilledFramework(project).summary;
 }
 
 function safeSlug(value) {
@@ -721,6 +837,52 @@ function buildPromptVariants(project, shots) {
   const template = normalizeAccountTemplate(project.accountTemplate);
   const dnaFocus = summarizeTemplateDna(template);
   const deepDistillSummary = buildDeepDistillSummary(template);
+  const locale = getPromptLocale(project);
+
+  if (locale === "en") {
+    return [
+      {
+        key: "safe",
+        title: getVariantTitle("safe", locale),
+        summary: `Keep the structure clear and the product easy to see. Stay close to "${template.expressionDna || "stable lifestyle delivery"}" without forcing aggressive changes.${
+          deepDistillSummary ? ` For shot execution, reference "${deepDistillSummary.shotRhythms || "the current template shot rhythm"}".` : ""
+        }`,
+        videoShots: shots.map(
+          (shot) =>
+            `Safe version: shot ${shot.shotNumber}, ${shot.purpose}. Action: ${shot.action}. Keep it lifestyle-driven, stable, and product-clear. Stay close to "${template.expressionDna || "clear short-line delivery"}" and avoid "${template.antiPatterns || "copying the original people or captions"}".${
+              deepDistillSummary ? ` Prioritize shot rhythm "${deepDistillSummary.shotRhythms || "the current template rhythm"}" and proof style "${deepDistillSummary.proofStyles || "the current template proof style"}".` : ""
+            }`
+        )
+      },
+      {
+        key: "fast",
+        title: getVariantTitle("fast", locale),
+        summary: `Use a stronger hook and a faster pace, leaning into "${template.recentSignals || "recent high-performing pacing"}".${
+          deepDistillSummary ? ` Let the first 3 seconds reference "${deepDistillSummary.hookTypes || "the current template hook"}".` : ""
+        }`,
+        videoShots: shots.map(
+          (shot) =>
+            `Fast version: shot ${shot.shotNumber}, move faster into ${shot.purpose}. Action: ${shot.action}. Remove idle beats and prioritize "${template.decisionHeuristics || "pain first, proof second"}" as the shot progression.${
+              deepDistillSummary ? ` Early emotional movement should reference "${deepDistillSummary.emotionCurves || "the current template emotion curve"}".` : ""
+            }`
+        )
+      },
+      {
+        key: "conversion",
+        title: getVariantTitle("conversion", locale),
+        summary: `Push the selling points and CTA harder so the structure stays closer to "${dnaFocus}".${
+          deepDistillSummary ? ` Let the proof and close reference "${deepDistillSummary.proofStyles || "the current template proof style"} / ${deepDistillSummary.ctaStyles || "the current template CTA style"}".` : ""
+        }`,
+        videoShots: shots.map(
+          (shot) =>
+            `Conversion version: shot ${shot.shotNumber}, emphasize the role of ${project.productName || "the current product"}. Action: ${shot.action}. Organize the scene around "${template.decisionHeuristics || "pain -> proof -> close"}" and land the ending on "${template.ctaStyle || "a comments-or-profile CTA"}".${
+              deepDistillSummary ? ` Keep the proof progression aligned with "${deepDistillSummary.sceneProgressions || "the current template scene progression"}".` : ""
+            }`
+        )
+      }
+    ];
+  }
+
   return [
     {
       key: "safe",
@@ -768,6 +930,7 @@ function buildBatchVideoTasks(project, promptVariants, distilledFramework) {
   const template = normalizeAccountTemplate(project.accountTemplate);
   const deepDistillSummary = buildDeepDistillSummary(template);
   const count = Math.max(1, Number(project.generationCount || promptVariants.length || 1));
+  const locale = getPromptLocale(project);
   const tasks = [];
 
   for (let index = 0; index < count; index += 1) {
@@ -785,38 +948,72 @@ function buildBatchVideoTasks(project, promptVariants, distilledFramework) {
       variantKey: variant.key,
       variantTitle: variant.title,
       status: "待发送",
-      prompt: [
-        `请按对标账户模板 ${template.name || "当前模板"} 生成短视频。`,
-        `对标平台：${getPlatformLabel(template.platform)}`,
-        `内容定位：${template.contentPositioning || "未填写"}`,
-        `节奏要求：${template.rhythm || "快节奏"}`,
-        `结构要求：${template.structure || "钩子 -> 问题 -> 解决方案 -> 收口"}`,
-        `表达 DNA：${template.expressionDna || "未填写"}`,
-        `决策启发式：${template.decisionHeuristics || "未填写"}`,
-        `反模式：${template.antiPatterns || "未填写"}`,
-        `近期变化：${template.recentSignals || "未填写"}`,
-        `当前商品：${project.productName || "未填写"}`,
-        `商品卖点：${project.sellingPoints.join(" / ") || "未填写"}`,
-        `画幅比例：${project.aspectRatio || "9:16"}`,
-        `批次风格：${variant.title}`,
-        `版本策略：${variant.summary}`,
-        `蒸馏摘要：${distilledFramework.summary}`,
-        ...(deepDistillSummary
+      prompt:
+        locale === "en"
           ? [
-              `视频深蒸馏样本数：${deepDistillSummary.videoCount}`,
-              `0 帧起手倾向：${deepDistillSummary.zeroFrameBias}`,
-              `高频钩子类型：${deepDistillSummary.hookTypes || "未填写"}`,
-              `高频情绪曲线：${deepDistillSummary.emotionCurves || "未填写"}`,
-              `高频镜头节奏：${deepDistillSummary.shotRhythms || "未填写"}`,
-              `高频卖点证明：${deepDistillSummary.proofStyles || "未填写"}`,
-              `高频收口方式：${deepDistillSummary.ctaStyles || "未填写"}`,
-              `画面推进共性：${deepDistillSummary.sceneProgressions || "未填写"}`,
-              `视觉 DNA 共性：${deepDistillSummary.visualDna || "未填写"}`,
-              `执行要求：如果当前商品适合，优先参考这些视频深蒸馏共性去组织前 3 秒钩子、商品强露出位置、证明节奏和结尾收口。`
-            ]
-          : []),
-        `改写边界：${template.rewriteRules || "保留结构，不直接照抄。"}`
-      ].join("\n"),
+              `Create a short-form video following the benchmark template ${template.name || "Current template"}.`,
+              `Benchmark platform: ${getPlatformLabel(template.platform)}`,
+              `Positioning: ${template.contentPositioning || "Not provided"}`,
+              `Pacing: ${template.rhythm || "Fast-paced"}`,
+              `Structure: ${template.structure || "Hook -> Problem -> Solution -> CTA"}`,
+              `Expression DNA: ${template.expressionDna || "Not provided"}`,
+              `Decision heuristic: ${template.decisionHeuristics || "Not provided"}`,
+              `Anti-patterns: ${template.antiPatterns || "Not provided"}`,
+              `Recent signals: ${template.recentSignals || "Not provided"}`,
+              `Current product: ${project.productName || "Not provided"}`,
+              `Selling points: ${project.sellingPoints.join(" / ") || "Not provided"}`,
+              `Aspect ratio: ${project.aspectRatio || "9:16"}`,
+              `Variant: ${variant.title}`,
+              `Variant strategy: ${variant.summary}`,
+              `Distilled summary: ${buildGenerationDistilledSummary(project, locale)}`,
+              ...(deepDistillSummary
+                ? [
+                    `Deep-distill sample count: ${deepDistillSummary.videoCount}`,
+                    `Zero-frame bias: ${deepDistillSummary.zeroFrameBias}`,
+                    `Frequent hook types: ${deepDistillSummary.hookTypes || "Not provided"}`,
+                    `Frequent emotion curves: ${deepDistillSummary.emotionCurves || "Not provided"}`,
+                    `Frequent shot rhythms: ${deepDistillSummary.shotRhythms || "Not provided"}`,
+                    `Frequent proof styles: ${deepDistillSummary.proofStyles || "Not provided"}`,
+                    `Frequent CTA styles: ${deepDistillSummary.ctaStyles || "Not provided"}`,
+                    `Scene progression pattern: ${deepDistillSummary.sceneProgressions || "Not provided"}`,
+                    `Visual DNA pattern: ${deepDistillSummary.visualDna || "Not provided"}`,
+                    `Execution note: If the product fits, use these deep-distill patterns to organize the first 3 seconds hook, strong product reveal, proof rhythm, and ending close.`
+                  ]
+                : []),
+              `Rewrite boundary: ${template.rewriteRules || "Keep the structure and do not copy the original directly."}`
+            ].join("\n")
+          : [
+              `请按对标账户模板 ${template.name || "当前模板"} 生成短视频。`,
+              `对标平台：${getPlatformLabel(template.platform)}`,
+              `内容定位：${template.contentPositioning || "未填写"}`,
+              `节奏要求：${template.rhythm || "快节奏"}`,
+              `结构要求：${template.structure || "钩子 -> 问题 -> 解决方案 -> 收口"}`,
+              `表达 DNA：${template.expressionDna || "未填写"}`,
+              `决策启发式：${template.decisionHeuristics || "未填写"}`,
+              `反模式：${template.antiPatterns || "未填写"}`,
+              `近期变化：${template.recentSignals || "未填写"}`,
+              `当前商品：${project.productName || "未填写"}`,
+              `商品卖点：${project.sellingPoints.join(" / ") || "未填写"}`,
+              `画幅比例：${project.aspectRatio || "9:16"}`,
+              `批次风格：${variant.title}`,
+              `版本策略：${variant.summary}`,
+              `蒸馏摘要：${distilledFramework.summary}`,
+              ...(deepDistillSummary
+                ? [
+                    `视频深蒸馏样本数：${deepDistillSummary.videoCount}`,
+                    `0 帧起手倾向：${deepDistillSummary.zeroFrameBias}`,
+                    `高频钩子类型：${deepDistillSummary.hookTypes || "未填写"}`,
+                    `高频情绪曲线：${deepDistillSummary.emotionCurves || "未填写"}`,
+                    `高频镜头节奏：${deepDistillSummary.shotRhythms || "未填写"}`,
+                    `高频卖点证明：${deepDistillSummary.proofStyles || "未填写"}`,
+                    `高频收口方式：${deepDistillSummary.ctaStyles || "未填写"}`,
+                    `画面推进共性：${deepDistillSummary.sceneProgressions || "未填写"}`,
+                    `视觉 DNA 共性：${deepDistillSummary.visualDna || "未填写"}`,
+                    `执行要求：如果当前商品适合，优先参考这些视频深蒸馏共性去组织前 3 秒钩子、商品强露出位置、证明节奏和结尾收口。`
+                  ]
+                : []),
+              `改写边界：${template.rewriteRules || "保留结构，不直接照抄。"}`
+            ].join("\n"),
       imagePrompt: `商品主图数量：${project.clipcatConfig?.productImageCount || 0}，保持商品外观稳定。`,
       sourceLinks: template.sampleVideoUrls,
       extraRules: template.rewriteRules || "",

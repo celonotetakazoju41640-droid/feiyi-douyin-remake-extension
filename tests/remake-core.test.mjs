@@ -24,7 +24,7 @@ test("splitLines removes blanks and trims whitespace", () => {
   assert.deepEqual(splitLines("  第一条 \n\n 第二条  \n"), ["第一条", "第二条"]);
 });
 
-test("inferProductInsightsFromAsset auto-suggests selling points for cleaning products", () => {
+test("inferProductInsightsFromAsset auto-suggests english selling points for TikTok cleaning products", () => {
   const result = inferProductInsightsFromAsset({
     fileName: "kitchen-cleaner-spray.png",
     template: {
@@ -35,8 +35,8 @@ test("inferProductInsightsFromAsset auto-suggests selling points for cleaning pr
 
   assert.match(result.suggestedProductName, /kitchen cleaner spray/i);
   assert.equal(result.sellingPoints.length, 4);
-  assert.match(result.sellingPoints[0], /前后对比|见效快/);
-  assert.match(result.suggestedPrompt, /short|30秒|前后对比|problem/i);
+  assert.match(result.sellingPoints[0], /before-after|visible result|proof/i);
+  assert.match(result.suggestedPrompt, /short|30 seconds|problem|proof/i);
 });
 
 test("normalizeAccountTemplate preserves profile url and sample urls", () => {
@@ -193,7 +193,7 @@ test("buildReferenceSummaryFromProfileScan outputs concise summary", () => {
   assert.match(summary, /反模式/);
 });
 
-test("buildRemakePackage pushes DNA into prompt variants and batch tasks", () => {
+test("buildRemakePackage pushes DNA into prompt variants and batch tasks for douyin generation", () => {
   const pkg = buildRemakePackage({
     projectName: "厨房去污复刻",
     referenceSummary: "前后对比开场，快速证明，最后收口转化。",
@@ -206,8 +206,10 @@ test("buildRemakePackage pushes DNA into prompt variants and batch tasks", () =>
     generationCount: 3,
     voiceDialect: "普通话",
     voiceLanguage: "中文",
+    referencePlatform: "douyin",
     accountTemplate: {
       name: "快节奏家清模板",
+      platform: "douyin",
       accountHandle: "@cleaning_fast_den",
       contentPositioning: "家清去污，痛点冲突强",
       hookStyle: "强冲突开场",
@@ -230,6 +232,45 @@ test("buildRemakePackage pushes DNA into prompt variants and batch tasks", () =>
   assert.match(pkg.batchVideoTasks[0].prompt, /版本策略/);
   assert.match(pkg.batchVideoTasks[0].prompt, /表达 DNA/);
   assert.match(pkg.batchVideoTasks[0].prompt, /反模式/);
+});
+
+test("buildRemakePackage outputs english batch prompt for TikTok generation", () => {
+  const pkg = buildRemakePackage({
+    projectName: "odor-remover-remake",
+    referenceSummary: "Open with a kitchen odor problem, prove the result fast, then end with a soft CTA.",
+    productName: "odor remover box",
+    sellingPoints: ["Fast visible result", "Easy to use", "Fits kitchen use cases"],
+    hookStyle: "Strong conflict hook",
+    visualStyle: "lifestyle product demo",
+    cta: "Guide viewers to the profile for more results",
+    durationSeconds: 30,
+    generationCount: 1,
+    voiceDialect: "English",
+    voiceLanguage: "英文",
+    accountTemplate: {
+      name: "Fast cleaning template",
+      platform: "tiktok",
+      accountHandle: "@cleaning_fast_den",
+      contentPositioning: "Cleaning demo with strong conflict and quick proof",
+      hookStyle: "Strong conflict hook",
+      rhythm: "3-second hook, then proof and payoff inside 30 seconds",
+      structure: "Problem hook -> product entry -> proof -> CTA",
+      expressionDna: "Short lines, result first, then explanation",
+      decisionHeuristics: "Open on pain, prove fast, close cleanly",
+      antiPatterns: "Do not explain specs before showing the result",
+      recentSignals: "Fast before-after demos still perform best",
+      ctaStyle: "Soft CTA to comments or profile",
+      rewriteRules: "Reuse structure only, do not copy branding or captions",
+      defaultVoiceLanguage: "英文",
+      preferredModel: "veo-3-fast"
+    }
+  });
+
+  assert.match(pkg.batchVideoTasks[0].prompt, /Create a short-form video/i);
+  assert.match(pkg.batchVideoTasks[0].prompt, /Current product:/i);
+  assert.match(pkg.batchVideoTasks[0].prompt, /Selling points:/i);
+  assert.match(pkg.prompts.videoShots[0], /Use the provided keyframe for image-to-video/i);
+  assert.match(pkg.prompts.videoShots[0], /voiceover intent:/i);
 });
 
 test("buildProfileSelectionComparisonSummary highlights selected sample drift", () => {
