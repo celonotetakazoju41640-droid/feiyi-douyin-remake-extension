@@ -271,21 +271,20 @@
               <header class="contentHeader">
                 <div class="historyHeaderBlock">
                   <h2>历史记录</h2>
-                  <p>这里看当前结果、复制任务、导出文件和提交生成。</p>
+                  <p>先选项目，再看详情和提交。</p>
                 </div>
               </header>
 
               <section class="contentSection">
-                <section class="simpleFlowCard historyOverviewCard">
+                <section class="simpleFlowCard historyLibraryCard">
                   <div class="contentSectionHead">
                     <div>
-                      <strong>当前结果</strong>
-                      <p id="currentTaskHint">生成后在这里复制、导出或提交。</p>
+                      <strong>项目库</strong>
+                      <p id="currentTaskHint">生成后，这里会保留最近项目。</p>
                     </div>
                     <div class="textResultMeta">
-                      <span id="currentTaskStatusBadge" class="countBadge">未生成</span>
-                      <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
                       <span id="seriesCount" class="countBadge">0 个项目</span>
+                      <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
                     </div>
                   </div>
                   <div id="seriesStats" class="projectStatsGrid simpleResultStats historyStatGrid" aria-label="剧集生产统计">
@@ -293,44 +292,50 @@
                     <div class="badge">生成后这里会显示摘要重点</div>
                     <div class="badge">先回生成页完成一次生成</div>
                   </div>
-                  <div id="currentResultSummary" class="currentResultSummary"></div>
-                  <div class="resultActions simpleResultActions historyPrimaryActions">
-                    <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交生成</button>
-                    <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制任务</button>
-                    <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
-                    <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
-                  </div>
-                </section>
-              </section>
-
-              <section class="contentSection">
-                <section class="simpleFlowCard historyDetailCard">
-                  <div class="contentSectionHead">
-                    <strong>当前结果详情</strong>
-                    <p>先检查摘要、提示词和批量任务，再决定是否提交。</p>
-                  </div>
-                  <div id="projectDetailPanel" class="projectDetailPanel historyDetailPanel">
-                    <div class="emptyStateCard historyEmptyCard">
-                      <strong>还没有任务详情</strong>
-                      <p>生成后，这里会显示项目摘要、提示词、批量任务和镜头细节。</p>
-                    </div>
-                  </div>
-                </section>
-              </section>
-
-              <section class="contentSection">
-                <section class="simpleFlowCard historyListCard">
-                  <div class="contentSectionHead">
-                    <strong>最近生成</strong>
-                    <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
-                  </div>
-                  <div id="seriesList" class="seriesList historySeriesList">
+                  <div id="seriesList" class="seriesList historySeriesGrid">
                     <div class="emptyStateCard historyEmptyCard">
                       <strong>还没有最近记录</strong>
-                      <p>第一次生成后，这里会保留最近结果、第一条提示词预览和切换入口。</p>
+                      <p>第一次生成后，这里会保留最近项目卡片和切换入口。</p>
                     </div>
                   </div>
                 </section>
+              </section>
+
+              <section class="contentSection">
+                <div class="historyWorkspaceGrid">
+                  <section class="simpleFlowCard historySelectionCard">
+                    <div class="contentSectionHead">
+                      <div>
+                        <strong>当前项目</strong>
+                        <p>先看摘要，再决定复制、导出或提交。</p>
+                      </div>
+                      <div class="textResultMeta historySelectionMeta">
+                        <span id="currentTaskStatusBadge" class="countBadge">未生成</span>
+                        <span id="currentTaskUnitLabel" class="countBadge">第 1 条</span>
+                      </div>
+                    </div>
+                    <div id="currentResultSummary" class="currentResultSummary"></div>
+                    <div class="resultActions simpleResultActions historyPrimaryActions">
+                      <button id="sendBatchTasksButton" class="primaryButton" type="button" disabled>提交生成</button>
+                      <button id="copyBatchTasksButton" class="ghostButton" type="button" disabled>复制任务</button>
+                      <button id="downloadMarkdownButton" class="ghostButton" type="button" disabled>下载 Markdown</button>
+                      <button id="downloadJsonButton" class="ghostButton" type="button" disabled>下载 JSON</button>
+                    </div>
+                  </section>
+
+                  <section class="simpleFlowCard historyDetailCard">
+                    <div class="contentSectionHead">
+                      <strong>项目详情</strong>
+                      <p>右侧看结构、提示词和批量任务，左侧保留主操作。</p>
+                    </div>
+                    <div id="projectDetailPanel" class="projectDetailPanel historyDetailPanel">
+                      <div class="emptyStateCard historyEmptyCard">
+                        <strong>还没有任务详情</strong>
+                        <p>先在上面选一个项目，详情会显示在这里。</p>
+                      </div>
+                    </div>
+                  </section>
+                </div>
               </section>
 
               <details class="advancedPanel textResultAdvanced historyToolDetails">

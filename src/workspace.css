@@ -5137,12 +5137,16 @@ body {
 .historyOverviewCard,
 .historyDetailCard,
 .historyListCard,
+.historyLibraryCard,
+.historySelectionCard,
 .manageOverviewCard,
 .manageBasicsCard {
   width: 100%;
 }
 
-.historyOverviewCard {
+.historyOverviewCard,
+.historyLibraryCard,
+.historySelectionCard {
   gap: 10px;
   background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
 }
@@ -5827,8 +5831,117 @@ body {
   width: 100%;
 }
 
-.historySeriesList {
+.historySeriesList,
+.historySeriesGrid {
   width: 100%;
+}
+
+.historyLibraryCard {
+  gap: 12px;
+}
+
+.historyWorkspaceGrid {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.historySelectionCard {
+  position: sticky;
+  top: 0;
+}
+
+.historySelectionMeta {
+  justify-content: flex-end;
+}
+
+.historySeriesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.historyProjectCard {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #eadcc4;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffdf9 0%, #fff8ee 100%);
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.historyProjectCard.is-active {
+  border-color: #d8b067;
+  box-shadow: 0 16px 28px rgba(174, 138, 65, 0.12);
+}
+
+.historyProjectCard:hover {
+  border-color: #d8b067;
+  transform: translateY(-1px);
+}
+
+.historyProjectPreview {
+  display: grid;
+  align-content: end;
+  min-height: 156px;
+  padding: 14px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.55), transparent 34%),
+    linear-gradient(135deg, #f7e9cf 0%, #edd3a2 48%, #c99c4b 100%);
+  color: #3c2d18;
+}
+
+.historyProjectPreview strong {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.historyProjectPreview span {
+  margin-top: 6px;
+  color: rgba(60, 45, 24, 0.78);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.historyProjectMeta {
+  display: grid;
+  gap: 8px;
+}
+
+.historyProjectMeta strong {
+  color: #2f261d;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.historyProjectMeta p {
+  margin: 0;
+  color: #6f604c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.historyProjectBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.historyProjectActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.historyProjectActions .ghostButton,
+.historyProjectActions .primaryButton {
+  min-height: 34px;
+  padding: 6px 12px;
 }
 
 .historyEmptyCard {
@@ -6158,6 +6271,14 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .historyWorkspaceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .historySelectionCard {
+    position: static;
+  }
+
   .manageBasicsGrid .backstageWideField,
   .manageControlGrid .fieldBlock:last-of-type {
     grid-column: span 2;
@@ -6210,6 +6331,10 @@ body {
   .manageBasicsGrid,
   .manageDeepGrid,
   .manageControlGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .historySeriesGrid {
     grid-template-columns: 1fr;
   }
 

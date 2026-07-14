@@ -40,6 +40,17 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /class="panelSidebar panelSidebarCompact"/);
 });
 
+test("workspace shell turns history into a project library plus detail workspace", () => {
+  assert.match(workspaceHtml, /项目库/);
+  assert.match(workspaceHtml, /先选项目，再看详情和提交/);
+  assert.match(workspaceHtml, /当前项目/);
+  assert.match(workspaceHtml, /项目详情/);
+  assert.match(workspaceHtml, /id="seriesList"/);
+  assert.match(workspaceHtml, /id="projectDetailPanel"/);
+  assert.match(workspaceJs, /先选项目，再看详情/);
+  assert.match(workspaceJs, /historyProjectCard/);
+});
+
 test("workspace shell includes scene plan, cast editor, and storyboard toggle", () => {
   assert.match(workspaceHtml, /id="scenePrimaryLocation"/);
   assert.match(workspaceHtml, /id="storyboardEnabled"/);
