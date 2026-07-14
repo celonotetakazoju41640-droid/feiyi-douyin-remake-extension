@@ -42,12 +42,13 @@ test("workspace shell exposes a simplified consumer flow", () => {
 
 test("workspace shell turns history into a project library plus detail workspace", () => {
   assert.match(workspaceHtml, /项目库/);
-  assert.match(workspaceHtml, /先选项目，再看详情和提交/);
+  assert.match(workspaceHtml, /先选项目/);
   assert.match(workspaceHtml, /当前项目/);
   assert.match(workspaceHtml, /项目详情/);
+  assert.match(workspaceHtml, /id="historyWorkspaceSection"/);
   assert.match(workspaceHtml, /id="seriesList"/);
   assert.match(workspaceHtml, /id="projectDetailPanel"/);
-  assert.match(workspaceJs, /先选项目，再看详情/);
+  assert.match(workspaceJs, /historyWorkspaceSection/);
   assert.match(workspaceJs, /historyProjectCard/);
 });
 

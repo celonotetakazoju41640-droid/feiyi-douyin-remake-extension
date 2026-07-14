@@ -271,7 +271,7 @@
               <header class="contentHeader">
                 <div class="historyHeaderBlock">
                   <h2>历史记录</h2>
-                  <p>先选项目，再看详情和提交。</p>
+                  <p>先选项目。</p>
                 </div>
               </header>
 
@@ -280,17 +280,12 @@
                   <div class="contentSectionHead">
                     <div>
                       <strong>项目库</strong>
-                      <p id="currentTaskHint">生成后，这里会保留最近项目。</p>
+                      <p id="currentTaskHint">最近项目</p>
                     </div>
                     <div class="textResultMeta">
                       <span id="seriesCount" class="countBadge">0 个项目</span>
                       <button id="clearProjectsButton" class="ghostButton" type="button">清空本地记录</button>
                     </div>
-                  </div>
-                  <div id="seriesStats" class="projectStatsGrid simpleResultStats historyStatGrid" aria-label="剧集生产统计">
-                    <div class="badge">等待生成第一条结果</div>
-                    <div class="badge">生成后这里会显示摘要重点</div>
-                    <div class="badge">先回生成页完成一次生成</div>
                   </div>
                   <div id="seriesList" class="seriesList historySeriesGrid">
                     <div class="emptyStateCard historyEmptyCard">
@@ -301,13 +296,13 @@
                 </section>
               </section>
 
-              <section class="contentSection">
+              <section id="historyWorkspaceSection" class="contentSection" hidden>
                 <div class="historyWorkspaceGrid">
                   <section class="simpleFlowCard historySelectionCard">
                     <div class="contentSectionHead">
                       <div>
                         <strong>当前项目</strong>
-                        <p>先看摘要，再决定复制、导出或提交。</p>
+                        <p>摘要与操作</p>
                       </div>
                       <div class="textResultMeta historySelectionMeta">
                         <span id="currentTaskStatusBadge" class="countBadge">未生成</span>
@@ -326,7 +321,7 @@
                   <section class="simpleFlowCard historyDetailCard">
                     <div class="contentSectionHead">
                       <strong>项目详情</strong>
-                      <p>右侧看结构、提示词和批量任务，左侧保留主操作。</p>
+                      <p>结构、提示词、批量任务</p>
                     </div>
                     <div id="projectDetailPanel" class="projectDetailPanel historyDetailPanel">
                       <div class="emptyStateCard historyEmptyCard">

@@ -164,6 +164,7 @@ const nodes = {
   seriesCount: document.querySelector("#seriesCount"),
   seriesStats: document.querySelector("#seriesStats"),
   seriesList: document.querySelector("#seriesList"),
+  historyWorkspaceSection: document.querySelector("#historyWorkspaceSection"),
   projectDetailPanel: document.querySelector("#projectDetailPanel"),
   shotEditorPanel: document.querySelector("#shotEditorPanel"),
   importJsonInput: document.querySelector("#importJsonInput"),
@@ -578,18 +579,23 @@ async function handleGenerate() {
 function renderProjects() {
   ensureCurrentProject();
   nodes.seriesCount.textContent = `${projects.length} 个项目`;
-  nodes.seriesStats.innerHTML = `
-    <div class="badge">最近沉淀 ${projects.length} 个项目</div>
-    <div class="badge">可用模型 ${accountTemplates.length} 个</div>
-    <div class="badge">先选项目，再看详情</div>
-  `;
+  if (nodes.seriesStats) {
+    nodes.seriesStats.innerHTML = `
+      <div class="badge">最近沉淀 ${projects.length} 个项目</div>
+      <div class="badge">可用模型 ${accountTemplates.length} 个</div>
+      <div class="badge">先选项目，再看详情</div>
+    `;
+  }
 
   if (projects.length === 0) {
     currentProjectId = null;
     currentPackage = null;
+    if (nodes.historyWorkspaceSection) {
+      nodes.historyWorkspaceSection.hidden = true;
+    }
     nodes.currentTaskStatusBadge.textContent = "未生成";
     nodes.currentTaskUnitLabel.textContent = "第 1 条";
-    nodes.currentTaskHint.textContent = "先去生成页完成一次生成，生成后这里会保留项目卡片。";
+    nodes.currentTaskHint.textContent = "先去生成页完成一次生成。";
     nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>还没有项目详情</strong><p>先在生成页跑出第一个项目，详情工作区会显示在这里。</p></div>`;
     nodes.shotEditorPanel.innerHTML = "";
     nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近项目</strong><p>第一次生成后，这里会保留最近项目卡片和切换入口。</p></div>`;
@@ -598,10 +604,13 @@ function renderProjects() {
     return;
   }
 
+  if (nodes.historyWorkspaceSection) {
+    nodes.historyWorkspaceSection.hidden = false;
+  }
   nodes.currentTaskStatusBadge.textContent = "可继续";
   nodes.currentTaskUnitLabel.textContent = `第 1 条 / 共 ${currentPackage?.batchVideoTasks?.length || 1} 条`;
   nodes.currentTaskHint.textContent = currentPackage
-    ? `当前项目：${currentPackage.project.projectName}。先看左侧摘要，再看右侧详情。`
+    ? currentPackage.project.projectName
     : "当前任务已准备好，可以继续处理。";
 
   nodes.seriesList.innerHTML = projects
