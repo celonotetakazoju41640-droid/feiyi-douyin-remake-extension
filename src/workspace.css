@@ -5359,6 +5359,31 @@ body {
   line-height: 1.6;
 }
 
+.deepDistillActionFeedback {
+  min-height: 36px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #6e5937;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.deepDistillActionFeedback.is-active {
+  background: #fff3d9;
+  color: #8a4b00;
+}
+
+.deepDistillActionFeedback.is-ok {
+  background: #eefcf2;
+  color: #22653b;
+}
+
+.deepDistillActionFeedback.is-error {
+  background: #fff1f1;
+  color: #a12626;
+}
+
 .deepDistillRecoveryNotice {
   padding: 12px 14px;
   border: 1px solid #f2d18a;

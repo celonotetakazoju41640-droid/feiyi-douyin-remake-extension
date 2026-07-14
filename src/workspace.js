@@ -104,6 +104,7 @@ const nodes = {
   deepDistillAnalyzeProgressFill: document.querySelector("#deepDistillAnalyzeProgressFill"),
   deepDistillAnalyzeProgressText: document.querySelector("#deepDistillAnalyzeProgressText"),
   deepDistillAnalyzeHint: document.querySelector("#deepDistillAnalyzeHint"),
+  deepDistillActionFeedback: document.querySelector("#deepDistillActionFeedback"),
   deepDistillRecoveryNotice: document.querySelector("#deepDistillRecoveryNotice"),
   deepDistillStatusSummary: document.querySelector("#deepDistillStatusSummary"),
   deepDistillVideoList: document.querySelector("#deepDistillVideoList"),
@@ -1412,6 +1413,15 @@ function updateDeepDistillAnalyzeProgress(value = 0, text = "0%", visible = fals
   renderDeepDistillAnalyzeHint();
 }
 
+function setDeepDistillActionFeedback(message, tone = "") {
+  if (!nodes.deepDistillActionFeedback) return;
+  nodes.deepDistillActionFeedback.textContent = message;
+  nodes.deepDistillActionFeedback.classList.remove("is-active", "is-ok", "is-error");
+  if (tone) {
+    nodes.deepDistillActionFeedback.classList.add(tone);
+  }
+}
+
 function renderDeepDistillVideoList() {
   if (!nodes.deepDistillVideoList) return;
   updateDeepDistillActionState();
@@ -1431,6 +1441,7 @@ function renderDeepDistillVideoList() {
     nodes.deepDistillVideoList.innerHTML =
       '<p class="emptyState">先读取一个本地视频文件夹。读取完成后，这里会先保留样本；需要时再点自动分析。</p>';
     setDeepDistillStatus("还没有读取本地视频");
+    setDeepDistillActionFeedback("先读取本地视频文件夹，然后这里会出现可点击的 AI 拆解动作。");
     return;
   }
 
@@ -1514,8 +1525,14 @@ function renderDeepDistillVideoList() {
   const statusSummary = `已分析 ${counts.analyzedCount} 条，可开始拆解 ${counts.readyToAnalyzeCount} 条，失败 ${counts.failedCount} 条。`;
   if (hasLocalFiles) {
     setDeepDistillStatus(`当前模型已载入 ${currentDeepDistillVideos.length} 条本地视频样本。${statusSummary}可继续自动分析。`);
+    if (counts.readyToAnalyzeCount > 0) {
+      setDeepDistillActionFeedback(`已读取 ${counts.readyToAnalyzeCount} 条可处理视频。现在点“开始 AI 拆解”就会开始跑。`, "is-ok");
+    } else if (counts.analyzedCount > 0 && counts.failedCount === 0) {
+      setDeepDistillActionFeedback("这批视频已经拆完；如果你想重跑，点“重新 AI 拆解当前视频”。", "is-ok");
+    }
   } else {
-    setDeepDistillStatus(`当前模型已恢复 ${currentDeepDistillVideos.length} 条历史样本，需先重新读取本地视频后才能继续拆解。`);
+    setDeepDistillStatus(`当前模型里有 ${currentDeepDistillVideos.length} 条历史记录，但还没重新选本地视频，所以现在不能开始拆解。`);
+    setDeepDistillActionFeedback("先重新选择本地视频，选完后这里会出现“开始 AI 拆解”按钮状态。");
   }
 
   nodes.deepDistillVideoList.querySelectorAll("[data-deep-video-id]").forEach((card) => {
@@ -1543,12 +1560,12 @@ function updateDeepDistillActionState() {
     );
     nodes.analyzeDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || !hasAnalyzableVideos;
     nodes.analyzeDeepDistillVideosButton.textContent = deepDistillAnalysisRunning
-      ? "分析中..."
+      ? "正在 AI 拆解..."
       : hasAnalyzableVideos
         ? resumableVideos.length > 0
           ? `开始 AI 拆解（${resumableVideos.length} 条待处理）`
           : "重新 AI 拆解当前视频"
-        : "先读取本地视频后开始 AI 拆解";
+        : "先重新选择本地视频";
   }
   if (nodes.clearDeepDistillVideosButton) {
     nodes.clearDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || currentDeepDistillVideos.length === 0;
@@ -1595,6 +1612,7 @@ async function analyzeDeepDistillVideos() {
   deepDistillAnalyzeCurrentIndex = 0;
   deepDistillAnalyzeTotalCount = analyzableVideos.length;
   updateDeepDistillActionState();
+  setDeepDistillActionFeedback(`正在 AI 拆解 0 / ${analyzableVideos.length}，马上开始逐条处理。`, "is-active");
   setActionFeedback("正在做视频深蒸馏自动分析，会按视频顺序逐条回填。");
   updateDeepDistillAnalyzeProgress(0, `0 / ${analyzableVideos.length}`, true);
 
@@ -1607,6 +1625,7 @@ async function analyzeDeepDistillVideos() {
       deepDistillAnalyzeCurrentIndex = index + 1;
       renderDeepDistillAnalyzeHint(video.fileName);
       setDeepDistillStatus(`正在抽帧并分析 ${index + 1} / ${analyzableVideos.length}：${video.fileName}`);
+      setDeepDistillActionFeedback(`正在 AI 拆解 ${index + 1} / ${analyzableVideos.length}：${video.fileName}`, "is-active");
       const frames = await extractDeepDistillFramesFromFile(file, Number(video.durationSeconds || 0));
       const response = await fetch(`${batchServiceBaseUrl}/api/deep-distill/analyze`, {
         method: "POST",
@@ -1656,6 +1675,7 @@ async function analyzeDeepDistillVideos() {
 
     saveCurrentTemplate();
     setDeepDistillStatus(`自动分析完成，已回填 ${analyzableVideos.length} 条视频。`);
+    setDeepDistillActionFeedback(`AI 拆解完成，已回填 ${analyzableVideos.length} 条视频。`, "is-ok");
     setActionFeedback(`视频深蒸馏已完成，当前共回填 ${analyzableVideos.length} 条视频。`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -1667,6 +1687,7 @@ async function analyzeDeepDistillVideos() {
     renderDeepDistillVideoList();
     saveCurrentTemplate();
     setDeepDistillStatus(`自动分析失败：${message}`, true);
+    setDeepDistillActionFeedback(`AI 拆解失败：${message}`, "is-error");
     setActionFeedback(`视频深蒸馏自动分析失败：${message}`, true);
   } finally {
     deepDistillAnalysisRunning = false;
@@ -1683,7 +1704,7 @@ function renderDeepDistillAnalyzeHint(currentFileName = "") {
 
   if (!analyzableVideos.length) {
     nodes.deepDistillAnalyzeHint.textContent = currentDeepDistillVideos.length
-      ? "当前只是恢复了历史样本，浏览器里的本地文件句柄已经丢失，所以第 2 步还不会开始。先回到第 1 步重新读取本地视频文件夹。"
+      ? "当前还没重新选择本地视频，所以第 2 步现在不会开始。先回到第 1 步重新选这批本地视频。"
       : "先读取视频后，系统会在这里显示预计耗时和当前拆解进度。";
     return;
   }
@@ -1740,7 +1761,7 @@ function renderDeepDistillRecoveryNotice() {
   if (!hasLocalFiles) {
     nodes.deepDistillRecoveryNotice.classList.remove("is-ok");
     nodes.deepDistillRecoveryNotice.textContent =
-      `当前页面只恢复了历史样本，共 ${counts.needsReloadCount} 条待重读；还没有重新读入本地文件，所以不会进入第 2 步拆解。先点“读取本地视频文件夹”，再开始 AI 拆解。`;
+      `当前有 ${counts.needsReloadCount} 条历史视频记录，但这次还没重新选本地视频，所以现在不能开始拆解。先点“读取本地视频文件夹”。`;
     return;
   }
 
