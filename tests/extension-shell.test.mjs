@@ -27,7 +27,10 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /历史记录/);
   assert.match(workspaceHtml, /蒸馏管理/);
   assert.match(workspaceHtml, /蒸馏模型/);
-  assert.match(workspaceHtml, /生成提示词/);
+  assert.match(workspaceHtml, /生成项目/);
+  assert.match(workspaceHtml, /先上传商品图，再选模板，直接生成项目/);
+  assert.match(workspaceHtml, /id="accountTemplateSelect"/);
+  assert.match(workspaceHtml, /展开自动草稿（可选修改）/);
   assert.match(workspaceHtml, /data-view-nav="generate"/);
   assert.match(workspaceHtml, /data-view-panel="history"/);
   assert.match(workspaceHtml, /id="openOnboardingButton"/);
@@ -41,6 +44,8 @@ test("workspace shell includes scene plan, cast editor, and storyboard toggle", 
   assert.match(workspaceHtml, /id="storyboardEnabled"/);
   assert.match(workspaceHtml, /id="castList"/);
   assert.match(workspaceHtml, /id="addSupportingCast"/);
+  assert.match(workspaceHtml, /展开故事版与角色（可选）/);
+  assert.match(workspaceHtml, /展开主页参考（可选）/);
 });
 
 test("workspace shell exposes separated deep-distill read and analysis progress", () => {

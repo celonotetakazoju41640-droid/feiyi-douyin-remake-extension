@@ -322,7 +322,7 @@ function bindEvents() {
   nodes.copyBatchServiceCommandButton.addEventListener("click", copyBatchServiceCommand);
   nodes.refreshBatchServiceButton.addEventListener("click", refreshBatchServiceHealth);
   nodes.copyStartCommandButton.addEventListener("click", async () => {
-    const text = "这套工作台当前是本地版：上传产品图后会自动拆卖点，再补一句要求就能生成提示词和批量任务。";
+    const text = "这套工作台当前是本地版：上传产品图后会自动拆卖点，选好模板就能直接生成项目和批量任务。";
     await navigator.clipboard.writeText(text);
     setActionFeedback("使用说明已复制。");
   });
@@ -569,7 +569,7 @@ async function handleGenerate() {
   renderShotEditor();
   renderProjectDetail();
   updateResultButtons();
-  setActionFeedback(`已生成 ${currentPackage.batchVideoTasks?.length || 0} 条可直接去跑的提示词任务。`);
+  setActionFeedback(`已生成项目，并跳到历史记录。当前有 ${currentPackage.batchVideoTasks?.length || 0} 条可直接去跑的任务。`);
   syncFlowStepState();
   setWizardStep(4);
   setCurrentView("history");
@@ -589,7 +589,7 @@ function renderProjects() {
     currentPackage = null;
     nodes.currentTaskStatusBadge.textContent = "未生成";
     nodes.currentTaskUnitLabel.textContent = "第 1 条";
-    nodes.currentTaskHint.textContent = "先去生成页上传产品图，再补一句要求。生成后会自动回到这里。";
+    nodes.currentTaskHint.textContent = "先去生成页上传商品图、选模板，再点生成项目。生成后会自动回到这里。";
     nodes.projectDetailPanel.innerHTML = `<div class="emptyStateCard"><strong>还没有生成结果</strong><p>先去生成页完成一次生成。完成后，这里会承接项目摘要、提示词、批量任务和镜头细节。</p></div>`;
     nodes.shotEditorPanel.innerHTML = "";
     nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近记录</strong><p>第一次生成后，这里会保留最近结果、第一条提示词预览和切换入口。</p></div>`;
@@ -3156,22 +3156,22 @@ function updateActionFeedback() {
   const hasImages = Boolean(nodes.productImages.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
   if (!hasTemplate && !hasImages && !hasPrompt) {
-    setActionFeedback("先选模型，再上传产品图。主页链接不填也能直接生成。");
+    setActionFeedback("先上传商品图，再选模板就能生成项目。主页参考不填也不影响。");
     return;
   }
   if (!hasImages && !hasPrompt) {
-    setActionFeedback("先上传产品图；主页链接只是补充参考，不填也能生成。");
+    setActionFeedback("先上传商品图；主页参考只是补充，不填也能继续。");
     return;
   }
   if (!hasImages) {
-    setActionFeedback("你的要求已经有了，再补产品图就能生成。");
+    setActionFeedback("可选要求已经有了，再补商品图就能生成项目。");
     return;
   }
   if (!hasPrompt) {
-    setActionFeedback("产品图已经准备好；不补也能直接生成，系统会先用自动草稿兜底。");
+    setActionFeedback("商品图已经准备好；直接选模板就能生成，系统会先用自动草稿兜底。");
     return;
   }
-  setActionFeedback("产品图和要求都已准备，系统会自动处理模型和语言，可以直接生成。");
+  setActionFeedback("商品图、模板和可选要求都已就绪，可以直接生成项目。");
 }
 
 function renderAssetStatus() {
@@ -3269,22 +3269,22 @@ function getWizardStepConfig(step) {
   return {
     1: {
       title: "基础信息",
-      description: "先选平台。如果有对标主页，这一步顺手贴上即可。",
+      description: "先确认基础配置；主页参考只是可选补充。",
       nextLabel: "下一步"
     },
     2: {
       title: "上传素材",
-      description: "先传产品图，系统会自动拆一版商品卖点和使用场景。",
+      description: "先传商品图，系统会自动拆一版卖点和使用场景。",
       nextLabel: "下一步"
     },
     3: {
-      title: "生成要求",
-      description: "补一句创作要求，确认自动拆出的卖点，然后直接生成。",
-      nextLabel: "生成提示词"
+      title: "生成项目",
+      description: "选好模板就能直接生成；创作要求和卖点都只是可选补充。",
+      nextLabel: "生成项目"
     },
     4: {
       title: "结果与提交",
-      description: "任务已经生成完成。这里直接复制提示词或提交去跑视频。",
+      description: "项目已经生成完成。这里直接复制任务或提交去跑视频。",
       nextLabel: "已完成"
     }
   }[step];
@@ -3323,10 +3323,10 @@ function renderWizardStep() {
 function setWizardStep(step) {
   const hasProductImage = Boolean(nodes.productImages.files?.length);
   if (step >= 3 && !hasProductImage) {
-    setActionFeedback("还没上传产品图。你可以先看后面的结构，但正式生成前需要先补产品图。", true);
+    setActionFeedback("还没上传商品图。你可以先看后面的结构，但正式生成前需要先补商品图。", true);
   }
   if (step === 4 && !currentPackage) {
-    setActionFeedback("还没生成结果。第四步现在先给你看完成页结构，真正结果要在第三步点击生成提示词后出现。");
+    setActionFeedback("还没生成结果。第四步现在先给你看完成页结构，真正结果要在第三步点击“生成项目”后出现。");
   }
   currentWizardStep = Math.min(4, Math.max(1, step));
   renderWizardStep();
@@ -3338,7 +3338,7 @@ function handleWizardPrev() {
 
 async function handleWizardNext() {
   if (currentWizardStep === 2 && !nodes.productImages.files?.length) {
-    setActionFeedback("第二步至少需要上传 1 张产品图。", true);
+    setActionFeedback("第二步至少需要上传 1 张商品图。", true);
     return;
   }
   if (currentWizardStep === 3) {

@@ -29,7 +29,7 @@
           <strong>使用说明</strong>
           <p>左侧切栏目，右侧处理内容。</p>
         </div>
-        <code id="startCommand">流程：选模型 -> 传图 -> 生成 -> 去历史记录提交。</code>
+        <code id="startCommand">流程：传图 -> 选模板 -> 生成项目 -> 去历史记录提交。</code>
         <div class="serviceHelpActions">
           <button id="copyStartCommandButton" type="button">复制结构说明</button>
           <button id="retryHealthButton" type="button">重新查看</button>
@@ -63,7 +63,7 @@
               <header class="contentHeader">
                 <div class="generateHeaderBlock">
                   <h2>生成</h2>
-                  <p>先传商品图，再补一句要求，最后生成提示词。</p>
+                  <p>先上传商品图，再选模板，直接生成项目。</p>
                 </div>
               </header>
 
@@ -86,7 +86,7 @@
                   <div class="contentSectionHead generateTaskHead">
                     <div>
                       <strong>创建任务</strong>
-                      <p>按顺序传产品图、补一句要求，再确认输出设定。</p>
+                      <p>商品图是主输入，模板是关键选择，其它内容都能后面再补。</p>
                     </div>
                   </div>
 
@@ -115,8 +115,66 @@
 
                     <section class="generateComposerCard">
                       <div class="contentSectionHead">
-                        <strong>2. 创作要求</strong>
-                        <p>一句话写清你想怎么拍</p>
+                        <strong>2. 选模板并生成</strong>
+                        <p>选好模板就能直接生成项目，系统会自动补一版草稿。</p>
+                      </div>
+                      <div class="generateControlGrid simpleSettingsGrid generatePrimaryConfigGrid">
+                        <label class="fieldBlock">
+                          蒸馏模型
+                          <select id="accountTemplateSelect"></select>
+                        </label>
+                        <label class="fieldBlock">
+                          发布平台
+                          <select id="templatePlatform">
+                            <option value="tiktok">TikTok</option>
+                            <option value="douyin">抖音</option>
+                          </select>
+                        </label>
+                        <label class="fieldBlock">
+                          视频比例
+                          <select id="aspectRatioSelect">
+                            <option value="9:16" selected>9:16</option>
+                            <option value="1:1">1:1</option>
+                            <option value="4:3">4:3</option>
+                            <option value="16:9">16:9</option>
+                          </select>
+                        </label>
+                        <label class="fieldBlock">
+                          生成时长
+                          <div class="durationInputWrap">
+                            <input id="targetDurationControl" type="number" min="1" max="60" step="1" value="45" />
+                            <span>秒</span>
+                          </div>
+                        </label>
+                        <label class="fieldBlock">
+                          口播语言
+                          <select id="voiceDialect"></select>
+                        </label>
+                        <label class="fieldBlock">
+                          生成数量
+                          <select id="generationCount">
+                            <option value="1">1 条</option>
+                            <option value="2">2 条</option>
+                            <option value="3">3 条</option>
+                            <option value="4">4 条</option>
+                            <option value="5">5 条</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
+                      <div class="generatePrimaryActionRow">
+                        <button id="remakeButton" class="primaryButton" type="button">生成项目</button>
+                        <p id="actionFeedback">先上传商品图，再选模板就能生成项目。</p>
+                      </div>
+                    </section>
+                  </div>
+
+                  <details class="textDetails generateOptionalDetails" open>
+                    <summary>展开自动草稿（可选修改）</summary>
+                    <section class="generateSettingsCard generateOptionalCard">
+                      <div class="contentSectionHead">
+                        <strong>自动草稿</strong>
+                        <p>这些内容会按商品图和模板先生成一版，不改也能直接继续。</p>
                       </div>
                       <div class="textFormRow generatePromptGrid">
                         <label class="fieldBlock">
@@ -129,131 +187,78 @@
                         <textarea
                           id="referenceBrief"
                           rows="6"
-                          placeholder="直接写你想要的内容风格、场景、开场方式和核心卖点。比如：厨房异味开场，30 秒内做前后对比，结尾强调去味快。"
+                          placeholder="想补风格、场景、开场方式或特殊要求，再写在这里。不写也能直接生成。"
                         ></textarea>
                       </label>
-                      <div class="generatePrimaryActionRow">
-                        <button id="remakeButton" class="primaryButton" type="button">生成提示词</button>
-                        <p id="actionFeedback">先选模型，再上传产品图。</p>
-                      </div>
+                      <label class="fieldBlock">
+                        自动拆出的卖点
+                        <textarea
+                          id="productNotes"
+                          rows="4"
+                          placeholder="上传产品图后会自动拆卖点，也可以手动补充。"
+                        ></textarea>
+                      </label>
                     </section>
-                  </div>
+                  </details>
 
-                  <section class="generateSettingsCard">
-                    <div class="contentSectionHead">
-                      <strong>3. 输出设定</strong>
-                      <p>先选模型，再决定平台、比例、时长和数量</p>
-                    </div>
-                    <div class="generateControlGrid simpleSettingsGrid simpleSettingsStrip">
-                      <label class="fieldBlock">
-                        蒸馏模型
-                        <select id="accountTemplateSelect"></select>
-                      </label>
-                      <label class="fieldBlock">
-                        发布平台
-                        <select id="templatePlatform">
-                          <option value="tiktok">TikTok</option>
-                          <option value="douyin">抖音</option>
-                        </select>
-                      </label>
-                      <label class="fieldBlock">
-                        视频比例
-                        <select id="aspectRatioSelect">
-                          <option value="9:16" selected>9:16</option>
-                          <option value="1:1">1:1</option>
-                          <option value="4:3">4:3</option>
-                          <option value="16:9">16:9</option>
-                        </select>
-                      </label>
-                      <label class="fieldBlock">
-                        生成时长
-                        <div class="durationInputWrap">
-                          <input id="targetDurationControl" type="number" min="1" max="60" step="1" value="45" />
-                          <span>秒</span>
-                        </div>
-                      </label>
-                      <label class="fieldBlock">
-                        口播语言
-                        <select id="voiceDialect"></select>
-                      </label>
-                      <label class="fieldBlock">
-                        生成数量
-                        <select id="generationCount">
-                          <option value="1">1 条</option>
-                          <option value="2">2 条</option>
-                          <option value="3">3 条</option>
-                          <option value="4">4 条</option>
-                          <option value="5">5 条</option>
-                        </select>
-                      </label>
-                    </div>
-                    <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
-                  </section>
-
-                  <section class="generateSettingsCard generateStoryboardCard">
-                    <div class="contentSectionHead">
-                      <strong>4. 故事版中间层</strong>
-                      <p>可选补主场景和角色结构，方便后面接故事版叙事图。</p>
-                    </div>
-                    <div class="generateControlGrid simpleSettingsGrid">
-                      <label class="fieldBlock">
-                        主场景说明
-                        <input id="scenePrimaryLocation" type="text" placeholder="例如：现代厨房 / 客厅沙发区 / 办公桌场景" />
-                      </label>
-                      <label class="fieldBlock">
-                        环境风格
-                        <input id="sceneEnvironmentStyle" type="text" placeholder="例如：bright lifestyle daylight / clean home demo" />
-                      </label>
-                      <label class="fieldBlock sceneContinuityField">
-                        连续性要求
-                        <input id="sceneContinuityRule" type="text" placeholder="例如：同一台面、同一人物、同一光线方向" />
-                      </label>
-                      <div class="fieldBlock storyboardToggleField">
-                        <span>故事版图</span>
-                        <label class="checkboxRow">
-                          <input id="storyboardEnabled" type="checkbox" />
-                          <span>生成故事版叙事图任务</span>
+                  <details class="textDetails generateOptionalDetails">
+                    <summary>展开故事版与角色（可选）</summary>
+                    <section class="generateSettingsCard generateStoryboardCard">
+                      <div class="contentSectionHead">
+                        <strong>故事版中间层</strong>
+                        <p>需要做单人带货、多人烘托或多角色互动时，再补这里。</p>
+                      </div>
+                      <div class="generateControlGrid simpleSettingsGrid">
+                        <label class="fieldBlock">
+                          主场景说明
+                          <input id="scenePrimaryLocation" type="text" placeholder="例如：现代厨房 / 客厅沙发区 / 办公桌场景" />
                         </label>
-                      </div>
-                    </div>
-                    <section class="castEditorCard">
-                      <div class="contentSectionHead castEditorHead">
-                        <div>
-                          <strong>角色结构</strong>
-                          <p>默认 1 个主讲人，可按需要补配角或多人烘托。</p>
+                        <label class="fieldBlock">
+                          环境风格
+                          <input id="sceneEnvironmentStyle" type="text" placeholder="例如：bright lifestyle daylight / clean home demo" />
+                        </label>
+                        <label class="fieldBlock sceneContinuityField">
+                          连续性要求
+                          <input id="sceneContinuityRule" type="text" placeholder="例如：同一台面、同一人物、同一光线方向" />
+                        </label>
+                        <div class="fieldBlock storyboardToggleField">
+                          <span>故事版图</span>
+                          <label class="checkboxRow">
+                            <input id="storyboardEnabled" type="checkbox" />
+                            <span>生成故事版叙事图任务</span>
+                          </label>
                         </div>
-                        <button id="addSupportingCast" type="button" class="ghostButton">新增配角</button>
                       </div>
-                      <div id="castList" class="castList"></div>
+                      <section class="castEditorCard">
+                        <div class="contentSectionHead castEditorHead">
+                          <div>
+                            <strong>角色结构</strong>
+                            <p>默认 1 个主讲人，可按需要补配角或多人烘托。</p>
+                          </div>
+                          <button id="addSupportingCast" type="button" class="ghostButton">新增配角</button>
+                        </div>
+                        <div id="castList" class="castList"></div>
+                      </section>
                     </section>
-                  </section>
+                  </details>
 
-                  <section class="generateAssistCard generateAssistInlineCard">
-                    <div class="contentSectionHead">
-                      <strong>5. 主页参考</strong>
-                      <p>不填也能生成，填了优先参考主页风格</p>
-                    </div>
-                    <div class="generateAssistInlineRow">
-                      <label class="fieldBlock generateReferenceField">
-                        <input id="templateProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name" />
-                      </label>
-                      <div class="textInlineHintRow generateAssistHints">
-                        <span class="textInlineHint">平台语言自动切换</span>
-                        <span id="profileScanStatus" class="textInlineHint">自动判断</span>
+                  <details class="textDetails generateOptionalDetails">
+                    <summary>展开主页参考（可选）</summary>
+                    <section class="generateAssistCard generateAssistInlineCard">
+                      <div class="contentSectionHead">
+                        <strong>主页参考</strong>
+                        <p>不填也能生成；填写后会优先参考主页表达风格。</p>
                       </div>
-                    </div>
-                  </section>
-
-                  <details class="textDetails generateNotesDetails">
-                    <summary>展开自动拆出的卖点</summary>
-                    <label class="fieldBlock">
-                      自动拆出的卖点
-                      <textarea
-                        id="productNotes"
-                        rows="4"
-                        placeholder="上传产品图后会自动拆卖点，也可以手动补充。"
-                      ></textarea>
-                    </label>
+                      <div class="generateAssistInlineRow">
+                        <label class="fieldBlock generateReferenceField">
+                          <input id="templateProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name" />
+                        </label>
+                        <div class="textInlineHintRow generateAssistHints">
+                          <span class="textInlineHint">平台语言自动切换</span>
+                          <span id="profileScanStatus" class="textInlineHint">自动判断</span>
+                        </div>
+                      </div>
+                    </section>
                   </details>
                 </section>
               </section>
