@@ -19,6 +19,7 @@
 - 已完成：视频深蒸馏 UI 重做，操作区改成 3 步流程板，第 2 步补了预计耗时与当前拆解提示，并把“已读取但未拆解 / 刷新后需重读 / 正在拆解 / 已完成”几种状态拆开显示，避免误判卡死。
 - 已完成：继续收口蒸馏管理页的误导状态，左侧模板概况不再混入深蒸馏视频数；右侧把“可开始拆解”和“历史样本待重读”拆开统计，避免把恢复态误看成死循环。
 - 已完成：继续优化深蒸馏动作反馈，上传并读取本地视频后，第 2 步会直接提示“开始 AI 拆解”；点击后立即显示“正在 AI 拆解 x / n”的运行反馈，不再只靠状态文案让用户自己猜。
+- 已完成：继续优化深蒸馏等待反馈，读取本地视频期间按钮会直接显示“正在读取本地视频...”，旁边明确提示“读完后按钮会自动变成开始 AI 拆解”，避免用户不知道要等多久、什么时候能点。
 - 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
 - 已补充验证：`node --test tests/extension-shell.test.mjs tests/remake-core.test.mjs`、`node --check src/workspace.js`、`git diff --check`。
 - 已补充验证：`node --test tests/video-batch-service.test.mjs`、`node --check scripts/video-batch-service.mjs`、`git diff --check`。

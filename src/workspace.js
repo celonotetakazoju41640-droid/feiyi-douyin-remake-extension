@@ -202,6 +202,7 @@ let profileScanStageKey = "idle";
 let currentDeepDistillVideos = [];
 let currentDeepDistillFiles = new Map();
 let deepDistillAnalysisRunning = false;
+let deepDistillReadRunning = false;
 let deepDistillReadProgressValue = 0;
 let deepDistillAnalyzeProgressValue = 0;
 let deepDistillAnalyzeCurrentIndex = 0;
@@ -1288,14 +1289,18 @@ async function handleDeepDistillFolderChange(event) {
   const files = Array.from(event.target.files || []).filter((file) => String(file.type || "").startsWith("video/"));
   if (!files.length) {
     currentDeepDistillFiles = new Map();
+    deepDistillReadRunning = false;
     updateDeepDistillReadProgress(0, "0%", false);
     setDeepDistillStatus("没读到可用视频，请重新选择本地视频文件夹。", true);
     renderDeepDistillVideoList();
     return;
   }
 
+  deepDistillReadRunning = true;
+  updateDeepDistillActionState();
   setDeepDistillStatus(`正在读取 ${files.length} 条本地视频...`);
   setActionFeedback("正在读取本地视频元数据和基础信息，完成后会先保存样本，不会直接自动分析。");
+  setDeepDistillActionFeedback(`正在读取本地视频 0 / ${files.length}。读完后按钮会自动变成“开始 AI 拆解”。`, "is-active");
   updateDeepDistillAnalyzeProgress(0, "0%", false);
   updateDeepDistillReadProgress(0, `0 / ${files.length}`, true);
 
@@ -1307,6 +1312,7 @@ async function handleDeepDistillFolderChange(event) {
     const nextVideo = await buildDeepDistillVideoFromFile(file);
     nextVideos.push(nextVideo);
     nextFiles.set(nextVideo.id, file);
+    setDeepDistillActionFeedback(`正在读取本地视频 ${index + 1} / ${files.length}：${file.name}。读完后按钮会自动变成“开始 AI 拆解”。`, "is-active");
     updateDeepDistillReadProgress(
       ((index + 1) / files.length) * 100,
       `${index + 1} / ${files.length}`,
@@ -1316,6 +1322,7 @@ async function handleDeepDistillFolderChange(event) {
 
   currentDeepDistillVideos = nextVideos;
   currentDeepDistillFiles = nextFiles;
+  deepDistillReadRunning = false;
   renderDeepDistillVideoList();
   saveCurrentTemplate();
   setDeepDistillStatus(`已读取 ${nextVideos.length} 条本地视频，并保存到当前模型。`);
@@ -1526,7 +1533,12 @@ function renderDeepDistillVideoList() {
   if (hasLocalFiles) {
     setDeepDistillStatus(`当前模型已载入 ${currentDeepDistillVideos.length} 条本地视频样本。${statusSummary}可继续自动分析。`);
     if (counts.readyToAnalyzeCount > 0) {
-      setDeepDistillActionFeedback(`已读取 ${counts.readyToAnalyzeCount} 条可处理视频。现在点“开始 AI 拆解”就会开始跑。`, "is-ok");
+      const estimateSecondsMin = counts.readyToAnalyzeCount * 8;
+      const estimateSecondsMax = counts.readyToAnalyzeCount * 18;
+      setDeepDistillActionFeedback(
+        `已读取 ${counts.readyToAnalyzeCount} 条可处理视频。现在点“开始 AI 拆解”就会开始跑，预计约 ${estimateSecondsMin}-${estimateSecondsMax} 秒。`,
+        "is-ok"
+      );
     } else if (counts.analyzedCount > 0 && counts.failedCount === 0) {
       setDeepDistillActionFeedback("这批视频已经拆完；如果你想重跑，点“重新 AI 拆解当前视频”。", "is-ok");
     }
@@ -1558,8 +1570,10 @@ function updateDeepDistillActionState() {
     const resumableVideos = currentDeepDistillVideos.filter((video) =>
       currentDeepDistillFiles.has(video.id) && getDeepDistillAnalysisStateLabel(video) !== "已分析"
     );
-    nodes.analyzeDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || !hasAnalyzableVideos;
-    nodes.analyzeDeepDistillVideosButton.textContent = deepDistillAnalysisRunning
+    nodes.analyzeDeepDistillVideosButton.disabled = deepDistillReadRunning || deepDistillAnalysisRunning || !hasAnalyzableVideos;
+    nodes.analyzeDeepDistillVideosButton.textContent = deepDistillReadRunning
+      ? "正在读取本地视频..."
+      : deepDistillAnalysisRunning
       ? "正在 AI 拆解..."
       : hasAnalyzableVideos
         ? resumableVideos.length > 0
