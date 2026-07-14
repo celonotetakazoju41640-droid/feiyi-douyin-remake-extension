@@ -82,3 +82,11 @@ test("deep-distill restored-history state is tracked as re-read required, not as
   assert.doesNotMatch(workspaceJs, /\["待分析", pendingCount/);
   assert.doesNotMatch(workspaceJs, /当前页面只恢复了历史样本/);
 });
+
+test("workspace shell translates local batch service fetch failures into actionable guidance", () => {
+  assert.match(workspaceJs, /function isBatchServiceOfflineError/);
+  assert.match(workspaceJs, /127\.0\.0\.1:4328/);
+  assert.match(workspaceJs, /先启动 4328 服务/);
+  assert.match(workspaceJs, /启动命令：\$\{batchServiceCommand\}/);
+  assert.doesNotMatch(workspaceJs, /AI 拆解失败：Failed to fetch/);
+});

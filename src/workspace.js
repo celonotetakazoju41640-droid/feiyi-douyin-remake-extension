@@ -875,6 +875,23 @@ async function copyBatchTasks() {
   setActionFeedback("批量视频任务 JSON 已复制。");
 }
 
+function isBatchServiceOfflineError(error) {
+  const message = error instanceof Error ? error.message : String(error || "");
+  return /failed to fetch|fetch failed|networkerror|load failed/i.test(message);
+}
+
+function getBatchServiceOfflineMessage(actionName = "当前操作") {
+  return `${actionName}没连上本地分析服务（127.0.0.1:4328）。先启动 4328 服务。`;
+}
+
+function getFriendlyBatchServiceErrorMessage(error, actionName = "当前操作") {
+  if (isBatchServiceOfflineError(error)) {
+    return getBatchServiceOfflineMessage(actionName);
+  }
+  const message = error instanceof Error ? error.message : String(error || "");
+  return message.trim() || `${actionName}失败，请稍后重试。`;
+}
+
 async function sendBatchTasksToService() {
   if (!currentPackage) {
     setActionFeedback("当前没有批量任务可发送。", true);
@@ -899,7 +916,9 @@ async function sendBatchTasksToService() {
     setActionFeedback(`已发送到本地服务，批次号：${data.batchId || "未返回"}`);
     refreshBatchServiceHealth();
   } catch (error) {
-    setActionFeedback(`发送失败：${error instanceof Error ? error.message : String(error)}`, true);
+    const message = getFriendlyBatchServiceErrorMessage(error, "发送批量任务");
+    const detail = isBatchServiceOfflineError(error) ? `${message} 启动命令：${batchServiceCommand}` : message;
+    setActionFeedback(`发送失败：${detail}`, true);
   }
 }
 
@@ -1701,7 +1720,8 @@ async function analyzeDeepDistillVideos() {
     setDeepDistillActionFeedback(`AI 拆解完成，已回填 ${analyzableVideos.length} 条视频。`, "is-ok");
     setActionFeedback(`视频深蒸馏已完成，当前共回填 ${analyzableVideos.length} 条视频。`);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = getFriendlyBatchServiceErrorMessage(error, "AI 拆解");
+    const detail = isBatchServiceOfflineError(error) ? `${message} 启动命令：${batchServiceCommand}` : message;
     currentDeepDistillVideos = currentDeepDistillVideos.map((item) => ({
       ...item,
       analysisState: currentDeepDistillFiles.has(item.id) ? "分析失败" : item.analysisState,
@@ -1711,7 +1731,7 @@ async function analyzeDeepDistillVideos() {
     saveCurrentTemplate();
     setDeepDistillStatus(`自动分析失败：${message}`, true);
     setDeepDistillActionFeedback(`AI 拆解失败：${message}`, "is-error");
-    setActionFeedback(`视频深蒸馏自动分析失败：${message}`, true);
+    setActionFeedback(`视频深蒸馏自动分析失败：${detail}`, true);
   } finally {
     deepDistillAnalysisRunning = false;
     deepDistillAnalyzeCurrentIndex = 0;

@@ -22,6 +22,7 @@
 - 已完成：继续优化深蒸馏等待反馈，读取本地视频期间按钮会直接显示“正在读取本地视频...”，旁边明确提示“读完后按钮会自动变成开始 AI 拆解”，避免用户不知道要等多久、什么时候能点。
 - 已完成：继续把深蒸馏按钮做成傻瓜式动作态，空状态按钮直接写“先选择本地视频”，避免一上来看到“自动分析”这类不明确词。
 - 已完成：修掉“本地视频刚读完就又被判成历史待重读”的状态回退问题。保存模板时会保留当前会话里的本地文件映射，不再出现 10/10 读完但第 2 步仍锁死的假卡死。
+- 已完成：把深蒸馏和本地批量发送里的 `Failed to fetch` 翻成白话提示。现在如果 4328 本地服务没启动，会直接提示“本地分析服务没连上，请先启动 4328 服务”，并带出启动命令。
 - 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
 - 已补充验证：`node --test tests/extension-shell.test.mjs tests/remake-core.test.mjs`、`node --check src/workspace.js`、`git diff --check`。
 - 已补充验证：`node --test tests/video-batch-service.test.mjs`、`node --check scripts/video-batch-service.mjs`、`git diff --check`。
