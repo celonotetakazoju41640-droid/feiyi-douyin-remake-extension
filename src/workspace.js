@@ -322,7 +322,7 @@ function bindEvents() {
   nodes.copyBatchServiceCommandButton.addEventListener("click", copyBatchServiceCommand);
   nodes.refreshBatchServiceButton.addEventListener("click", refreshBatchServiceHealth);
   nodes.copyStartCommandButton.addEventListener("click", async () => {
-    const text = "这套工作台当前是本地版：上传产品图后会自动拆卖点，选好模板就能直接生成项目和批量任务。";
+    const text = "这套工作台当前是本地版：上传商品图，选择模板，然后直接生成项目。";
     await navigator.clipboard.writeText(text);
     setActionFeedback("使用说明已复制。");
   });
@@ -3156,22 +3156,22 @@ function updateActionFeedback() {
   const hasImages = Boolean(nodes.productImages.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
   if (!hasTemplate && !hasImages && !hasPrompt) {
-    setActionFeedback("先上传商品图，再选模板就能生成项目。主页参考不填也不影响。");
+    setActionFeedback("先上传商品图。");
     return;
   }
   if (!hasImages && !hasPrompt) {
-    setActionFeedback("先上传商品图；主页参考只是补充，不填也能继续。");
+    setActionFeedback("先上传商品图。");
     return;
   }
   if (!hasImages) {
-    setActionFeedback("可选要求已经有了，再补商品图就能生成项目。");
+    setActionFeedback("再上传商品图就能生成。");
     return;
   }
   if (!hasPrompt) {
-    setActionFeedback("商品图已经准备好；直接选模板就能生成，系统会先用自动草稿兜底。");
+    setActionFeedback("商品图已就绪，可以直接生成。");
     return;
   }
-  setActionFeedback("商品图、模板和可选要求都已就绪，可以直接生成项目。");
+  setActionFeedback("可以直接生成。");
 }
 
 function renderAssetStatus() {
@@ -3269,7 +3269,7 @@ function getWizardStepConfig(step) {
   return {
     1: {
       title: "基础信息",
-      description: "先确认基础配置；主页参考只是可选补充。",
+      description: "默认配置已经有了，先看主流程即可。",
       nextLabel: "下一步"
     },
     2: {
@@ -3279,7 +3279,7 @@ function getWizardStepConfig(step) {
     },
     3: {
       title: "生成项目",
-      description: "选好模板就能直接生成；创作要求和卖点都只是可选补充。",
+      description: "选好模板就能直接生成。",
       nextLabel: "生成项目"
     },
     4: {

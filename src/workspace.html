@@ -63,7 +63,7 @@
               <header class="contentHeader">
                 <div class="generateHeaderBlock">
                   <h2>生成</h2>
-                  <p>先上传商品图，再选模板，直接生成项目。</p>
+                  <p>只做两步：传图、选模板。</p>
                 </div>
               </header>
 
@@ -85,8 +85,8 @@
                 <section class="simpleFlowCard generateTaskCard">
                   <div class="contentSectionHead generateTaskHead">
                     <div>
-                      <strong>创建任务</strong>
-                      <p>商品图是主输入，模板是关键选择，其它内容都能后面再补。</p>
+                      <strong>开始生成</strong>
+                      <p>先把项目跑起来，其它内容都可以后面再补。</p>
                     </div>
                   </div>
 
@@ -94,9 +94,8 @@
                     <section class="generateUploadCard">
                       <div class="contentSectionHead">
                         <strong>1. 上传产品图</strong>
-                        <p>传图后会自动拆卖点</p>
+                        <p>先传图</p>
                       </div>
-                      <p class="simpleFlowIntro">商品图会决定产品外观、使用场景和主要卖点方向。</p>
                       <div class="simpleImageUploadRow">
                         <label class="simpleProductTile">
                           <input id="productImages" type="file" accept="image/*" multiple />
@@ -115,14 +114,31 @@
 
                     <section class="generateComposerCard">
                       <div class="contentSectionHead">
-                        <strong>2. 选模板并生成</strong>
-                        <p>选好模板就能直接生成项目，系统会自动补一版草稿。</p>
+                        <strong>2. 选模板</strong>
+                        <p>选好就能直接生成</p>
                       </div>
                       <div class="generateControlGrid simpleSettingsGrid generatePrimaryConfigGrid">
                         <label class="fieldBlock">
                           蒸馏模型
                           <select id="accountTemplateSelect"></select>
                         </label>
+                      </div>
+                      <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
+                      <div class="generatePrimaryActionRow">
+                        <button id="remakeButton" class="primaryButton" type="button">生成项目</button>
+                        <p id="actionFeedback">先上传商品图，然后直接点生成项目。</p>
+                      </div>
+                    </section>
+                  </div>
+
+                  <details class="textDetails generateOptionalDetails">
+                    <summary>更多设置（可选）</summary>
+                    <section class="generateSettingsCard generateOptionalCard">
+                      <div class="contentSectionHead">
+                        <strong>默认不填也能生成</strong>
+                        <p>想手动控平台、时长、文案时，再展开这里。</p>
+                      </div>
+                      <div class="generateControlGrid simpleSettingsGrid generateOptionalConfigGrid">
                         <label class="fieldBlock">
                           发布平台
                           <select id="templatePlatform">
@@ -160,21 +176,6 @@
                             <option value="5">5 条</option>
                           </select>
                         </label>
-                      </div>
-                      <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
-                      <div class="generatePrimaryActionRow">
-                        <button id="remakeButton" class="primaryButton" type="button">生成项目</button>
-                        <p id="actionFeedback">先上传商品图，再选模板就能生成项目。</p>
-                      </div>
-                    </section>
-                  </div>
-
-                  <details class="textDetails generateOptionalDetails" open>
-                    <summary>展开自动草稿（可选修改）</summary>
-                    <section class="generateSettingsCard generateOptionalCard">
-                      <div class="contentSectionHead">
-                        <strong>自动草稿</strong>
-                        <p>这些内容会按商品图和模板先生成一版，不改也能直接继续。</p>
                       </div>
                       <div class="textFormRow generatePromptGrid">
                         <label class="fieldBlock">

@@ -28,9 +28,10 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /蒸馏管理/);
   assert.match(workspaceHtml, /蒸馏模型/);
   assert.match(workspaceHtml, /生成项目/);
-  assert.match(workspaceHtml, /先上传商品图，再选模板，直接生成项目/);
+  assert.match(workspaceHtml, /只做两步：传图、选模板/);
   assert.match(workspaceHtml, /id="accountTemplateSelect"/);
-  assert.match(workspaceHtml, /展开自动草稿（可选修改）/);
+  assert.match(workspaceHtml, /更多设置（可选）/);
+  assert.match(workspaceHtml, /先把项目跑起来，其它内容都可以后面再补/);
   assert.match(workspaceHtml, /data-view-nav="generate"/);
   assert.match(workspaceHtml, /data-view-panel="history"/);
   assert.match(workspaceHtml, /id="openOnboardingButton"/);
@@ -107,6 +108,8 @@ test("workspace shell allows generation with only uploaded product images by usi
   assert.match(workspaceJs, /nodes\.scenePrimaryLocation\.value = generationDefaults\.scenePlan\?\.primaryLocation \|\| ""/);
   assert.match(workspaceJs, /currentCastDraft = normalizeCastDraft\(generationDefaults\.cast\)/);
   assert.match(workspaceJs, /nodes\.remakeButton\.disabled = !\(hasTemplate && hasProductImage\)/);
+  assert.match(workspaceJs, /setActionFeedback\("商品图已就绪，可以直接生成。"\)/);
+  assert.match(workspaceJs, /setActionFeedback\("可以直接生成。"\)/);
   assert.doesNotMatch(workspaceJs, /请先填写当前商品名/);
   assert.doesNotMatch(workspaceJs, /请先填写你的创作提示词/);
 });
