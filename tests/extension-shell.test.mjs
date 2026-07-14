@@ -4,6 +4,7 @@ import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync(new URL("../manifest.json", import.meta.url), "utf8"));
 const workspaceHtml = fs.readFileSync(new URL("../src/workspace.html", import.meta.url), "utf8");
+const workspaceJs = fs.readFileSync(new URL("../src/workspace.js", import.meta.url), "utf8");
 
 test("manifest declares MV3 background service worker and required local permissions", () => {
   assert.equal(manifest.background?.service_worker, "src/background.js");
@@ -32,6 +33,7 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /id="openOnboardingButton"/);
   assert.match(workspaceHtml, /开始前先看/);
   assert.match(workspaceHtml, /id="acknowledgeOnboardingButton"/);
+  assert.match(workspaceHtml, /class="panelSidebar panelSidebarCompact"/);
 });
 
 test("workspace shell includes scene plan, cast editor, and storyboard toggle", () => {
@@ -57,4 +59,16 @@ test("workspace shell makes deep-distill read vs analyze states explicit", () =>
   assert.match(workspaceHtml, /读取完成不等于已经开始 AI 拆解/);
   assert.match(workspaceHtml, /10 条视频通常约 1-3 分钟/);
   assert.match(workspaceHtml, /id="deepDistillRecoveryNotice"/);
+});
+
+test("workspace shell avoids mixing deep-distill counts into the left template snapshot", () => {
+  assert.match(workspaceHtml, /id="manageTemplateSnapshot"/);
+  assert.doesNotMatch(workspaceJs, /深蒸馏视频：/);
+});
+
+test("deep-distill restored-history state is tracked as re-read required, not as directly analyzable pending work", () => {
+  assert.match(workspaceJs, /当前页面只恢复了历史样本/);
+  assert.match(workspaceJs, /先重新读取本地视频/);
+  assert.match(workspaceJs, /\["可开始拆解"/);
+  assert.doesNotMatch(workspaceJs, /\["待分析", pendingCount/);
 });

@@ -4313,7 +4313,7 @@ body {
 
 .panelLayout {
   display: grid;
-  grid-template-columns: 178px minmax(0, 1fr);
+  grid-template-columns: 146px minmax(0, 1fr);
   gap: 0;
   width: min(1240px, 100%);
   margin: 0 auto;
@@ -4329,16 +4329,20 @@ body {
   display: grid;
   gap: 14px;
   align-content: start;
-  min-height: calc(100vh - 120px);
-  padding: 14px 10px;
+  min-height: calc(100vh - 160px);
+  padding: 12px 8px;
   background: linear-gradient(180deg, #fbf4e6, #f6ecd7);
   color: #3e3428;
   border-right: 1px solid #e3d7c1;
 }
 
+.panelSidebarCompact {
+  gap: 10px;
+}
+
 .panelSidebarHead strong {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .panelNav {
@@ -4349,7 +4353,8 @@ body {
 .panelNavItem {
   display: block;
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 10px;
+  border-radius: 12px;
   border: 0;
   background: transparent;
   color: #7a705f;
@@ -4357,7 +4362,7 @@ body {
 }
 
 .panelNavItem strong {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -5097,7 +5102,7 @@ body {
 
 .manageLeadGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  grid-template-columns: minmax(290px, 0.82fr) minmax(0, 1.18fr);
   gap: 12px;
   align-items: start;
 }
@@ -5111,6 +5116,12 @@ body {
   display: grid;
   justify-content: flex-start;
   gap: 6px;
+}
+
+.managePrimaryActions {
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .manageProfileEntry {
@@ -5593,6 +5604,12 @@ body {
 
 @media (max-width: 980px) {
   .deepDistillWorkflowBoard {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1100px) {
+  .manageLeadGrid {
     grid-template-columns: 1fr;
   }
 }
