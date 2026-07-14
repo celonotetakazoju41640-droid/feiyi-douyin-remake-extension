@@ -5097,13 +5097,13 @@ body {
 }
 
 .manageLeadSection {
-  padding-top: 6px;
+  padding-top: 0;
 }
 
 .manageLeadGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: start;
 }
 
@@ -5130,7 +5130,7 @@ body {
 
 .manageCompactHead {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .manageCompactHead strong {
@@ -5138,22 +5138,35 @@ body {
   font-size: 16px;
 }
 
-.manageCompactToolbar {
+.manageCompactHeadRow {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
 }
 
-.manageCompactSelect {
-  min-width: min(100%, 280px);
+.manageCompactToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+}
+
+.manageCompactSelect {
+  min-width: min(100%, 220px);
+  gap: 4px;
 }
 
 .manageCompactSelect span {
   color: #6e5f4d;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+}
+
+.manageCompactToolbar .ghostButton {
+  min-height: 34px;
+  padding: 6px 12px;
 }
 
 .manageProfileEntry {
@@ -5343,18 +5356,16 @@ body {
 
 .deepDistillWorkflowBoard {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.deepDistillWorkflowBoardCompact {
-  align-items: stretch;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.1fr) minmax(0, 0.85fr);
+  gap: 8px;
+  align-items: start;
 }
 
 .deepDistillWorkflowCard {
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  align-content: start;
+  padding: 10px 12px;
   border: 1px solid #eadcc4;
   border-radius: 16px;
   background: linear-gradient(180deg, #fffdf8 0%, #fff8ee 100%);
@@ -5374,8 +5385,8 @@ body {
 
 .deepDistillWorkflowCard strong {
   color: #2f261d;
-  font-size: 15px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.25;
 }
 
 .deepDistillAnalyzeHint {
@@ -5439,12 +5450,13 @@ body {
 }
 
 .deepDistillWorkflowButton {
-  min-height: 38px;
+  min-height: 34px;
+  padding: 6px 10px;
   justify-content: center;
 }
 
 .deepDistillInlineStatus {
-  min-height: 20px;
+  min-height: 18px;
   color: #6d5b3f;
   font-size: 12px;
   line-height: 1.5;
@@ -5452,13 +5464,14 @@ body {
 
 .deepDistillProgressStack {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 .deepDistillProgressCard {
   display: grid;
   gap: 6px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1px solid #eadcc4;
   border-radius: 12px;
   background: rgba(255, 252, 245, 0.92);
@@ -5670,6 +5683,10 @@ body {
 
 @media (max-width: 980px) {
   .deepDistillWorkflowBoard {
+    grid-template-columns: 1fr;
+  }
+
+  .deepDistillProgressStack {
     grid-template-columns: 1fr;
   }
 }

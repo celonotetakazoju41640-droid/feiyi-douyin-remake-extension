@@ -389,7 +389,6 @@
               <header class="contentHeader">
                 <div class="manageHeaderBlock">
                   <h2>蒸馏管理</h2>
-                  <p>这里维护模型、主页样本和视频参考，不打扰普通生成流程。</p>
                 </div>
               </header>
 
@@ -397,14 +396,18 @@
                 <div class="manageLeadGrid">
                   <section class="simpleFlowCard manageDeepDistillCard manageCompactCard">
                     <div class="contentSectionHead manageCompactHead">
-                      <strong>视频深蒸馏</strong>
+                      <div class="manageCompactHeadRow">
+                        <strong>视频深蒸馏</strong>
+                        <div class="manageCompactToolbar">
+                          <button id="newTemplateButton" class="ghostButton" type="button">新建空模型</button>
+                          <button id="deleteTemplateButton" class="ghostButton" type="button">删除模型</button>
+                        </div>
+                      </div>
                       <div class="manageCompactToolbar">
                         <label class="fieldBlock manageCompactSelect">
                           <span>当前模型</span>
                           <select id="manageTemplateSelect"></select>
                         </label>
-                        <button id="newTemplateButton" class="ghostButton" type="button">新建空模型</button>
-                        <button id="deleteTemplateButton" class="ghostButton" type="button">删除模型</button>
                       </div>
                     </div>
                     <div class="deepDistillWorkflowBoard deepDistillWorkflowBoardCompact">
