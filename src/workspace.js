@@ -3248,9 +3248,7 @@ function updateGenerateButtonState() {
   if (!nodes.remakeButton) return;
   const hasTemplate = Boolean(getSelectedTemplate());
   const hasProductImage = Boolean(nodes.productImages?.files?.length);
-  const hasPrompt = Boolean(nodes.referenceBrief?.value.trim());
-  const hasProductName = Boolean(nodes.productName?.value.trim());
-  nodes.remakeButton.disabled = !(hasTemplate && hasProductImage && hasPrompt && hasProductName);
+  nodes.remakeButton.disabled = !(hasTemplate && hasProductImage);
 }
 
 function syncFlowStepState() {
