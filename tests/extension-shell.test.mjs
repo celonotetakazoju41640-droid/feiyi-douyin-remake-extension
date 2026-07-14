@@ -74,6 +74,10 @@ test("deep-distill restored-history state is tracked as re-read required, not as
   assert.match(workspaceJs, /正在读取本地视频/);
   assert.match(workspaceJs, /读完后按钮会自动变成“开始 AI 拆解”/);
   assert.match(workspaceJs, /先选择本地视频/);
+  assert.match(workspaceJs, /const preservedDeepDistillFiles = new Map\(currentDeepDistillFiles\)/);
+  assert.match(workspaceJs, /currentDeepDistillFiles = new Map\(/);
+  assert.match(workspaceJs, /先点左边“读取本地视频文件夹”，读完后这里会直接变成“开始 AI 拆解”/);
+  assert.match(workspaceJs, /当前这些是历史样本，还没重新读入本地文件，所以第 2 步不会开始/);
   assert.match(workspaceJs, /\["可开始拆解"/);
   assert.doesNotMatch(workspaceJs, /\["待分析", pendingCount/);
   assert.doesNotMatch(workspaceJs, /当前页面只恢复了历史样本/);

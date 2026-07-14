@@ -963,6 +963,7 @@ function handleTemplatePlatformChange() {
 }
 
 function saveCurrentTemplate() {
+  const preservedDeepDistillFiles = new Map(currentDeepDistillFiles);
   const template = normalizeAccountTemplate({
     id: selectedTemplateId || undefined,
     name: nodes.templateName.value.trim(),
@@ -995,7 +996,15 @@ function saveCurrentTemplate() {
   selectedTemplateId = template.id;
   saveAccountTemplates();
   renderTemplateOptions();
-  syncTemplateForm();
+  currentDeepDistillVideos = cloneDeepDistillVideos(template.deepDistillVideos || []);
+  currentDeepDistillFiles = new Map(
+    currentDeepDistillVideos
+      .filter((video) => preservedDeepDistillFiles.has(video.id))
+      .map((video) => [video.id, preservedDeepDistillFiles.get(video.id)])
+  );
+  renderDeepDistillVideoList();
+  renderManageTemplateSnapshot();
+  renderTemplateDeepDistillSummary();
   renderTemplateGuide();
   renderProfileScanState();
   setActionFeedback(`模板已保存：${template.name}`);
@@ -1544,7 +1553,7 @@ function renderDeepDistillVideoList() {
     }
   } else {
     setDeepDistillStatus(`当前模型里有 ${currentDeepDistillVideos.length} 条历史记录，但还没重新选本地视频，所以现在不能开始拆解。`);
-    setDeepDistillActionFeedback("先重新选择本地视频，选完后这里会出现“开始 AI 拆解”按钮状态。");
+    setDeepDistillActionFeedback("先点左边“读取本地视频文件夹”，读完后这里会直接变成“开始 AI 拆解”。");
   }
 
   nodes.deepDistillVideoList.querySelectorAll("[data-deep-video-id]").forEach((card) => {
@@ -1718,7 +1727,7 @@ function renderDeepDistillAnalyzeHint(currentFileName = "") {
 
   if (!analyzableVideos.length) {
     nodes.deepDistillAnalyzeHint.textContent = currentDeepDistillVideos.length
-      ? "当前还没重新选择本地视频，所以第 2 步现在不会开始。先回到第 1 步重新选这批本地视频。"
+      ? "当前这些是历史样本，还没重新读入本地文件，所以第 2 步不会开始。先点左边“读取本地视频文件夹”。"
       : "先读取视频后，系统会在这里显示预计耗时和当前拆解进度。";
     return;
   }
