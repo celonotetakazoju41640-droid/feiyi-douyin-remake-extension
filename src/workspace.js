@@ -1579,7 +1579,7 @@ function updateDeepDistillActionState() {
         ? resumableVideos.length > 0
           ? `开始 AI 拆解（${resumableVideos.length} 条待处理）`
           : "重新 AI 拆解当前视频"
-        : "先重新选择本地视频";
+        : "先选择本地视频";
   }
   if (nodes.clearDeepDistillVideosButton) {
     nodes.clearDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || currentDeepDistillVideos.length === 0;

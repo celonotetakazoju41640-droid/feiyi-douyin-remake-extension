@@ -52,7 +52,7 @@ test("workspace shell exposes separated deep-distill read and analysis progress"
   assert.match(workspaceHtml, /id="deepDistillReadProgress"/);
   assert.match(workspaceHtml, /id="deepDistillAnalyzeProgress"/);
   assert.match(workspaceHtml, /id="deepDistillStatusSummary"/);
-  assert.match(workspaceHtml, /自动分析当前视频/);
+  assert.match(workspaceHtml, /先选择本地视频/);
 });
 
 test("workspace shell makes deep-distill read vs analyze states explicit", () => {
@@ -73,6 +73,7 @@ test("deep-distill restored-history state is tracked as re-read required, not as
   assert.match(workspaceJs, /正在 AI 拆解/);
   assert.match(workspaceJs, /正在读取本地视频/);
   assert.match(workspaceJs, /读完后按钮会自动变成“开始 AI 拆解”/);
+  assert.match(workspaceJs, /先选择本地视频/);
   assert.match(workspaceJs, /\["可开始拆解"/);
   assert.doesNotMatch(workspaceJs, /\["待分析", pendingCount/);
   assert.doesNotMatch(workspaceJs, /当前页面只恢复了历史样本/);
