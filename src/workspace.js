@@ -514,19 +514,19 @@ async function handleGenerate() {
     setActionFeedback("当前还没有可用模型，请补一个主页链接或稍后再试。", true);
     return;
   }
-  if (!productName) {
-    setActionFeedback("请先填写当前商品名。", true);
-    return;
-  }
-  if (!referenceSummary) {
-    setActionFeedback("请先填写你的创作提示词。", true);
-    return;
-  }
+
+  const inferredFallback = inferProductInsightsFromAsset({
+    fileName: nodes.productImages.files?.[0]?.name || "",
+    productName,
+    template
+  });
+  const fallbackProductName = productName || nodes.productName.value.trim() || "当前商品";
+  const fallbackReferenceSummary = referenceSummary || nodes.referenceBrief.value.trim() || inferredFallback.suggestedPrompt;
 
   currentPackage = buildRemakePackage({
-    projectName: `${productName}-${template.name}-复刻包`,
-    referenceSummary,
-    productName,
+    projectName: `${fallbackProductName}-${template.name}-复刻包`,
+    referenceSummary: fallbackReferenceSummary,
+    productName: fallbackProductName,
     sellingPoints: sellingPoints.length ? sellingPoints : ["按当前商品图生成更适合直接投放的短视频提示词"],
     hookStyle: nodes.hookStyle.value,
     visualStyle: nodes.visualStyle.value,
@@ -3140,7 +3140,7 @@ function updateActionFeedback() {
     return;
   }
   if (!hasPrompt) {
-    setActionFeedback("产品图已经准备好，再补一句你想要的风格就能生成。");
+    setActionFeedback("产品图已经准备好；不补也能直接生成，系统会先用自动草稿兜底。");
     return;
   }
   setActionFeedback("产品图和要求都已准备，系统会自动处理模型和语言，可以直接生成。");

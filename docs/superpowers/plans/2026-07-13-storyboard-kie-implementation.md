@@ -25,6 +25,7 @@
 - 已完成：把深蒸馏和本地批量发送里的 `Failed to fetch` 翻成白话提示。现在如果 4328 本地服务没启动，会直接提示“本地分析服务没连上，请先启动 4328 服务”，并带出启动命令。
 - 已完成：把蒸馏管理页收成单列紧凑版。移除“模型与主页参考”的可见区，只保留当前模型选择、新建空模型、删除模型和第 3 步保存模型；视频深蒸馏只保留 3 步动作、进度和结果，不再展示大段说明文案。
 - 已完成：继续压缩蒸馏管理面板密度。顶部模型操作已并进标题行，三步卡片取消等高拉伸，按钮高度、卡片留白和进度区间距进一步收紧；桌面端进度条改成双列，移动端自动回单列。
+- 已完成：放开生成页的商品名和创作要求强校验。现在只上传产品图也能生成，系统会优先沿用自动回填内容；商品名缺失时兜底为“当前商品”，创作要求缺失时兜底为商品图自动提炼草稿。
 - 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
 - 已补充验证：`node --test tests/extension-shell.test.mjs tests/remake-core.test.mjs`、`node --check src/workspace.js`、`git diff --check`。
 - 已补充验证：`node --test tests/video-batch-service.test.mjs`、`node --check scripts/video-batch-service.mjs`、`git diff --check`。

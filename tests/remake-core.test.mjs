@@ -39,6 +39,18 @@ test("inferProductInsightsFromAsset auto-suggests english selling points for Tik
   assert.match(result.suggestedPrompt, /short|30 seconds|problem|proof/i);
 });
 
+test("inferProductInsightsFromAsset provides a safe fallback prompt when no category matches", () => {
+  const result = inferProductInsightsFromAsset({
+    fileName: "mystery-item.png",
+    template: {
+      platform: "tiktok"
+    }
+  });
+
+  assert.equal(result.sellingPoints.length, 4);
+  assert.match(result.suggestedPrompt, /Build a short lifestyle video around|clear problem|visual proof/i);
+});
+
 test("normalizeAccountTemplate preserves profile url and sample urls", () => {
   const template = normalizeAccountTemplate({
     name: "厨房清洁模板",
