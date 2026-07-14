@@ -44,26 +44,29 @@ test("workspace shell includes scene plan, cast editor, and storyboard toggle", 
 });
 
 test("workspace shell exposes separated deep-distill read and analysis progress", () => {
-  assert.match(workspaceHtml, /读取本地视频文件夹/);
+  assert.match(workspaceHtml, /读取文件夹/);
   assert.match(workspaceHtml, /自动结构拆解/);
-  assert.match(workspaceHtml, /查看结果/);
-  assert.match(workspaceHtml, /id="deepDistillAnalyzeHint"/);
+  assert.match(workspaceHtml, /保存模板/);
   assert.match(workspaceHtml, /id="deepDistillActionFeedback"/);
   assert.match(workspaceHtml, /id="deepDistillReadProgress"/);
   assert.match(workspaceHtml, /id="deepDistillAnalyzeProgress"/);
-  assert.match(workspaceHtml, /id="deepDistillStatusSummary"/);
   assert.match(workspaceHtml, /先选择本地视频/);
 });
 
-test("workspace shell makes deep-distill read vs analyze states explicit", () => {
-  assert.match(workspaceHtml, /只读取本机视频、时长和抽帧基础信息/);
-  assert.match(workspaceHtml, /读取完成不等于已经开始 AI 拆解/);
-  assert.match(workspaceHtml, /10 条视频通常约 1-3 分钟/);
-  assert.match(workspaceHtml, /id="deepDistillRecoveryNotice"/);
+test("workspace shell keeps manage view compact and removes homepage-reference controls", () => {
+  assert.doesNotMatch(workspaceHtml, /模型与主页参考/);
+  assert.doesNotMatch(workspaceHtml, /提炼主页模型/);
+  assert.doesNotMatch(workspaceHtml, /主页链接/);
+  assert.doesNotMatch(workspaceHtml, /id="manageTemplateSnapshot"/);
+  assert.doesNotMatch(workspaceHtml, /id="manageProfileUrl"/);
+  assert.doesNotMatch(workspaceHtml, /id="manageScanSummary"/);
+  assert.match(workspaceHtml, /id="manageTemplateSelect"/);
+  assert.match(workspaceHtml, /新建空模型/);
+  assert.match(workspaceHtml, /删除模型/);
+  assert.match(workspaceHtml, /保存模型/);
 });
 
-test("workspace shell avoids mixing deep-distill counts into the left template snapshot", () => {
-  assert.match(workspaceHtml, /id="manageTemplateSnapshot"/);
+test("workspace shell avoids mixing deep-distill counts into template snapshot logic", () => {
   assert.doesNotMatch(workspaceJs, /深蒸馏视频：/);
 });
 

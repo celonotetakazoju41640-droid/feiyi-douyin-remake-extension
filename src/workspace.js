@@ -293,7 +293,7 @@ function bindEvents() {
   nodes.templatePlatform.addEventListener("change", handleTemplatePlatformChange);
   nodes.templateProfileUrl.addEventListener("input", handleTemplateProfileUrlInput);
   nodes.manageProfileUrl?.addEventListener("input", handleManageProfileUrlInput);
-  nodes.scanProfileButton.addEventListener("click", handleProfileScan);
+  nodes.scanProfileButton?.addEventListener("click", handleProfileScan);
   nodes.deepDistillFolderInput?.addEventListener("change", handleDeepDistillFolderChange);
   nodes.analyzeDeepDistillVideosButton?.addEventListener("click", analyzeDeepDistillVideos);
   nodes.clearDeepDistillVideosButton?.addEventListener("click", clearDeepDistillVideos);
@@ -1451,6 +1451,7 @@ function updateDeepDistillAnalyzeProgress(value = 0, text = "0%", visible = fals
 function setDeepDistillActionFeedback(message, tone = "") {
   if (!nodes.deepDistillActionFeedback) return;
   nodes.deepDistillActionFeedback.textContent = message;
+  nodes.deepDistillActionFeedback.hidden = !message;
   nodes.deepDistillActionFeedback.classList.remove("is-active", "is-ok", "is-error");
   if (tone) {
     nodes.deepDistillActionFeedback.classList.add(tone);
@@ -1474,9 +1475,9 @@ function renderDeepDistillVideoList() {
       nodes.deepDistillRecoveryNotice.classList.remove("is-ok");
     }
     nodes.deepDistillVideoList.innerHTML =
-      '<p class="emptyState">先读取一个本地视频文件夹。读取完成后，这里会先保留样本；需要时再点自动分析。</p>';
+      '<p class="emptyState">还没有视频</p>';
     setDeepDistillStatus("还没有读取本地视频");
-    setDeepDistillActionFeedback("先读取本地视频文件夹，然后这里会出现可点击的 AI 拆解动作。");
+    setDeepDistillActionFeedback("");
     return;
   }
 
@@ -3419,8 +3420,10 @@ function buildDefaultTemplates() {
 function updatePlatformDependentUi() {
   const platform = nodes.templatePlatform.value || "tiktok";
   const defaultVoiceLanguage = platform === "douyin" ? "中文" : "英文";
-  nodes.scanProfileButton.textContent = `提炼${getPlatformLabel(platform)}主页模板`;
-  nodes.scanProfileButton.disabled = !isProfileAutoScanSupported(platform);
+  if (nodes.scanProfileButton) {
+    nodes.scanProfileButton.textContent = `提炼${getPlatformLabel(platform)}主页模板`;
+    nodes.scanProfileButton.disabled = !isProfileAutoScanSupported(platform);
+  }
   nodes.templateProfileUrl.placeholder =
     platform === "douyin" ? "https://www.douyin.com/user/xxxx" : "https://www.tiktok.com/@account_name";
   if (nodes.manageProfileUrl) {

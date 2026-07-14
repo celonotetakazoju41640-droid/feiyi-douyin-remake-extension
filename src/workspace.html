@@ -395,89 +395,41 @@
 
               <section class="contentSection manageLeadSection">
                 <div class="manageLeadGrid">
-                  <section class="simpleFlowCard manageOverviewCard managePrimaryCard">
-                    <div class="contentSectionHead managePrimaryHead">
-                      <div>
-                        <strong>模型与主页参考</strong>
-                        <p>左边只处理模板选择和主页提炼，深蒸馏状态统一放右边看。</p>
-                      </div>
-                      <div class="resultActions managePrimaryActions">
-                        <button id="scanProfileButton" class="primaryButton" type="button">提炼主页模型</button>
-                        <button id="saveTemplateButton" class="ghostButton" type="button">保存模型</button>
+                  <section class="simpleFlowCard manageDeepDistillCard manageCompactCard">
+                    <div class="contentSectionHead manageCompactHead">
+                      <strong>视频深蒸馏</strong>
+                      <div class="manageCompactToolbar">
+                        <label class="fieldBlock manageCompactSelect">
+                          <span>当前模型</span>
+                          <select id="manageTemplateSelect"></select>
+                        </label>
                         <button id="newTemplateButton" class="ghostButton" type="button">新建空模型</button>
                         <button id="deleteTemplateButton" class="ghostButton" type="button">删除模型</button>
                       </div>
                     </div>
-                    <div class="manageQuickGrid">
-                      <label class="fieldBlock">
-                        当前模型
-                        <select id="manageTemplateSelect"></select>
-                      </label>
-                      <div id="manageTemplateSnapshot" class="manageTemplateSnapshot"></div>
-                    </div>
-                    <div class="manageProfileEntry">
-                      <label class="fieldBlock manageProfileUrlField">
-                        主页链接
-                        <input id="manageProfileUrl" type="url" placeholder="https://www.tiktok.com/@account_name" />
-                      </label>
-                      <div class="textInlineHintRow manageProfileEntryHints">
-                        <span class="textInlineHint">这里只管模板和主页，不再显示深蒸馏视频条数</span>
-                        <span id="manageProfileStatus" class="textInlineHint">自动判断平台</span>
-                      </div>
-                    </div>
-                    <div id="manageScanSummary" class="manageScanSummary" hidden>
-                      <div class="manageScanSummaryHead">
-                        <strong id="manageScanSummaryTitle">提炼结果会显示在这里</strong>
-                        <div id="manageScanSummaryMeta" class="manageScanSummaryMeta"></div>
-                      </div>
-                      <div id="manageScanProgress" class="manageScanProgress" hidden>
-                        <div class="manageScanProgressTrack">
-                          <div id="manageScanProgressFill" class="manageScanProgressFill"></div>
-                        </div>
-                        <span id="manageScanProgressText" class="manageScanProgressText">0%</span>
-                      </div>
-                      <div id="manageScanSteps" class="manageScanSteps" hidden></div>
-                      <p id="manageScanSummaryBody" class="manageScanSummaryBody">提炼完成后，这里会先告诉你这次拿到了什么。</p>
-                    </div>
-                  </section>
-
-                  <section class="simpleFlowCard manageDeepDistillCard manageSecondaryCard">
-                    <div class="contentSectionHead managePrimaryHead">
-                      <div>
-                        <strong>视频深蒸馏</strong>
-                        <p>按“读取本地视频 -> 自动结构拆解 -> 查看结果”这 3 步走，不再混在一起。</p>
-                      </div>
-                    </div>
-                    <div class="deepDistillWorkflowBoard">
+                    <div class="deepDistillWorkflowBoard deepDistillWorkflowBoardCompact">
                       <section class="deepDistillWorkflowCard">
                         <span class="deepDistillWorkflowStep">第 1 步</span>
                         <strong>读取本地视频</strong>
-                        <p>只读取本机视频、时长和抽帧基础信息，不会直接上传整条视频。读取完成不等于已经开始 AI 拆解。</p>
                         <label class="ghostButton manageFolderButton deepDistillWorkflowButton">
-                          读取本地视频文件夹
+                          读取文件夹
                           <input id="deepDistillFolderInput" type="file" accept="video/*" webkitdirectory multiple hidden />
                         </label>
                       </section>
                       <section class="deepDistillWorkflowCard deepDistillWorkflowCardPrimary">
                         <span class="deepDistillWorkflowStep">第 2 步</span>
                         <strong>自动结构拆解</strong>
-                        <p>让视觉模型根据关键帧分析钩子、商品露出、证明方式和结构推进。10 条视频通常约 1-3 分钟，会逐条推进。</p>
-                        <div id="deepDistillAnalyzeHint" class="deepDistillAnalyzeHint">先读取视频后，系统会在这里显示预计耗时和当前拆解进度。</div>
                         <button id="analyzeDeepDistillVideosButton" class="primaryButton deepDistillWorkflowButton" type="button">先选择本地视频</button>
-                        <div id="deepDistillActionFeedback" class="deepDistillActionFeedback">上传并读取本地视频后，点这里开始 AI 拆解。</div>
+                        <button id="clearDeepDistillVideosButton" class="ghostButton deepDistillWorkflowButton" type="button">清空当前视频</button>
+                        <div id="deepDistillActionFeedback" class="deepDistillActionFeedback" hidden></div>
                       </section>
                       <section class="deepDistillWorkflowCard">
                         <span class="deepDistillWorkflowStep">第 3 步</span>
-                        <strong>查看结果</strong>
-                        <p>看每条视频是已分析、待分析还是失败；必要时清空后重新读本地文件。</p>
-                        <button id="clearDeepDistillVideosButton" class="ghostButton deepDistillWorkflowButton" type="button">清空当前视频</button>
+                        <strong>保存模板</strong>
+                        <button id="saveTemplateButton" class="ghostButton deepDistillWorkflowButton" type="button">保存模型</button>
                       </section>
                     </div>
-                    <div class="textInlineHintRow manageDeepDistillHints">
-                      <span class="textInlineHint">刷新页面后会保留样本和状态，但不会保留浏览器里的本地文件句柄</span>
-                      <span id="deepDistillStatus" class="textInlineHint">还没读取本地视频</span>
-                    </div>
-                    <div id="deepDistillRecoveryNotice" class="deepDistillRecoveryNotice" hidden></div>
+                    <div id="deepDistillStatus" class="deepDistillInlineStatus">还没读取本地视频</div>
                     <div class="deepDistillProgressStack">
                       <div id="deepDistillReadProgress" class="deepDistillProgressCard" hidden>
                         <div class="deepDistillProgressHead">
@@ -498,9 +450,8 @@
                         </div>
                       </div>
                     </div>
-                    <div id="deepDistillStatusSummary" class="deepDistillStatusSummary" hidden></div>
                     <div id="deepDistillVideoList" class="deepDistillVideoList">
-                      <p class="emptyState">先读取一个本地视频文件夹。读取后，这里会保留视频样本；需要时再点自动分析。</p>
+                      <p class="emptyState">还没有视频</p>
                     </div>
                   </section>
                 </div>

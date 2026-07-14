@@ -5102,8 +5102,8 @@ body {
 
 .manageLeadGrid {
   display: grid;
-  grid-template-columns: minmax(290px, 0.82fr) minmax(0, 1.18fr);
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
   align-items: start;
 }
 
@@ -5122,6 +5122,38 @@ body {
   justify-content: flex-start;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.manageCompactCard {
+  gap: 10px;
+}
+
+.manageCompactHead {
+  display: grid;
+  gap: 10px;
+}
+
+.manageCompactHead strong {
+  color: #2f261d;
+  font-size: 16px;
+}
+
+.manageCompactToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+
+.manageCompactSelect {
+  min-width: min(100%, 280px);
+  gap: 6px;
+}
+
+.manageCompactSelect span {
+  color: #6e5f4d;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .manageProfileEntry {
@@ -5315,10 +5347,14 @@ body {
   gap: 10px;
 }
 
+.deepDistillWorkflowBoardCompact {
+  align-items: stretch;
+}
+
 .deepDistillWorkflowCard {
   display: grid;
-  gap: 8px;
-  padding: 14px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid #eadcc4;
   border-radius: 16px;
   background: linear-gradient(180deg, #fffdf8 0%, #fff8ee 100%);
@@ -5342,12 +5378,6 @@ body {
   line-height: 1.35;
 }
 
-.deepDistillWorkflowCard p {
-  color: #6f5d45;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
 .deepDistillAnalyzeHint {
   min-height: 38px;
   padding: 10px 12px;
@@ -5360,13 +5390,17 @@ body {
 }
 
 .deepDistillActionFeedback {
-  min-height: 36px;
-  padding: 9px 12px;
+  min-height: 0;
+  padding: 8px 10px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.78);
   color: #6e5937;
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.5;
+}
+
+.deepDistillActionFeedback[hidden] {
+  display: none !important;
 }
 
 .deepDistillActionFeedback.is-active {
@@ -5405,8 +5439,15 @@ body {
 }
 
 .deepDistillWorkflowButton {
-  min-height: 40px;
+  min-height: 38px;
   justify-content: center;
+}
+
+.deepDistillInlineStatus {
+  min-height: 20px;
+  color: #6d5b3f;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .deepDistillProgressStack {
