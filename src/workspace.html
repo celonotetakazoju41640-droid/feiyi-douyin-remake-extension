@@ -445,21 +445,38 @@
                     <div class="contentSectionHead managePrimaryHead">
                       <div>
                         <strong>视频深蒸馏</strong>
-                        <p>先读取本地视频，再决定要不要交给视觉模型做自动分析。</p>
+                        <p>按“读取本地视频 -> 自动结构拆解 -> 查看结果”这 3 步走，不再混在一起。</p>
                       </div>
-                      <div class="resultActions manageDeepDistillActions">
-                        <label class="ghostButton manageFolderButton">
+                    </div>
+                    <div class="deepDistillWorkflowBoard">
+                      <section class="deepDistillWorkflowCard">
+                        <span class="deepDistillWorkflowStep">第 1 步</span>
+                        <strong>读取本地视频</strong>
+                        <p>只读取本机视频、时长和抽帧基础信息，不会直接上传整条视频。读取完成不等于已经开始 AI 拆解。</p>
+                        <label class="ghostButton manageFolderButton deepDistillWorkflowButton">
                           读取本地视频文件夹
                           <input id="deepDistillFolderInput" type="file" accept="video/*" webkitdirectory multiple hidden />
                         </label>
-                        <button id="analyzeDeepDistillVideosButton" class="primaryButton" type="button">自动分析当前视频</button>
-                        <button id="clearDeepDistillVideosButton" class="ghostButton" type="button">清空当前视频</button>
-                      </div>
+                      </section>
+                      <section class="deepDistillWorkflowCard deepDistillWorkflowCardPrimary">
+                        <span class="deepDistillWorkflowStep">第 2 步</span>
+                        <strong>自动结构拆解</strong>
+                        <p>让视觉模型根据关键帧分析钩子、商品露出、证明方式和结构推进。10 条视频通常约 1-3 分钟，会逐条推进。</p>
+                        <div id="deepDistillAnalyzeHint" class="deepDistillAnalyzeHint">先读取视频后，系统会在这里显示预计耗时和当前拆解进度。</div>
+                        <button id="analyzeDeepDistillVideosButton" class="primaryButton deepDistillWorkflowButton" type="button">自动分析当前视频</button>
+                      </section>
+                      <section class="deepDistillWorkflowCard">
+                        <span class="deepDistillWorkflowStep">第 3 步</span>
+                        <strong>查看结果</strong>
+                        <p>看每条视频是已分析、待分析还是失败；必要时清空后重新读本地文件。</p>
+                        <button id="clearDeepDistillVideosButton" class="ghostButton deepDistillWorkflowButton" type="button">清空当前视频</button>
+                      </section>
                     </div>
                     <div class="textInlineHintRow manageDeepDistillHints">
-                      <span class="textInlineHint">第一步只读本地元数据和抽帧，不会直接上传整条视频</span>
+                      <span class="textInlineHint">刷新页面后会保留样本和状态，但不会保留浏览器里的本地文件句柄</span>
                       <span id="deepDistillStatus" class="textInlineHint">还没读取本地视频</span>
                     </div>
+                    <div id="deepDistillRecoveryNotice" class="deepDistillRecoveryNotice" hidden></div>
                     <div class="deepDistillProgressStack">
                       <div id="deepDistillReadProgress" class="deepDistillProgressCard" hidden>
                         <div class="deepDistillProgressHead">
@@ -480,6 +497,7 @@
                         </div>
                       </div>
                     </div>
+                    <div id="deepDistillStatusSummary" class="deepDistillStatusSummary" hidden></div>
                     <div id="deepDistillVideoList" class="deepDistillVideoList">
                       <p class="emptyState">先读取一个本地视频文件夹。读取后，这里会保留视频样本；需要时再点自动分析。</p>
                     </div>

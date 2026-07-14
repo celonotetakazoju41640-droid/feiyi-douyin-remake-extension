@@ -43,7 +43,18 @@ test("workspace shell includes scene plan, cast editor, and storyboard toggle", 
 
 test("workspace shell exposes separated deep-distill read and analysis progress", () => {
   assert.match(workspaceHtml, /读取本地视频文件夹/);
+  assert.match(workspaceHtml, /自动结构拆解/);
+  assert.match(workspaceHtml, /查看结果/);
+  assert.match(workspaceHtml, /id="deepDistillAnalyzeHint"/);
   assert.match(workspaceHtml, /id="deepDistillReadProgress"/);
   assert.match(workspaceHtml, /id="deepDistillAnalyzeProgress"/);
+  assert.match(workspaceHtml, /id="deepDistillStatusSummary"/);
   assert.match(workspaceHtml, /自动分析当前视频/);
+});
+
+test("workspace shell makes deep-distill read vs analyze states explicit", () => {
+  assert.match(workspaceHtml, /只读取本机视频、时长和抽帧基础信息/);
+  assert.match(workspaceHtml, /读取完成不等于已经开始 AI 拆解/);
+  assert.match(workspaceHtml, /10 条视频通常约 1-3 分钟/);
+  assert.match(workspaceHtml, /id="deepDistillRecoveryNotice"/);
 });

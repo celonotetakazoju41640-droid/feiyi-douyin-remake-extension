@@ -103,6 +103,9 @@ const nodes = {
   deepDistillAnalyzeProgress: document.querySelector("#deepDistillAnalyzeProgress"),
   deepDistillAnalyzeProgressFill: document.querySelector("#deepDistillAnalyzeProgressFill"),
   deepDistillAnalyzeProgressText: document.querySelector("#deepDistillAnalyzeProgressText"),
+  deepDistillAnalyzeHint: document.querySelector("#deepDistillAnalyzeHint"),
+  deepDistillRecoveryNotice: document.querySelector("#deepDistillRecoveryNotice"),
+  deepDistillStatusSummary: document.querySelector("#deepDistillStatusSummary"),
   deepDistillVideoList: document.querySelector("#deepDistillVideoList"),
   templateName: document.querySelector("#templateName"),
   templatePlatform: document.querySelector("#templatePlatform"),
@@ -200,6 +203,8 @@ let currentDeepDistillFiles = new Map();
 let deepDistillAnalysisRunning = false;
 let deepDistillReadProgressValue = 0;
 let deepDistillAnalyzeProgressValue = 0;
+let deepDistillAnalyzeCurrentIndex = 0;
+let deepDistillAnalyzeTotalCount = 0;
 let currentCastDraft = [createDefaultCastDraftMember("host")];
 
 function setProfileScanStage(stageKey, progressValue = null) {
@@ -1261,6 +1266,9 @@ function cloneDeepDistillVideos(videos = []) {
   return Array.isArray(videos)
     ? videos.map((video) => ({
         ...video,
+        analysisState: String(video.analysisState || "").trim(),
+        analysisErrorMessage: String(video.analysisErrorMessage || "").trim(),
+        lastAnalyzedAt: String(video.lastAnalyzedAt || "").trim(),
         analysis: {
           isZeroFrameProductHook: video.analysis?.isZeroFrameProductHook || "待判断",
           firstStrongProductSecond: video.analysis?.firstStrongProductSecond || "",
@@ -1329,6 +1337,9 @@ async function buildDeepDistillVideoFromFile(file) {
     durationSeconds,
     sizeBytes: Number(file.size || 0),
     lastModified: Number(file.lastModified || Date.now()),
+    analysisState: "待分析",
+    analysisErrorMessage: "",
+    lastAnalyzedAt: "",
     analysis: {
       isZeroFrameProductHook: "待判断",
       firstStrongProductSecond: durationSeconds > 0 ? "0-1 秒待确认" : "",
@@ -1400,19 +1411,32 @@ function updateDeepDistillAnalyzeProgress(value = 0, text = "0%", visible = fals
   if (nodes.deepDistillAnalyzeProgressText) {
     nodes.deepDistillAnalyzeProgressText.textContent = text;
   }
+  renderDeepDistillAnalyzeHint();
 }
 
 function renderDeepDistillVideoList() {
   if (!nodes.deepDistillVideoList) return;
   updateDeepDistillActionState();
+  renderDeepDistillStatusSummary();
+  renderDeepDistillRecoveryNotice();
   renderTemplateDeepDistillSummary();
   if (!currentDeepDistillVideos.length) {
+    if (nodes.deepDistillStatusSummary) {
+      nodes.deepDistillStatusSummary.hidden = true;
+      nodes.deepDistillStatusSummary.innerHTML = "";
+    }
+    if (nodes.deepDistillRecoveryNotice) {
+      nodes.deepDistillRecoveryNotice.hidden = true;
+      nodes.deepDistillRecoveryNotice.textContent = "";
+      nodes.deepDistillRecoveryNotice.classList.remove("is-ok");
+    }
     nodes.deepDistillVideoList.innerHTML =
       '<p class="emptyState">先读取一个本地视频文件夹。读取完成后，这里会先保留样本；需要时再点自动分析。</p>';
     setDeepDistillStatus("还没有读取本地视频");
     return;
   }
 
+  const hasLocalFiles = currentDeepDistillVideos.some((video) => currentDeepDistillFiles.has(video.id));
   nodes.deepDistillVideoList.innerHTML = currentDeepDistillVideos
     .map(
       (video, index) => `
@@ -1422,15 +1446,20 @@ function renderDeepDistillVideoList() {
               <strong>${escapeHtml(video.fileName || `视频 ${index + 1}`)}</strong>
               <div class="deepDistillVideoPath">${escapeHtml(video.relativePath || "本地文件")}</div>
               <div class="deepDistillVideoSnapshot">${escapeHtml(buildDeepDistillVideoSnapshot(video))}</div>
+              <div class="deepDistillVideoStateMeta">
+                <span class="countBadge ${getDeepDistillStateBadgeClass(video)}">${escapeHtml(getDeepDistillAnalysisStateLabel(video))}</span>
+                ${video.lastAnalyzedAt ? `<span class="countBadge">最近分析：${escapeHtml(formatDeepDistillTime(video.lastAnalyzedAt))}</span>` : ""}
+                ${currentDeepDistillFiles.has(video.id) ? '<span class="countBadge">本地文件已就绪</span>' : '<span class="countBadge is-warn">需重新读取本地文件</span>'}
+              </div>
             </div>
             <div class="deepDistillVideoBadges">
               <span class="countBadge">${Number(video.durationSeconds || 0)} 秒</span>
               <span class="countBadge">${formatFileSize(video.sizeBytes || 0)}</span>
-              <span class="countBadge">${escapeHtml(getDeepDistillAnalysisStateLabel(video))}</span>
               <button class="ghostButton" type="button" data-remove-deep-video="${escapeHtml(video.id)}">删除</button>
             </div>
           </summary>
           <div class="deepDistillVideoBody">
+          ${video.analysisErrorMessage ? `<div class="detailMeta">${escapeHtml(video.analysisErrorMessage)}</div>` : ""}
           <div class="deepDistillVideoGrid">
             <label class="fieldBlock">
               0 帧起手
@@ -1483,7 +1512,15 @@ function renderDeepDistillVideoList() {
     )
     .join("");
 
-  setDeepDistillStatus(`当前模型已保存 ${currentDeepDistillVideos.length} 条深蒸馏视频。`);
+  const analyzedCount = currentDeepDistillVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) === "已分析").length;
+  const failedCount = currentDeepDistillVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) === "分析失败").length;
+  const pendingCount = currentDeepDistillVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) === "待分析").length;
+  const statusSummary = `已分析 ${analyzedCount} 条，待分析 ${pendingCount} 条，失败 ${failedCount} 条。`;
+  if (hasLocalFiles) {
+    setDeepDistillStatus(`当前模型已载入 ${currentDeepDistillVideos.length} 条本地视频样本。${statusSummary}可继续自动分析。`);
+  } else {
+    setDeepDistillStatus(`当前模型已恢复 ${currentDeepDistillVideos.length} 条已保存视频样本。${statusSummary}如要重新自动分析，请重新读取本地视频文件夹。`);
+  }
 
   nodes.deepDistillVideoList.querySelectorAll("[data-deep-video-id]").forEach((card) => {
     const videoId = card.dataset.deepVideoId;
@@ -1505,12 +1542,23 @@ function renderDeepDistillVideoList() {
 function updateDeepDistillActionState() {
   if (nodes.analyzeDeepDistillVideosButton) {
     const hasAnalyzableVideos = currentDeepDistillVideos.some((video) => currentDeepDistillFiles.has(video.id));
+    const resumableVideos = currentDeepDistillVideos.filter((video) =>
+      currentDeepDistillFiles.has(video.id) && getDeepDistillAnalysisStateLabel(video) !== "已分析"
+    );
     nodes.analyzeDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || !hasAnalyzableVideos;
-    nodes.analyzeDeepDistillVideosButton.textContent = deepDistillAnalysisRunning ? "分析中..." : "自动分析当前视频";
+    nodes.analyzeDeepDistillVideosButton.textContent = deepDistillAnalysisRunning
+      ? "分析中..."
+      : hasAnalyzableVideos
+        ? resumableVideos.length > 0
+          ? `开始 AI 拆解（${resumableVideos.length} 条待处理）`
+          : "重新 AI 拆解当前视频"
+        : "先读取本地视频后开始 AI 拆解";
   }
   if (nodes.clearDeepDistillVideosButton) {
     nodes.clearDeepDistillVideosButton.disabled = deepDistillAnalysisRunning || currentDeepDistillVideos.length === 0;
   }
+  renderDeepDistillAnalyzeHint();
+  renderDeepDistillRecoveryNotice();
 }
 
 function updateDeepDistillVideoField(videoId, field, value) {
@@ -1548,6 +1596,8 @@ async function analyzeDeepDistillVideos() {
   }
 
   deepDistillAnalysisRunning = true;
+  deepDistillAnalyzeCurrentIndex = 0;
+  deepDistillAnalyzeTotalCount = analyzableVideos.length;
   updateDeepDistillActionState();
   setActionFeedback("正在做视频深蒸馏自动分析，会按视频顺序逐条回填。");
   updateDeepDistillAnalyzeProgress(0, `0 / ${analyzableVideos.length}`, true);
@@ -1558,6 +1608,8 @@ async function analyzeDeepDistillVideos() {
       const file = currentDeepDistillFiles.get(video.id);
       if (!file) continue;
 
+      deepDistillAnalyzeCurrentIndex = index + 1;
+      renderDeepDistillAnalyzeHint(video.fileName);
       setDeepDistillStatus(`正在抽帧并分析 ${index + 1} / ${analyzableVideos.length}：${video.fileName}`);
       const frames = await extractDeepDistillFramesFromFile(file, Number(video.durationSeconds || 0));
       const response = await fetch(`${batchServiceBaseUrl}/api/deep-distill/analyze`, {
@@ -1588,6 +1640,9 @@ async function analyzeDeepDistillVideos() {
         item.id === result.id
           ? {
               ...item,
+              analysisState: "已分析",
+              analysisErrorMessage: "",
+              lastAnalyzedAt: new Date().toISOString(),
               analysis: {
                 ...item.analysis,
                 ...result.analysis
@@ -1608,16 +1663,97 @@ async function analyzeDeepDistillVideos() {
     setActionFeedback(`视频深蒸馏已完成，当前共回填 ${analyzableVideos.length} 条视频。`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    currentDeepDistillVideos = currentDeepDistillVideos.map((item) => ({
+      ...item,
+      analysisState: currentDeepDistillFiles.has(item.id) ? "分析失败" : item.analysisState,
+      analysisErrorMessage: currentDeepDistillFiles.has(item.id) ? message : item.analysisErrorMessage
+    }));
+    renderDeepDistillVideoList();
+    saveCurrentTemplate();
     setDeepDistillStatus(`自动分析失败：${message}`, true);
     setActionFeedback(`视频深蒸馏自动分析失败：${message}`, true);
   } finally {
     deepDistillAnalysisRunning = false;
+    deepDistillAnalyzeCurrentIndex = 0;
+    deepDistillAnalyzeTotalCount = 0;
     updateDeepDistillActionState();
   }
 }
 
+function renderDeepDistillAnalyzeHint(currentFileName = "") {
+  if (!nodes.deepDistillAnalyzeHint) return;
+  const analyzableVideos = currentDeepDistillVideos.filter((video) => currentDeepDistillFiles.has(video.id));
+  const pendingVideos = analyzableVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) !== "已分析");
+
+  if (!analyzableVideos.length) {
+    nodes.deepDistillAnalyzeHint.textContent = currentDeepDistillVideos.length
+      ? "当前只是恢复了历史样本，浏览器里的本地文件句柄已经丢失，所以第 2 步还不会开始。先回到第 1 步重新读取本地视频文件夹。"
+      : "先读取视频后，系统会在这里显示预计耗时和当前拆解进度。";
+    return;
+  }
+
+  const estimateSecondsMin = pendingVideos.length * 8;
+  const estimateSecondsMax = pendingVideos.length * 18;
+
+  if (deepDistillAnalysisRunning && deepDistillAnalyzeTotalCount > 0) {
+    const remaining = Math.max(deepDistillAnalyzeTotalCount - deepDistillAnalyzeCurrentIndex, 0);
+    const remainingMin = remaining * 8;
+    const remainingMax = remaining * 18;
+    nodes.deepDistillAnalyzeHint.textContent =
+      `正在拆解第 ${deepDistillAnalyzeCurrentIndex} / ${deepDistillAnalyzeTotalCount} 条${currentFileName ? `：${currentFileName}` : ""}。预计总耗时约 ${deepDistillAnalyzeTotalCount * 8}-${deepDistillAnalyzeTotalCount * 18} 秒，剩余约 ${remainingMin}-${remainingMax} 秒，结果会逐条回填。`;
+    return;
+  }
+
+  if (!pendingVideos.length) {
+    nodes.deepDistillAnalyzeHint.textContent = "当前处于“本地文件已就绪、拆解已完成”状态。你可以重新分析，或继续读取一批新视频。";
+    return;
+  }
+
+  nodes.deepDistillAnalyzeHint.textContent =
+    `当前处于“已读取、未开始 AI 拆解”状态，还有 ${pendingVideos.length} 条待处理。按现在这批量，预计约 ${estimateSecondsMin}-${estimateSecondsMax} 秒跑完。`;
+}
+
+function renderDeepDistillRecoveryNotice() {
+  if (!nodes.deepDistillRecoveryNotice) return;
+  if (!currentDeepDistillVideos.length) {
+    nodes.deepDistillRecoveryNotice.hidden = true;
+    nodes.deepDistillRecoveryNotice.textContent = "";
+    nodes.deepDistillRecoveryNotice.classList.remove("is-ok");
+    return;
+  }
+
+  const hasLocalFiles = currentDeepDistillVideos.some((video) => currentDeepDistillFiles.has(video.id));
+  const pendingCount = currentDeepDistillVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) !== "已分析").length;
+
+  nodes.deepDistillRecoveryNotice.hidden = false;
+  if (!hasLocalFiles) {
+    nodes.deepDistillRecoveryNotice.classList.remove("is-ok");
+    nodes.deepDistillRecoveryNotice.textContent =
+      "当前页面只恢复了历史样本，还没有重新读入本地文件，所以不会进入第 2 步拆解。先点“读取本地视频文件夹”，再开始 AI 拆解。";
+    return;
+  }
+
+  if (deepDistillAnalysisRunning) {
+    nodes.deepDistillRecoveryNotice.classList.add("is-ok");
+    nodes.deepDistillRecoveryNotice.textContent = "AI 正在逐条拆解当前已读入的视频，进度条和卡片状态会同步刷新。";
+    return;
+  }
+
+  if (pendingCount > 0) {
+    nodes.deepDistillRecoveryNotice.classList.add("is-ok");
+    nodes.deepDistillRecoveryNotice.textContent = `本地文件已读入，当前还有 ${pendingCount} 条没开始 AI 拆解。现在可以直接点第 2 步开始。`;
+    return;
+  }
+
+  nodes.deepDistillRecoveryNotice.classList.add("is-ok");
+  nodes.deepDistillRecoveryNotice.textContent = "这一批视频已经拆解完成；如果换了新视频，回到第 1 步重新读取即可。";
+}
+
 function buildDeepDistillVideoSnapshot(video = {}) {
   const analysis = video.analysis || {};
+  if (video.analysisState === "分析失败" && video.analysisErrorMessage) {
+    return `失败：${video.analysisErrorMessage}`;
+  }
   if (analysis.summary) {
     return analysis.summary;
   }
@@ -1630,6 +1766,9 @@ function buildDeepDistillVideoSnapshot(video = {}) {
 }
 
 function getDeepDistillAnalysisStateLabel(video = {}) {
+  if (video.analysisState) {
+    return video.analysisState;
+  }
   const analysis = video.analysis || {};
   const hasAnalysis = Boolean(
     analysis.summary
@@ -1642,6 +1781,57 @@ function getDeepDistillAnalysisStateLabel(video = {}) {
       || analysis.visualDna
   );
   return hasAnalysis ? "已分析" : "待分析";
+}
+
+function renderDeepDistillStatusSummary() {
+  if (!nodes.deepDistillStatusSummary) return;
+  if (!currentDeepDistillVideos.length) {
+    nodes.deepDistillStatusSummary.hidden = true;
+    nodes.deepDistillStatusSummary.innerHTML = "";
+    return;
+  }
+
+  const analyzedCount = currentDeepDistillVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) === "已分析").length;
+  const failedCount = currentDeepDistillVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) === "分析失败").length;
+  const pendingCount = currentDeepDistillVideos.filter((video) => getDeepDistillAnalysisStateLabel(video) === "待分析").length;
+  const needsReloadCount = currentDeepDistillVideos.filter((video) => !currentDeepDistillFiles.has(video.id)).length;
+
+  nodes.deepDistillStatusSummary.hidden = false;
+  nodes.deepDistillStatusSummary.innerHTML = [
+    ["总视频", currentDeepDistillVideos.length, ""],
+    ["已分析", analyzedCount, "is-ok"],
+    ["待分析", pendingCount, "is-warn"],
+    ["分析失败", failedCount, "is-error"],
+    ["刷新后需重读", needsReloadCount, "is-warn"]
+  ]
+    .map(
+      ([label, value, tone]) => `
+        <div class="deepDistillStatusCard ${tone}">
+          <span class="deepDistillStatusLabel">${escapeHtml(String(label))}</span>
+          <strong class="deepDistillStatusValue">${escapeHtml(String(value))}</strong>
+        </div>
+      `
+    )
+    .join("");
+}
+
+function getDeepDistillStateBadgeClass(video = {}) {
+  const state = getDeepDistillAnalysisStateLabel(video);
+  if (state === "已分析") return "is-ok";
+  if (state === "分析失败") return "is-error";
+  if (state === "待分析") return "is-warn";
+  return "";
+}
+
+function formatDeepDistillTime(value = "") {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "未知";
+  return date.toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 async function extractDeepDistillFramesFromFile(file, knownDurationSeconds = 0) {

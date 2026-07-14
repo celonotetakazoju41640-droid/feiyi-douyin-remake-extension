@@ -16,6 +16,7 @@
 - 已完成：蒸馏管理里的视频深蒸馏交互优化，读取本地视频与自动分析已拆成两段状态，补了可见进度，并把视频卡片改成默认折叠，避免页面过长。
 - 已完成：Task 4 Kie 本地代理最小实现，`/api/storyboards` 创建接口、`/api/storyboards/:taskId` 查询接口、Kie 请求体映射和状态映射已接入本地服务。
 - 已完成：视频深蒸馏拆解质量优化，抽帧点更密，分析 prompt 补了关键帧时间线、多人互动判断和更强的结构化输出约束。
+- 已完成：视频深蒸馏 UI 重做，操作区改成 3 步流程板，第 2 步补了预计耗时与当前拆解提示，并把“已读取但未拆解 / 刷新后需重读 / 正在拆解 / 已完成”几种状态拆开显示，避免误判卡死。
 - 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
 - 已补充验证：`node --test tests/extension-shell.test.mjs tests/remake-core.test.mjs`、`node --check src/workspace.js`、`git diff --check`。
 - 已补充验证：`node --test tests/video-batch-service.test.mjs`、`node --check scripts/video-batch-service.mjs`、`git diff --check`。
