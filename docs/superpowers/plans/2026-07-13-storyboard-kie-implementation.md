@@ -26,6 +26,7 @@
 - 已完成：把蒸馏管理页收成单列紧凑版。移除“模型与主页参考”的可见区，只保留当前模型选择、新建空模型、删除模型和第 3 步保存模型；视频深蒸馏只保留 3 步动作、进度和结果，不再展示大段说明文案。
 - 已完成：继续压缩蒸馏管理面板密度。顶部模型操作已并进标题行，三步卡片取消等高拉伸，按钮高度、卡片留白和进度区间距进一步收紧；桌面端进度条改成双列，移动端自动回单列。
 - 已完成：放开生成页的商品名和创作要求强校验。现在只上传产品图也能生成，系统会优先沿用自动回填内容；商品名缺失时兜底为“当前商品”，创作要求缺失时兜底为商品图自动提炼草稿。
+- 已完成：把商品图自动提炼继续接进生成默认值。上传产品图后，系统会继续自动补主场景、环境风格、连续性要求和默认主讲人设；如果用户没手填这些字段，生成时会直接带默认场景和默认主讲人进 package，故事版开启后可直接带出 storyboard task。
 - 已验证：`node --test tests/remake-core.test.mjs`、`node --check src/remake-core.js`、`git diff --check`。
 - 已补充验证：`node --test tests/extension-shell.test.mjs tests/remake-core.test.mjs`、`node --check src/workspace.js`、`git diff --check`。
 - 已补充验证：`node --test tests/video-batch-service.test.mjs`、`node --check scripts/video-batch-service.mjs`、`git diff --check`。

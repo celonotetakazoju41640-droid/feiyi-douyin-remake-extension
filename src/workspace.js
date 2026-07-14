@@ -14,6 +14,7 @@ import {
   buildSafeClipcatPrompt,
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
+  inferGenerationDefaultsFromAsset,
   inferProductInsightsFromAsset,
   normalizeAccountTemplate,
   regeneratePrompts,
@@ -520,6 +521,11 @@ async function handleGenerate() {
     productName,
     template
   });
+  const inferredGenerationDefaults = inferGenerationDefaultsFromAsset({
+    fileName: nodes.productImages.files?.[0]?.name || "",
+    productName: productName || inferredFallback.suggestedProductName,
+    template
+  });
   const fallbackProductName = productName || nodes.productName.value.trim() || "当前商品";
   const fallbackReferenceSummary = referenceSummary || nodes.referenceBrief.value.trim() || inferredFallback.suggestedPrompt;
 
@@ -541,11 +547,11 @@ async function handleGenerate() {
     extraRules: nodes.clipcatExtraRules.value.trim(),
     storyboardEnabled: Boolean(nodes.storyboardEnabled?.checked),
     scenePlan: {
-      primaryLocation: nodes.scenePrimaryLocation?.value.trim() || "",
-      environmentStyle: nodes.sceneEnvironmentStyle?.value.trim() || "",
-      continuityRule: nodes.sceneContinuityRule?.value.trim() || ""
+      primaryLocation: nodes.scenePrimaryLocation?.value.trim() || inferredGenerationDefaults.scenePlan?.primaryLocation || "",
+      environmentStyle: nodes.sceneEnvironmentStyle?.value.trim() || inferredGenerationDefaults.scenePlan?.environmentStyle || "",
+      continuityRule: nodes.sceneContinuityRule?.value.trim() || inferredGenerationDefaults.scenePlan?.continuityRule || ""
     },
-    cast: normalizeCastDraft(currentCastDraft),
+    cast: normalizeCastDraft(currentCastDraft.length ? currentCastDraft : inferredGenerationDefaults.cast || []),
     productImageCount: nodes.productImages.files?.length || 0,
     accountTemplate: template
   });
@@ -2113,6 +2119,28 @@ function autoFillProductInsightsFromImage(file) {
   }
   if (!nodes.referenceBrief.value.trim()) {
     nodes.referenceBrief.value = result.suggestedPrompt;
+  }
+  const generationDefaults = inferGenerationDefaultsFromAsset({
+    fileName: file?.name || "",
+    productName: nodes.productName.value.trim() || result.suggestedProductName,
+    template
+  });
+  if (!nodes.scenePrimaryLocation?.value.trim()) {
+    nodes.scenePrimaryLocation.value = generationDefaults.scenePlan?.primaryLocation || "";
+  }
+  if (!nodes.sceneEnvironmentStyle?.value.trim()) {
+    nodes.sceneEnvironmentStyle.value = generationDefaults.scenePlan?.environmentStyle || "";
+  }
+  if (!nodes.sceneContinuityRule?.value.trim()) {
+    nodes.sceneContinuityRule.value = generationDefaults.scenePlan?.continuityRule || "";
+  }
+  const hasOnlyDefaultHost = currentCastDraft.length === 1
+    && currentCastDraft[0]?.id === "host-1"
+    && !String(currentCastDraft[0]?.appearanceLock || "").trim()
+    && !String(currentCastDraft[0]?.behaviorRule || "").trim();
+  if (hasOnlyDefaultHost && generationDefaults.cast?.length) {
+    currentCastDraft = normalizeCastDraft(generationDefaults.cast);
+    renderCastList();
   }
   setActionFeedback("产品图已上传，已自动提炼一版商品名、卖点和提示词草稿。");
 }

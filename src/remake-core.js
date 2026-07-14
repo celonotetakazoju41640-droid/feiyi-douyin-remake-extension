@@ -18,48 +18,7 @@ export function inferProductInsightsFromAsset({
   const platform = normalizePlatform(template.platform || "tiktok");
   const sourceText = `${normalizedFileName} ${normalizedProductName} ${template.contentPositioning || ""}`.toLowerCase();
 
-  const categories = [
-    {
-      key: "cleaning",
-      match: /(清洁|去污|除霉|除味|洗衣|油污|clean|cleaner|detergent|spray|degreaser|odor)/i,
-      sellingPointsZh: ["见效快，前后对比明显", "使用动作简单，镜头好证明", "适合厨房/卫生间/家务场景", "结果型表达比讲参数更容易转化"],
-      sellingPointsEn: ["Fast visible result with clear before-after proof", "Easy-to-show usage action that reads well on camera", "Fits kitchen, bathroom, and everyday home-cleaning scenes", "Result-led messaging converts better than feature dumping"],
-      promptZh: "先用脏污或异味场景开场，再让人物拿出产品，30秒内完成前后对比证明。",
-      promptEn: "Open on visible dirt or odor, bring in the product fast, and land the before-after proof within 30 seconds."
-    },
-    {
-      key: "beauty",
-      match: /(面膜|精华|口红|粉底|护肤|防晒|lip|serum|cream|beauty|skin|makeup)/i,
-      sellingPointsZh: ["上脸前后差异要清楚", "突出肤感/妆感/自然度", "适合通勤、出门、约会等生活场景", "镜头重点放在使用前后变化和人物反应"],
-      sellingPointsEn: ["Make the before-after change obvious on skin", "Highlight texture, finish, and natural-looking payoff", "Fits commute, get-ready, and date-night lifestyle scenes", "Focus the camera on the application change and the reaction shot"],
-      promptZh: "先抛出人物出门前的困扰，再快速展示上脸过程和使用后状态，让结果比参数更先被看懂。",
-      promptEn: "Start from a real get-ready problem, move quickly through application, and make the post-use result easier to understand than any specs."
-    },
-    {
-      key: "fashion",
-      match: /(衣|裙|裤|鞋|包|穿搭|dress|shirt|shoe|bag|fashion|outfit)/i,
-      sellingPointsZh: ["上身/上脚效果要直接", "突出显瘦显高或百搭", "适合通勤、约会、出街等场景", "材质和细节特写要配合人物动作"],
-      sellingPointsEn: ["Show the on-body or on-foot effect immediately", "Highlight flattering shape, height, or easy styling", "Fits commute, date, and street-style scenes", "Pair material close-ups with natural movement"],
-      promptZh: "先给换装前后的落差，再让人物自然走动或转身，用上身效果带出购买理由。",
-      promptEn: "Show the before-after outfit gap first, then let the person move naturally so the fit itself sells the purchase reason."
-    },
-    {
-      key: "food",
-      match: /(咖啡|零食|饮料|茶|食品|coffee|snack|drink|tea|food)/i,
-      sellingPointsZh: ["第一口或冲泡瞬间有记忆点", "口感和方便性好表达", "适合居家/办公室/通勤场景", "人物即时反应容易带转化"],
-      sellingPointsEn: ["Make the first sip or prep moment memorable", "Taste and convenience are easy to communicate", "Fits home, office, and commute situations", "Immediate human reaction helps conversion"],
-      promptZh: "先用嘴馋、提神或加班场景开场，再展示冲泡/开袋/入口瞬间，让人物反应接住卖点。",
-      promptEn: "Open on craving, low energy, or overtime, then show the prep or first-bite moment and let the reaction carry the value."
-    },
-    {
-      key: "digital",
-      match: /(手机|支架|灯|耳机|充电|数码|phone|tripod|light|earbud|charger|digital|tech)/i,
-      sellingPointsZh: ["功能点可以直接演示", "上手门槛低，镜头好做对比", "适合桌面/通勤/拍摄场景", "强调效率提升比空讲配置更有效"],
-      sellingPointsEn: ["The core function can be demonstrated directly", "Low learning curve makes comparison shots easy", "Fits desk, commute, and creator-use scenes", "Show the efficiency gain instead of listing specs"],
-      promptZh: "先给出一个低效或麻烦的瞬间，再让产品出场解决问题，用操作过程直接证明价值。",
-      promptEn: "Start with a frustrating or inefficient moment, let the product fix it, and prove value through the actual operation."
-    }
-  ];
+  const categories = getAssetCategoryPresets();
 
   const matched = categories.find((item) => item.match.test(sourceText));
   const fallbackName = normalizedProductName || normalizedFileName || "当前商品";
@@ -91,6 +50,159 @@ export function inferProductInsightsFromAsset({
         ? `围绕${suggestedProductName}：${matched.promptZh}`
         : `${suggestedProductName}: ${matched.promptEn}`
   };
+}
+
+export function inferGenerationDefaultsFromAsset({
+  fileName = "",
+  productName = "",
+  template = {}
+} = {}) {
+  const normalizedFileName = String(fileName || "")
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[_-]+/g, " ")
+    .trim();
+  const normalizedProductName = String(productName || "").trim();
+  const platform = normalizePlatform(template.platform || "tiktok");
+  const sourceText = `${normalizedFileName} ${normalizedProductName} ${template.contentPositioning || ""}`.toLowerCase();
+  const matched = getAssetCategoryPresets().find((item) => item.match.test(sourceText));
+  const suggestedProductName = inferProductInsightsFromAsset({ fileName, productName, template }).suggestedProductName || "当前商品";
+
+  if (!matched) {
+    return {
+      scenePlan: platform === "douyin"
+        ? {
+            primaryLocation: "真实生活场景",
+            environmentStyle: "生活化自然光",
+            continuityRule: "人物、商品和光线保持一致"
+          }
+        : {
+            primaryLocation: "everyday lifestyle setting",
+            environmentStyle: "clean natural daylight",
+            continuityRule: "Keep the person, product, and lighting consistent."
+          },
+      cast: [
+        {
+          id: "host-1",
+          roleType: "host",
+          label: platform === "douyin" ? "主讲人" : "Host",
+          presenceRule: "always",
+          appearanceLock: platform === "douyin" ? "干净日常穿搭，和商品场景匹配" : "clean everyday outfit that fits the product scene",
+          behaviorRule: platform === "douyin" ? `负责讲解并演示 ${suggestedProductName}` : `Explains and demonstrates ${suggestedProductName}`,
+          voiceRule: "primary"
+        }
+      ]
+    };
+  }
+
+  return {
+    scenePlan: platform === "douyin"
+      ? {
+          primaryLocation: matched.sceneZh,
+          environmentStyle: matched.environmentZh,
+          continuityRule: "同一人物、同一商品、同一空间连续推进"
+        }
+      : {
+          primaryLocation: matched.sceneEn,
+          environmentStyle: matched.environmentEn,
+          continuityRule: "Keep the same host, product, and lighting across the full sequence."
+        },
+    cast: [
+      {
+        id: "host-1",
+        roleType: "host",
+        label: platform === "douyin" ? "主讲人" : "Host",
+        presenceRule: "always",
+        appearanceLock: platform === "douyin" ? matched.appearanceZh : matched.appearanceEn,
+        behaviorRule: platform === "douyin" ? matched.behaviorZh.replace("{product}", suggestedProductName) : matched.behaviorEn.replace("{product}", suggestedProductName),
+        voiceRule: "primary"
+      }
+    ]
+  };
+}
+
+function getAssetCategoryPresets() {
+  return [
+    {
+      key: "cleaning",
+      match: /(清洁|去污|除霉|除味|洗衣|油污|clean|cleaner|detergent|spray|degreaser|odor)/i,
+      sellingPointsZh: ["见效快，前后对比明显", "使用动作简单，镜头好证明", "适合厨房/卫生间/家务场景", "结果型表达比讲参数更容易转化"],
+      sellingPointsEn: ["Fast visible result with clear before-after proof", "Easy-to-show usage action that reads well on camera", "Fits kitchen, bathroom, and everyday home-cleaning scenes", "Result-led messaging converts better than feature dumping"],
+      promptZh: "先用脏污或异味场景开场，再让人物拿出产品，30秒内完成前后对比证明。",
+      promptEn: "Open on visible dirt or odor, bring in the product fast, and land the before-after proof within 30 seconds.",
+      sceneZh: "厨房台面或卫生间清洁场景",
+      sceneEn: "kitchen counter or bathroom cleaning setup",
+      environmentZh: "明亮生活化、可直接做前后对比",
+      environmentEn: "bright lifestyle daylight with clear before-after framing",
+      appearanceZh: "日常家居穿搭，干净利落，适合做清洁演示",
+      appearanceEn: "clean everyday home outfit, practical and camera-friendly",
+      behaviorZh: "负责上手演示 {product}，先抛痛点再做前后对比证明",
+      behaviorEn: "Demonstrates {product}, opens on the pain point, then proves the result with a before-after demo"
+    },
+    {
+      key: "beauty",
+      match: /(面膜|精华|口红|粉底|护肤|防晒|lip|serum|cream|beauty|skin|makeup)/i,
+      sellingPointsZh: ["上脸前后差异要清楚", "突出肤感/妆感/自然度", "适合通勤、出门、约会等生活场景", "镜头重点放在使用前后变化和人物反应"],
+      sellingPointsEn: ["Make the before-after change obvious on skin", "Highlight texture, finish, and natural-looking payoff", "Fits commute, get-ready, and date-night lifestyle scenes", "Focus the camera on the application change and the reaction shot"],
+      promptZh: "先抛出人物出门前的困扰，再快速展示上脸过程和使用后状态，让结果比参数更先被看懂。",
+      promptEn: "Start from a real get-ready problem, move quickly through application, and make the post-use result easier to understand than any specs.",
+      sceneZh: "梳妆台、镜前或出门前准备场景",
+      sceneEn: "vanity, mirror-side, or get-ready setting",
+      environmentZh: "干净柔光、贴近真实护肤或上妆流程",
+      environmentEn: "soft clean lighting that feels like a real beauty routine",
+      appearanceZh: "妆容自然、人物状态精致，适合近景上脸展示",
+      appearanceEn: "polished natural look suited for close-up application shots",
+      behaviorZh: "负责演示 {product} 的上脸过程，重点展示使用前后变化和人物反应",
+      behaviorEn: "Applies {product} on camera, focusing on the before-after change and reaction shot"
+    },
+    {
+      key: "fashion",
+      match: /(衣|裙|裤|鞋|包|穿搭|dress|shirt|shoe|bag|fashion|outfit)/i,
+      sellingPointsZh: ["上身/上脚效果要直接", "突出显瘦显高或百搭", "适合通勤、约会、出街等场景", "材质和细节特写要配合人物动作"],
+      sellingPointsEn: ["Show the on-body or on-foot effect immediately", "Highlight flattering shape, height, or easy styling", "Fits commute, date, and street-style scenes", "Pair material close-ups with natural movement"],
+      promptZh: "先给换装前后的落差，再让人物自然走动或转身，用上身效果带出购买理由。",
+      promptEn: "Show the before-after outfit gap first, then let the person move naturally so the fit itself sells the purchase reason.",
+      sceneZh: "试衣镜前、走廊或街拍穿搭场景",
+      sceneEn: "mirror-side fitting area, hallway, or casual street-style setting",
+      environmentZh: "简洁时尚、适合展示上身和走动效果",
+      environmentEn: "clean fashion-forward setup that highlights movement and fit",
+      appearanceZh: "穿搭完整、镜头感强，适合做上身展示",
+      appearanceEn: "put-together styling with strong on-camera presence",
+      behaviorZh: "负责试穿并展示 {product} 的上身效果，用转身走动证明版型和质感",
+      behaviorEn: "Wears and showcases {product}, using natural movement to prove fit and texture"
+    },
+    {
+      key: "food",
+      match: /(咖啡|零食|饮料|茶|食品|coffee|snack|drink|tea|food)/i,
+      sellingPointsZh: ["第一口或冲泡瞬间有记忆点", "口感和方便性好表达", "适合居家/办公室/通勤场景", "人物即时反应容易带转化"],
+      sellingPointsEn: ["Make the first sip or prep moment memorable", "Taste and convenience are easy to communicate", "Fits home, office, and commute situations", "Immediate human reaction helps conversion"],
+      promptZh: "先用嘴馋、提神或加班场景开场，再展示冲泡/开袋/入口瞬间，让人物反应接住卖点。",
+      promptEn: "Open on craving, low energy, or overtime, then show the prep or first-bite moment and let the reaction carry the value.",
+      sceneZh: "餐桌、办公桌或厨房冲泡场景",
+      sceneEn: "tabletop, office desk, or kitchen prep setting",
+      environmentZh: "有食欲感、生活化，突出入口和冲泡瞬间",
+      environmentEn: "appetizing lifestyle setup centered on prep and first-taste moments",
+      appearanceZh: "人物亲和自然，适合做入口反应和真实种草",
+      appearanceEn: "friendly everyday look that sells reaction-driven tasting moments",
+      behaviorZh: "负责开箱、冲泡或试吃 {product}，用第一口反应接住卖点",
+      behaviorEn: "Preps or tastes {product} on camera and lets the first reaction carry the value"
+    },
+    {
+      key: "digital",
+      match: /(手机|支架|灯|耳机|充电|数码|phone|tripod|light|earbud|charger|digital|tech)/i,
+      sellingPointsZh: ["功能点可以直接演示", "上手门槛低，镜头好做对比", "适合桌面/通勤/拍摄场景", "强调效率提升比空讲配置更有效"],
+      sellingPointsEn: ["The core function can be demonstrated directly", "Low learning curve makes comparison shots easy", "Fits desk, commute, and creator-use scenes", "Show the efficiency gain instead of listing specs"],
+      promptZh: "先给出一个低效或麻烦的瞬间，再让产品出场解决问题，用操作过程直接证明价值。",
+      promptEn: "Start with a frustrating or inefficient moment, let the product fix it, and prove value through the actual operation.",
+      sceneZh: "桌面、通勤或拍摄工作流场景",
+      sceneEn: "desk setup, commute situation, or creator workflow scene",
+      environmentZh: "干净高效，突出操作过程和效率提升",
+      environmentEn: "clean efficient setup focused on operation and workflow gain",
+      appearanceZh: "偏创作者或通勤职场感，适合讲解操作逻辑",
+      appearanceEn: "creator or productivity-focused look that fits a demo workflow",
+      behaviorZh: "负责操作并讲解 {product}，用真实使用过程证明效率提升",
+      behaviorEn: "Uses and explains {product} on camera, proving the efficiency gain through real operation"
+    }
+  ];
 }
 
 export function createEmptyAccountTemplate() {

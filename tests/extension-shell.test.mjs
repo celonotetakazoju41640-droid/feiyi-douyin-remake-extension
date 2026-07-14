@@ -97,7 +97,10 @@ test("workspace shell translates local batch service fetch failures into actiona
 test("workspace shell allows generation with only uploaded product images by using auto-filled fallbacks", () => {
   assert.match(workspaceJs, /const fallbackProductName = productName \|\| nodes\.productName\.value\.trim\(\) \|\| "当前商品"/);
   assert.match(workspaceJs, /const inferredFallback = inferProductInsightsFromAsset\(/);
+  assert.match(workspaceJs, /const inferredGenerationDefaults = inferGenerationDefaultsFromAsset\(/);
   assert.match(workspaceJs, /const fallbackReferenceSummary = referenceSummary \|\| nodes\.referenceBrief\.value\.trim\(\) \|\| inferredFallback\.suggestedPrompt/);
+  assert.match(workspaceJs, /nodes\.scenePrimaryLocation\.value = generationDefaults\.scenePlan\?\.primaryLocation \|\| ""/);
+  assert.match(workspaceJs, /currentCastDraft = normalizeCastDraft\(generationDefaults\.cast\)/);
   assert.doesNotMatch(workspaceJs, /请先填写当前商品名/);
   assert.doesNotMatch(workspaceJs, /请先填写你的创作提示词/);
 });

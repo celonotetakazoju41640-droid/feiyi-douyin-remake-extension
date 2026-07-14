@@ -10,6 +10,7 @@ import {
   createEmptyAccountTemplate,
   distillAccountTemplateFromProfileScan,
   inferProductInsightsFromAsset,
+  inferGenerationDefaultsFromAsset,
   mergeTikTokProfileVideoCandidates,
   normalizeAccountTemplate,
   normalizeTikTokDurationSeconds,
@@ -49,6 +50,22 @@ test("inferProductInsightsFromAsset provides a safe fallback prompt when no cate
 
   assert.equal(result.sellingPoints.length, 4);
   assert.match(result.suggestedPrompt, /Build a short lifestyle video around|clear problem|visual proof/i);
+});
+
+test("inferGenerationDefaultsFromAsset returns host and scene defaults for matched categories", () => {
+  const result = inferGenerationDefaultsFromAsset({
+    fileName: "kitchen-cleaner-spray.png",
+    template: {
+      platform: "tiktok",
+      contentPositioning: "cleaning demo"
+    }
+  });
+
+  assert.match(result.scenePlan.primaryLocation, /kitchen|bathroom/i);
+  assert.match(result.scenePlan.environmentStyle, /daylight|before-after|lifestyle/i);
+  assert.equal(result.cast.length, 1);
+  assert.equal(result.cast[0].roleType, "host");
+  assert.match(result.cast[0].behaviorRule, /Demonstrates|before-after/i);
 });
 
 test("normalizeAccountTemplate preserves profile url and sample urls", () => {
