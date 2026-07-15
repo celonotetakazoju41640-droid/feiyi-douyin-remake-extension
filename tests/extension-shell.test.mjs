@@ -227,6 +227,7 @@ test("workspace shell keeps primary-action feedback aligned with disabled-state 
   assert.match(workspaceJs, /setActionFeedback\("先选蒸馏模型。"\)/);
   assert.match(workspaceJs, /setActionFeedback\("先选蒸馏模型，再上传商品图。"\)/);
   assert.match(workspaceJs, /setActionFeedback\("再上传商品图就能生成。"\)/);
+  assert.doesNotMatch(workspaceJs, /if \(!hasImages && !hasPrompt\) {\s*setActionFeedback\("先上传商品图。"\)/);
   assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
   assert.match(workspaceJs, /renderGenerateFlowStatus\(\);/);
 });

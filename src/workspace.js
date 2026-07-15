@@ -3649,10 +3649,6 @@ function updateActionFeedback() {
     setActionFeedback("先选蒸馏模型。");
     return;
   }
-  if (!hasImages && !hasPrompt) {
-    setActionFeedback("先上传商品图。");
-    return;
-  }
   if (!hasImages) {
     setActionFeedback("再上传商品图就能生成。");
     return;
