@@ -321,3 +321,9 @@ test("workspace shell does not let the wizard bypass the same fresh-upload gener
   assert.match(workspaceJs, /if \(!canGenerateFromCurrentInputs\) \{/);
   assert.match(workspaceJs, /setActionFeedback\("请先重新上传当前项目要用的商品图，再开始新一轮生成。", true\)/);
 });
+
+test("workspace shell does not warn about missing product images when navigating restored projects that already have known image counts", () => {
+  assert.match(workspaceJs, /const hasKnownProductImage = getKnownProductImageCount\(\) > 0/);
+  assert.match(workspaceJs, /if \(step >= 3 && !hasKnownProductImage\) \{/);
+  assert.match(workspaceJs, /setActionFeedback\("还没上传商品图。你可以先看后面的结构，但正式生成前需要先补商品图。", true\)/);
+});

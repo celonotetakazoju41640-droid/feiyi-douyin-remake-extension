@@ -4320,8 +4320,8 @@ function renderWizardStep() {
 }
 
 function setWizardStep(step) {
-  const hasProductImage = Boolean(nodes.productImages.files?.length);
-  if (step >= 3 && !hasProductImage) {
+  const hasKnownProductImage = getKnownProductImageCount() > 0;
+  if (step >= 3 && !hasKnownProductImage) {
     setActionFeedback("还没上传商品图。你可以先看后面的结构，但正式生成前需要先补商品图。", true);
   }
   if (step === 4 && !currentPackage) {
