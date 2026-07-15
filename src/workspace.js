@@ -4152,7 +4152,12 @@ async function handleDeliveryShortcut() {
     if (nextConfig.action === "deliver") {
       setActionFeedback("故事版已就绪，继续自动整理结果。");
       await runDeliveryShortcut();
+      return;
     }
+    updateWorkflowStatus(currentProjectId, {
+      deliveryStatusSummary: "一键带走待继续：故事版还在处理中，请稍后继续等待或再点一次“一键带走全部结果”。"
+    });
+    setActionFeedback("自动带走先暂停：故事版还在处理中，稍后再点一次“一键带走全部结果”，系统会继续后面的复制和导出。");
     return;
   }
 

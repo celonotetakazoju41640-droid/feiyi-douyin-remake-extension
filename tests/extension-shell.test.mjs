@@ -192,6 +192,8 @@ test("workspace shell exposes a true one-click delivery action in the result are
   assert.match(workspaceJs, /一键带走全部结果/);
   assert.match(workspaceJs, /正在整理结果，会自动复制结果包并下载导出文件/);
   assert.match(workspaceJs, /故事版已就绪，继续自动整理结果/);
+  assert.match(workspaceJs, /自动带走先暂停：故事版还在处理中，稍后再点一次“一键带走全部结果”，系统会继续后面的复制和导出。/);
+  assert.match(workspaceJs, /一键带走待继续：故事版还在处理中，请稍后继续等待或再点一次“一键带走全部结果”。/);
   assert.match(workspaceJs, /一键带走完成：结果包已复制/);
   assert.match(workspaceJs, /一键带走失败：/);
   assert.match(workspaceJs, /结果整理失败：/);
