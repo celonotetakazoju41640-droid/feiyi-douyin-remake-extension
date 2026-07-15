@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildDeliveryPackageText,
   buildExportBundle,
   buildMarkdownFromPackage,
   buildSafeClipcatPrompt,
@@ -804,4 +805,58 @@ test("normalizeTikTokDurationSeconds keeps long second values instead of misread
 test("normalizeTikTokDurationSeconds still converts short millisecond values", () => {
   assert.equal(normalizeTikTokDurationSeconds(9500), 10);
   assert.equal(normalizeTikTokDurationSeconds("3000"), 3);
+});
+
+test("buildDeliveryPackageText keeps batch tracking and storyboard delivery details together", () => {
+  const text = buildDeliveryPackageText({
+    project: {
+      projectName: "Kitchen Cleaner Launch",
+      productName: "Kitchen Cleaner Spray",
+      referenceSummary: "Hook fast, prove with before-after, close on easy use.",
+      sellingPoints: ["Cuts grease fast", "Visible before-after"],
+      accountTemplate: {
+        name: "Kitchen Lab",
+        platform: "tiktok"
+      }
+    },
+    prompts: {
+      videoShots: ["Video shot prompt"],
+      keyframes: ["Keyframe prompt"]
+    },
+    promptVariants: [
+      {
+        title: "Fast version",
+        summary: "Lead with the mess, then snap into proof.",
+        videoShots: ["Shot 1", "Shot 2"]
+      }
+    ],
+    batchVideoTasks: [
+      {
+        taskTitle: "Kitchen Lab-Fast-1",
+        model: "veo-3-fast",
+        durationSeconds: 15,
+        status: "submitted",
+        taskId: "task-001",
+        batchId: "batch-123",
+        sourceLinks: ["https://example.com/video-1"],
+        extraRules: "Keep the product label readable.",
+        prompt: "Batch prompt"
+      }
+    ],
+    storyboardTasks: [
+      {
+        taskTitle: "Storyboard Unit 01",
+        status: "succeeded",
+        taskId: "story-001",
+        imageUrl: "https://example.com/story.jpg",
+        prompt: "Storyboard prompt"
+      }
+    ]
+  });
+
+  assert.match(text, /任务 ID：task-001/);
+  assert.match(text, /批次号：batch-123/);
+  assert.match(text, /参考链接：https:\/\/example\.com\/video-1/);
+  assert.match(text, /附加要求：Keep the product label readable\./);
+  assert.match(text, /故事版提示词：Storyboard prompt/);
 });

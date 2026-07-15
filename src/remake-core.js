@@ -1008,6 +1008,10 @@ export function buildDeliveryPackageText(pkg) {
         `模型：${task.model || "未填写"}`,
         `时长：${task.durationSeconds || 0} 秒`,
         `状态：${task.status || "draft"}`,
+        `任务 ID：${task.taskId || "未创建"}`,
+        `批次号：${task.batchId || "未提交"}`,
+        `参考链接：${Array.isArray(task.sourceLinks) && task.sourceLinks.length ? task.sourceLinks.join(" / ") : "未填写"}`,
+        `附加要求：${task.extraRules || "未填写"}`,
         `提示词：${task.prompt || "未生成"}`,
         ""
       ])
