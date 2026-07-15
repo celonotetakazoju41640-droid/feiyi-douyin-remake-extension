@@ -51,7 +51,9 @@ test("workspace shell turns history into a project library plus detail workspace
   assert.match(workspaceJs, /historyWorkspaceSection/);
   assert.match(workspaceJs, /historyProjectCard/);
   assert.match(workspaceJs, /compactSummary/);
-  assert.match(workspaceJs, /historyProjectTemplate/);
+  assert.match(workspaceJs, /thumbnailDataUrl/);
+  assert.match(workspaceJs, /formatHistoryProjectTime/);
+  assert.match(workspaceJs, /getHistoryProjectStatus/);
 });
 
 test("workspace shell includes scene plan, cast editor, and storyboard toggle", () => {

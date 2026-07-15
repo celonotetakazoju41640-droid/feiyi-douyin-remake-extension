@@ -557,9 +557,11 @@ async function handleGenerate() {
     accountTemplate: template
   });
 
+  const thumbnailDataUrl = await createProjectThumbnailDataUrl(nodes.productImages.files?.[0]);
   const record = {
     id: `project-${Date.now()}`,
     createdAt: new Date().toISOString(),
+    thumbnailDataUrl,
     package: currentPackage
   };
   projects.unshift(record);
@@ -621,18 +623,27 @@ function renderProjects() {
       const firstSellingPoint = pkg.project.sellingPoints?.[0] || "按当前项目主卖点执行";
       const previewText = pkg.project.referenceSummary || firstSellingPoint;
       const compactSummary = previewText.length > 84 ? `${previewText.slice(0, 84)}...` : previewText;
+      const createdAtText = formatHistoryProjectTime(item.createdAt);
+      const statusText = getHistoryProjectStatus(item);
       return `
         <article class="historyProjectCard ${isActive ? "is-active" : ""}">
+          ${
+            item.thumbnailDataUrl
+              ? `<div class="historyProjectThumbWrap"><img class="historyProjectThumb" src="${escapeHtml(item.thumbnailDataUrl)}" alt="${escapeHtml(
+                  pkg.project.productName || pkg.project.projectName
+                )}" /></div>`
+              : `<div class="historyProjectThumbFallback">项目缩略图</div>`
+          }
           <div class="historyProjectMeta">
             <div class="historyProjectTopline">
-              <span class="historyProjectTemplate">${escapeHtml(pkg.project.accountTemplate?.name || "当前模板")}</span>
-              ${isActive ? '<span class="historyProjectActiveTag">当前</span>' : ""}
+              <span class="historyProjectTime">${escapeHtml(createdAtText)}</span>
+              <span class="historyProjectStatus">${escapeHtml(statusText)}</span>
             </div>
             <strong>${escapeHtml(pkg.project.productName || pkg.project.projectName)}</strong>
             <p>${escapeHtml(compactSummary)}</p>
             <div class="historyProjectBadges">
-              <span class="countBadge">${pkg.batchVideoTasks?.length || 0} 条任务</span>
               <span class="countBadge">${escapeHtml(pkg.project.aspectRatio || "9:16")}</span>
+              <span class="countBadge">${pkg.batchVideoTasks?.length || 0} 条任务</span>
               <span class="countBadge">${pkg.shots.length} 镜头</span>
             </div>
           </div>
@@ -3493,7 +3504,13 @@ function renderVoiceDialectOptions(platform) {
 
 function loadProjects() {
   try {
-    return JSON.parse(localStorage.getItem(storageKey) || "[]");
+    const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]");
+    return Array.isArray(parsed)
+      ? parsed.map((item) => ({
+          ...item,
+          thumbnailDataUrl: typeof item?.thumbnailDataUrl === "string" ? item.thumbnailDataUrl : ""
+        }))
+      : [];
   } catch {
     return [];
   }
@@ -3517,6 +3534,69 @@ function saveOnboardingSeenState(seen) {
 
 function saveProjects() {
   localStorage.setItem(storageKey, JSON.stringify(projects));
+}
+
+async function createProjectThumbnailDataUrl(file) {
+  if (!file) return "";
+  try {
+    const sourceDataUrl = await readFileAsDataUrl(file);
+    return await resizeImageDataUrl(sourceDataUrl, 320, 200);
+  } catch {
+    return "";
+  }
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("读取图片失败"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function resizeImageDataUrl(sourceDataUrl, width, height) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("无法创建缩略图"));
+        return;
+      }
+      context.fillStyle = "#f6ead3";
+      context.fillRect(0, 0, width, height);
+      const scale = Math.max(width / image.width, height / image.height);
+      const drawWidth = image.width * scale;
+      const drawHeight = image.height * scale;
+      const offsetX = (width - drawWidth) / 2;
+      const offsetY = (height - drawHeight) / 2;
+      context.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    image.onerror = () => reject(new Error("缩略图加载失败"));
+    image.src = sourceDataUrl;
+  });
+}
+
+function formatHistoryProjectTime(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return "时间未知";
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+function getHistoryProjectStatus(record) {
+  const tasks = Array.isArray(record?.package?.batchVideoTasks) ? record.package.batchVideoTasks : [];
+  if (tasks.some((task) => String(task?.status || "").toLowerCase() === "queued")) return "已提交";
+  return "可提交";
 }
 
 function loadAccountTemplates() {
