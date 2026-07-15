@@ -625,6 +625,24 @@ export function buildMarkdownFromPackage(pkg) {
     lines.push("");
   });
 
+  if (pkg.storyboardTasks?.length) {
+    lines.push("## 故事版图结果");
+    lines.push("");
+    pkg.storyboardTasks.forEach((task) => {
+      lines.push(`### ${task.taskTitle || task.unitId || "故事版任务"}`);
+      lines.push(`- 任务单元：${task.unitId || "unit-01"}`);
+      lines.push(`- 状态：${task.status || "idle"}`);
+      lines.push(`- 任务 ID：${task.taskId || "未创建"}`);
+      lines.push(`- Provider：${task.provider || "kie-gpt-image"}`);
+      lines.push(`- 图片链接：${task.imageUrl || "暂无图片"}`);
+      if (task.errorMessage) {
+        lines.push(`- 失败原因：${task.errorMessage}`);
+      }
+      lines.push(`- 提示词：${task.prompt || "未生成"}`);
+      lines.push("");
+    });
+  }
+
   lines.push("## 审片清单");
   lines.push("");
   pkg.reviewChecklist.forEach((item) => {
@@ -848,6 +866,31 @@ export function buildExportBundle(pkg) {
       ].join("\n")
     )
     .join("\n");
+  const storyboardTasks = Array.isArray(pkg.storyboardTasks) ? pkg.storyboardTasks : [];
+  const storyboardMarkdown = storyboardTasks.length
+    ? storyboardTasks
+        .map((task) =>
+          [
+            `## ${task.taskTitle || task.unitId || "故事版任务"}`,
+            `- 任务单元：${task.unitId || "unit-01"}`,
+            `- 状态：${task.status || "idle"}`,
+            `- 任务 ID：${task.taskId || "未创建"}`,
+            `- Provider：${task.provider || "kie-gpt-image"}`,
+            `- 图片链接：${task.imageUrl || "暂无图片"}`,
+            task.errorMessage ? `- 失败原因：${task.errorMessage}` : "",
+            `- 提示词：${task.prompt || "未生成"}`,
+            ""
+          ]
+            .filter(Boolean)
+            .join("\n")
+        )
+        .join("\n")
+    : "当前项目没有故事版图任务。";
+  const storyboardLinksMarkdown = storyboardTasks.length
+    ? storyboardTasks
+        .map((task) => `- ${task.taskTitle || task.unitId || "故事版任务"}：${task.imageUrl || "暂无图片链接"}`)
+        .join("\n")
+    : "- 当前项目没有故事版图图片链接。";
 
   return {
     slug,
@@ -907,9 +950,70 @@ export function buildExportBundle(pkg) {
       {
         path: `${slug}/08-审片清单.md`,
         content: `# 审片清单\n\n${reviewMarkdown}`
+      },
+      {
+        path: `${slug}/09-故事版图任务.md`,
+        content: `# 故事版图任务\n\n${storyboardMarkdown}`
+      },
+      {
+        path: `${slug}/10-故事版图任务.json`,
+        content: JSON.stringify(storyboardTasks, null, 2)
+      },
+      {
+        path: `${slug}/11-故事版图图片链接.md`,
+        content: `# 故事版图图片链接\n\n${storyboardLinksMarkdown}`
       }
     ]
   };
+}
+
+export function buildDeliveryPackageText(pkg) {
+  const storyboardTasks = Array.isArray(pkg?.storyboardTasks) ? pkg.storyboardTasks : [];
+  const batchTasks = Array.isArray(pkg?.batchVideoTasks) ? pkg.batchVideoTasks : [];
+  const summaryLines = [
+    `项目：${pkg?.project?.projectName || "当前项目"}`,
+    `商品：${pkg?.project?.productName || "未填写"}`,
+    `模板：${pkg?.project?.accountTemplate?.name || "未选择"}`,
+    `平台：${getPlatformLabel(pkg?.project?.accountTemplate?.platform)}`,
+    `主卖点：${pkg?.project?.sellingPoints?.join(" / ") || "未填写"}`,
+    `参考摘要：${pkg?.project?.referenceSummary || "未填写"}`,
+    ""
+  ];
+
+  const batchTaskLines = batchTasks.length
+    ? batchTasks.flatMap((task, index) => [
+        `【视频任务 ${index + 1}】${task.taskTitle || `任务 ${index + 1}`}`,
+        `模型：${task.model || "未填写"}`,
+        `时长：${task.durationSeconds || 0} 秒`,
+        `状态：${task.status || "draft"}`,
+        `提示词：${task.prompt || "未生成"}`,
+        ""
+      ])
+    : ["当前没有可复制的视频任务。", ""];
+
+  const storyboardLines = storyboardTasks.length
+    ? storyboardTasks.flatMap((task, index) => [
+        `【故事版 ${index + 1}】${task.taskTitle || task.unitId || `故事版 ${index + 1}`}`,
+        `状态：${task.status || "idle"}`,
+        `任务 ID：${task.taskId || "未创建"}`,
+        `图片链接：${task.imageUrl || "暂无图片"}`,
+        task.errorMessage ? `失败原因：${task.errorMessage}` : "",
+        `故事版提示词：${task.prompt || "未生成"}`,
+        ""
+      ].filter(Boolean))
+    : ["当前项目没有故事版图结果。", ""];
+
+  return [
+    "# 复刻结果包",
+    "",
+    ...summaryLines,
+    "## 视频任务",
+    "",
+    ...batchTaskLines,
+    "## 故事版图",
+    "",
+    ...storyboardLines
+  ].join("\n");
 }
 
 function finalizePackage(base) {

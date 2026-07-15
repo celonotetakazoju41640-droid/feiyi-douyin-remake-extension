@@ -67,6 +67,14 @@ test("workspace shell turns storyboard generation into a one-click auto-wait flo
   assert.doesNotMatch(workspaceJs, /data-storyboard-refresh/);
 });
 
+test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {
+  assert.match(workspaceHtml, /id="copyBatchTasksButton"/);
+  assert.match(workspaceHtml, /复制结果包/);
+  assert.match(workspaceJs, /buildDeliveryPackageText/);
+  assert.match(workspaceJs, /完整结果包已复制/);
+  assert.doesNotMatch(workspaceJs, /批量视频任务 JSON 已复制/);
+});
+
 test("workspace shell includes scene plan, cast editor, and storyboard toggle", () => {
   assert.match(workspaceHtml, /id="scenePrimaryLocation"/);
   assert.match(workspaceHtml, /id="storyboardEnabled"/);

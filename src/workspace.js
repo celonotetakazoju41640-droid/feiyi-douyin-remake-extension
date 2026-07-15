@@ -1,4 +1,5 @@
 import {
+  buildDeliveryPackageText,
   buildProfileSelectionComparisonSummary,
   buildReferenceSummaryFromProfileScan,
   classifyTikTokProfilePageIssue,
@@ -1108,11 +1109,11 @@ async function copyClipcatPrompt() {
 
 async function copyBatchTasks() {
   if (!currentPackage) {
-    setActionFeedback("当前没有批量任务可复制。", true);
+    setActionFeedback("当前没有可复制的结果包。", true);
     return;
   }
-  await navigator.clipboard.writeText(JSON.stringify(currentPackage.batchVideoTasks, null, 2));
-  setActionFeedback("批量视频任务 JSON 已复制。");
+  await navigator.clipboard.writeText(buildDeliveryPackageText(currentPackage));
+  setActionFeedback("完整结果包已复制。");
 }
 
 function isBatchServiceOfflineError(error) {
@@ -3518,7 +3519,7 @@ function getWizardStepConfig(step) {
     },
     4: {
       title: "结果与提交",
-      description: "项目已经生成完成。这里直接复制任务或提交去跑视频。",
+      description: "项目已经生成完成。这里直接复制结果包、导出文件，或提交去跑视频。",
       nextLabel: "已完成"
     }
   }[step];

@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildExportBundle,
+  buildMarkdownFromPackage,
   buildSafeClipcatPrompt,
   buildRemakePackage,
   buildProfileSelectionComparisonSummary,
@@ -469,6 +471,53 @@ test("buildRemakePackage creates a storyboard prompt with cast, scene, and conti
   assert.match(pkg.storyboardTasks[0].prompt, /Host:/i);
   assert.match(pkg.storyboardTasks[0].prompt, /Supporting cast:/i);
   assert.match(pkg.storyboardTasks[0].prompt, /Continuity:/i);
+});
+
+test("buildMarkdownFromPackage includes storyboard results for delivery", () => {
+  const pkg = buildRemakePackage({
+    projectName: "storyboard-delivery-demo",
+    referenceSummary: "host demo plus proof",
+    productName: "odor remover box",
+    sellingPoints: ["Fast visible result", "Easy to use"],
+    storyboardEnabled: true,
+    accountTemplate: { name: "Demo template", platform: "tiktok", defaultVoiceLanguage: "英文" }
+  });
+  pkg.storyboardTasks[0].status = "succeeded";
+  pkg.storyboardTasks[0].taskId = "task-123";
+  pkg.storyboardTasks[0].imageUrl = "https://cdn.example.com/storyboard-1.png";
+
+  const markdown = buildMarkdownFromPackage(pkg);
+
+  assert.match(markdown, /## 故事版图结果/);
+  assert.match(markdown, /任务 ID：task-123/);
+  assert.match(markdown, /图片链接：https:\/\/cdn\.example\.com\/storyboard-1\.png/);
+});
+
+test("buildExportBundle includes storyboard task files and image links", () => {
+  const pkg = buildRemakePackage({
+    projectName: "storyboard-bundle-demo",
+    referenceSummary: "host demo plus proof",
+    productName: "odor remover box",
+    sellingPoints: ["Fast visible result", "Easy to use"],
+    storyboardEnabled: true,
+    accountTemplate: { name: "Demo template", platform: "tiktok", defaultVoiceLanguage: "英文" }
+  });
+  pkg.storyboardTasks[0].status = "succeeded";
+  pkg.storyboardTasks[0].taskId = "task-456";
+  pkg.storyboardTasks[0].imageUrl = "https://cdn.example.com/storyboard-2.png";
+
+  const bundle = buildExportBundle(pkg);
+  const paths = bundle.files.map((file) => file.path);
+  const storyboardMarkdown = bundle.files.find((file) => file.path.endsWith("09-故事版图任务.md"));
+  const storyboardJson = bundle.files.find((file) => file.path.endsWith("10-故事版图任务.json"));
+  const storyboardLinks = bundle.files.find((file) => file.path.endsWith("11-故事版图图片链接.md"));
+
+  assert.ok(paths.some((path) => path.endsWith("09-故事版图任务.md")));
+  assert.ok(paths.some((path) => path.endsWith("10-故事版图任务.json")));
+  assert.ok(paths.some((path) => path.endsWith("11-故事版图图片链接.md")));
+  assert.match(storyboardMarkdown.content, /task-456/);
+  assert.match(storyboardJson.content, /storyboard-2\.png/);
+  assert.match(storyboardLinks.content, /https:\/\/cdn\.example\.com\/storyboard-2\.png/);
 });
 
 test("buildProfileSelectionComparisonSummary highlights selected sample drift", () => {
