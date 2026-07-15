@@ -3772,13 +3772,14 @@ function updateResultButtons() {
 
 function updateActionFeedback() {
   const hasTemplate = Boolean(getSelectedTemplate());
-  const hasImages = Boolean(nodes.productImages.files?.length);
+  const knownProductImageCount = getKnownProductImageCount();
+  const hasProductImage = knownProductImageCount > 0;
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
   if (productImageAnalysisRunning) {
     setActionFeedback("正在分析商品图内容，完成后会自动补卖点、场景和提示词草稿。");
     return;
   }
-  if (!hasTemplate && !hasImages) {
+  if (!hasTemplate && !hasProductImage) {
     setActionFeedback("先选蒸馏模型，再上传商品图。");
     return;
   }
@@ -3786,7 +3787,7 @@ function updateActionFeedback() {
     setActionFeedback("先选蒸馏模型。");
     return;
   }
-  if (!hasImages) {
+  if (!hasProductImage) {
     setActionFeedback("再上传商品图就能生成。");
     return;
   }
@@ -3799,11 +3800,17 @@ function updateActionFeedback() {
 
 function renderAssetStatus() {
   if (nodes.productUploadStatus) {
-    const productCount = nodes.productImages?.files?.length || 0;
+    const productCount = getKnownProductImageCount();
     nodes.productUploadStatus.textContent = productCount ? `商品图：已上传 ${productCount} 张` : "商品图：未上传";
     nodes.productUploadStatus.classList.toggle("is-ready", productCount > 0);
     nodes.productUploadStatus.classList.toggle("is-optional", false);
   }
+}
+
+function getKnownProductImageCount() {
+  const currentInputCount = nodes.productImages?.files?.length || 0;
+  if (currentInputCount > 0) return currentInputCount;
+  return Number(currentPackage?.project?.clipcatConfig?.productImageCount || 0);
 }
 
 function getWorkflowStatus(projectId = currentProjectId) {
@@ -3847,7 +3854,8 @@ function updateWorkflowStatus(projectId, partial = {}) {
 
 function buildGenerateFlowStatusItems() {
   const hasTemplate = Boolean(getSelectedTemplate());
-  const hasProductImage = Boolean(nodes.productImages?.files?.length);
+  const knownProductImageCount = getKnownProductImageCount();
+  const hasProductImage = knownProductImageCount > 0;
   const currentStatus = getWorkflowStatus();
   const storyboardSummary = currentStatus.storyboardStatusSummary || summarizeStoryboardState(currentPackage?.storyboardTasks || []);
   const deliverySummary = currentStatus.deliveryStatusSummary;
@@ -3859,7 +3867,7 @@ function buildGenerateFlowStatusItems() {
     },
     {
       label: "2. 商品图",
-      status: hasProductImage ? `已上传 ${nodes.productImages?.files?.length || 0} 张` : "待上传"
+      status: hasProductImage ? `已上传 ${knownProductImageCount} 张` : "待上传"
     },
     {
       label: "3. 生成项目",
@@ -3882,7 +3890,8 @@ function buildGenerateFlowStatusItems() {
 
 function buildGenerateFlowStatusSummary() {
   const hasTemplate = Boolean(getSelectedTemplate());
-  const hasProductImage = Boolean(nodes.productImages?.files?.length);
+  const knownProductImageCount = getKnownProductImageCount();
+  const hasProductImage = knownProductImageCount > 0;
   const currentStatus = getWorkflowStatus();
 
   if (productImageAnalysisRunning) return "正在识别商品图内容，识别完就能生成。";
@@ -4209,8 +4218,8 @@ function pickBreakdownValue(lines, label) {
 function updateGenerateButtonState() {
   if (!nodes.remakeButton) return;
   const hasTemplate = Boolean(getSelectedTemplate());
-  const hasProductImage = Boolean(nodes.productImages?.files?.length);
-  const disabled = !(hasTemplate && hasProductImage) || productImageAnalysisRunning;
+  const hasFreshProductImage = Boolean(nodes.productImages?.files?.length);
+  const disabled = !(hasTemplate && hasFreshProductImage) || productImageAnalysisRunning;
   nodes.remakeButton.disabled = disabled;
   if (nodes.remakeAndDeliverButton) {
     nodes.remakeAndDeliverButton.disabled = disabled;

@@ -107,7 +107,7 @@ test("workspace shell sends uploaded product images through the local vision ser
   assert.match(workspaceJs, /\/api\/product-image-insights/);
   assert.match(workspaceJs, /analyzeProductImageViaService/);
   assert.match(workspaceJs, /正在分析商品图内容/);
-  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasFreshProductImage\) \|\| productImageAnalysisRunning/);
   assert.match(workspaceJs, /nodes\.remakeButton\.disabled = disabled/);
 });
 
@@ -276,7 +276,7 @@ test("workspace shell allows generation with only uploaded product images by usi
   assert.match(workspaceJs, /const fallbackReferenceSummary = referenceSummary \|\| nodes\.referenceBrief\.value\.trim\(\) \|\| inferredFallback\.suggestedPrompt/);
   assert.match(workspaceJs, /const nextScenePrimaryLocation = generationDefaults\.scenePlan\?\.primaryLocation \|\| ""/);
   assert.match(workspaceJs, /const nextCastDraft = normalizeCastDraft\(generationDefaults\.cast \|\| \[\]\)/);
-  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasFreshProductImage\) \|\| productImageAnalysisRunning/);
   assert.match(workspaceJs, /nodes\.remakeButton\.disabled = disabled/);
   assert.match(workspaceJs, /setActionFeedback\("商品图已就绪，可以直接生成。"\)/);
   assert.match(workspaceJs, /setActionFeedback\("可以直接生成。"\)/);
@@ -288,7 +288,18 @@ test("workspace shell keeps primary-action feedback aligned with disabled-state 
   assert.match(workspaceJs, /setActionFeedback\("先选蒸馏模型。"\)/);
   assert.match(workspaceJs, /setActionFeedback\("先选蒸馏模型，再上传商品图。"\)/);
   assert.match(workspaceJs, /setActionFeedback\("再上传商品图就能生成。"\)/);
+  assert.match(workspaceJs, /const knownProductImageCount = getKnownProductImageCount\(\)/);
+  assert.match(workspaceJs, /const hasProductImage = knownProductImageCount > 0/);
   assert.doesNotMatch(workspaceJs, /if \(!hasImages && !hasPrompt\) {\s*setActionFeedback\("先上传商品图。"\)/);
-  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /const hasFreshProductImage = Boolean\(nodes\.productImages\?\.files\?\.length\)/);
+  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasFreshProductImage\) \|\| productImageAnalysisRunning/);
   assert.match(workspaceJs, /renderGenerateFlowStatus\(\);/);
+});
+
+test("workspace shell keeps known uploaded-image status after project restore even when the file input is empty", () => {
+  assert.match(workspaceJs, /function getKnownProductImageCount\(\)/);
+  assert.match(workspaceJs, /currentPackage\?\.project\?\.clipcatConfig\?\.productImageCount/);
+  assert.match(workspaceJs, /nodes\.productUploadStatus\.textContent = productCount \? `商品图：已上传 \$\{productCount\} 张` : "商品图：未上传"/);
+  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张` : "待上传"/);
+  assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。"/);
 });
