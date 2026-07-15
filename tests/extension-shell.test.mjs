@@ -69,7 +69,17 @@ test("workspace shell turns history into a project library plus detail workspace
   assert.match(workspaceJs, /thumbnailDataUrl/);
   assert.match(workspaceJs, /formatHistoryProjectTime/);
   assert.match(workspaceJs, /getHistoryProjectStatus/);
+  assert.match(workspaceJs, /模板：\$\{escapeHtml\(templateName\)\}/);
+  assert.match(workspaceJs, /模型：\$\{escapeHtml\(preferredModel\)\}/);
   assert.match(workspaceJs, /nodes\.currentTaskStatusBadge\.textContent = currentProjectStatus/);
+});
+
+test("workspace shell keeps template and remake model visible in the result summary", () => {
+  assert.match(workspaceJs, /function getPackagePreferredModel\(pkg\)/);
+  assert.match(workspaceJs, /currentResultChip">模板：\$\{escapeHtml\(resultSnapshot\.templateName\)\}/);
+  assert.match(workspaceJs, /currentResultChip">模型：\$\{escapeHtml\(resultSnapshot\.modelName\)\}/);
+  assert.match(workspaceJs, /`复刻模型：\$\{getPackagePreferredModel\(pkg\)\}`/);
+  assert.match(workspaceJs, /当前这次结果按“\$\{templateName\} \/ \$\{modelName\}”在出/);
 });
 
 test("workspace shell turns storyboard generation into a one-click auto-wait flow", () => {

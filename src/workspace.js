@@ -697,6 +697,8 @@ function renderProjects() {
       const compactSummary = previewText.length > 84 ? `${previewText.slice(0, 84)}...` : previewText;
       const createdAtText = formatHistoryProjectTime(item.createdAt);
       const statusText = getHistoryProjectStatus(item);
+      const templateName = pkg.project.accountTemplate?.name || "未选模板";
+      const preferredModel = getPackagePreferredModel(pkg);
       return `
         <article class="historyProjectCard ${isActive ? "is-active" : ""}">
           ${
@@ -714,6 +716,8 @@ function renderProjects() {
             <strong>${escapeHtml(pkg.project.productName || pkg.project.projectName)}</strong>
             <p>${escapeHtml(compactSummary)}</p>
             <div class="historyProjectBadges">
+              <span class="countBadge">模板：${escapeHtml(templateName)}</span>
+              <span class="countBadge">模型：${escapeHtml(preferredModel)}</span>
               <span class="countBadge">${escapeHtml(pkg.project.aspectRatio || "9:16")}</span>
               <span class="countBadge">${pkg.batchVideoTasks?.length || 0} 条任务</span>
               <span class="countBadge">${pkg.shots.length} 镜头</span>
@@ -3639,6 +3643,7 @@ function buildSummaryText(pkg) {
   return [
     `项目名：${pkg.project.projectName}`,
     `对标模板：${pkg.project.accountTemplate?.name || "未选择"}`,
+    `复刻模型：${getPackagePreferredModel(pkg)}`,
     `模板账号：${pkg.project.accountTemplate?.accountHandle || "未填写"}`,
     `参考摘要：${pkg.project.referenceSummary || "未填写"}`,
     `当前商品：${pkg.project.productName || "未填写"}`,
@@ -3997,6 +4002,7 @@ function renderCurrentResultSummary() {
     </div>
     <div class="currentResultSummaryGrid">
       <span class="currentResultChip">模板：${escapeHtml(resultSnapshot.templateName)}</span>
+      <span class="currentResultChip">模型：${escapeHtml(resultSnapshot.modelName)}</span>
       <span class="currentResultChip">节奏：${escapeHtml(resultSnapshot.rhythm)}</span>
       <span class="currentResultChip">钩子：${escapeHtml(resultSnapshot.hook)}</span>
       <span class="currentResultChip">证明：${escapeHtml(resultSnapshot.proof)}</span>
@@ -4249,15 +4255,25 @@ function buildCurrentResultSnapshot(pkg) {
   const rhythm = pickBreakdownValue(breakdown, "高频镜头节奏") || template.rhythm || "快节奏";
   const hook = pickBreakdownValue(breakdown, "高频钩子") || template.hookStyle || pkg?.project?.hookStyle || "强钩子";
   const templateName = template.name || "未选模板";
+  const modelName = getPackagePreferredModel(pkg);
   const visualDna = pickBreakdownValue(breakdown, "视觉 DNA 共性") || pickBreakdownValue(breakdown, "表达 DNA") || "当前模板视觉风格";
   return {
     templateName,
+    modelName,
     rhythm,
     hook,
     proof,
     cta,
-    overview: `当前这次结果按“${templateName}”在出，前段更偏“${hook}”，中段用“${proof}”做卖点证明，整体节奏偏“${rhythm}”，结尾按“${cta}”收口，视觉执行更贴近“${visualDna}”。`
+    overview: `当前这次结果按“${templateName} / ${modelName}”在出，前段更偏“${hook}”，中段用“${proof}”做卖点证明，整体节奏偏“${rhythm}”，结尾按“${cta}”收口，视觉执行更贴近“${visualDna}”。`
   };
+}
+
+function getPackagePreferredModel(pkg) {
+  return (
+    pkg?.batchVideoTasks?.find((task) => String(task?.model || "").trim())?.model ||
+    pkg?.project?.accountTemplate?.preferredModel ||
+    "veo-3-fast"
+  );
 }
 
 function pickBreakdownValue(lines, label) {
