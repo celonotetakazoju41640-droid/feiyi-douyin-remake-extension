@@ -246,10 +246,13 @@ test("workspace shell marks submitted projects as submitted after send-to-servic
   assert.match(workspaceJs, /nodes\.sendBatchTasksButton\.disabled = disabled \|\| submitted/);
   assert.match(workspaceJs, /const currentBatchId = currentPackage\.batchVideoTasks\?\.find\(\(task\) => task\.batchId\)\?\.batchId \|\| ""/);
   assert.match(workspaceJs, /当前批次号：/);
+  assert.match(workspaceJs, /本地服务阶段：视频任务已经交给本地服务继续跑；文案和图片仍可继续一键带走。/);
   assert.match(workspaceJs, /function hasSubmittedBatchTasks\(record\)/);
   assert.match(workspaceJs, /if \(tasks\.some\(\(task\) => task\?\.batchId\)\) return true/);
   assert.match(workspaceJs, /if \(tasks\.some\(\(task\) => submittedStatuses\.has\(String\(task\?\.status \|\| ""\)\.toLowerCase\(\)\)\)\) return true/);
   assert.match(workspaceJs, /if \(hasSubmittedBatchTasks\(record\)\) return "已提交"/);
+  assert.match(workspaceJs, /视频任务已经提交到本地服务；如果还要整理文案和图片，点“一键带走全部结果”。/);
+  assert.match(workspaceJs, /视频任务已经进入本地服务阶段；文案和图片也已带走完成，接下来继续等批次结果。/);
 });
 
 test("workspace shell persists storyboard and delivery summaries with each project record", () => {

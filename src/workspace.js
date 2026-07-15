@@ -4084,6 +4084,9 @@ function renderCurrentResultSummary() {
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
   const nextActionSuggestion = getCurrentNextActionSuggestion(projects.find((item) => item.id === currentProjectId) || null);
+  const submittedStageHint = currentBatchId
+    ? "本地服务阶段：视频任务已经交给本地服务继续跑；文案和图片仍可继续一键带走。"
+    : "";
   nodes.currentResultSummary.hidden = false;
   nodes.currentResultSummary.innerHTML = `
     <div class="currentResultSummaryHead">
@@ -4106,6 +4109,7 @@ function renderCurrentResultSummary() {
     <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
     ${productImageInsightStatus ? `<div class="currentResultSummaryNote">商品图识别：${escapeHtml(productImageInsightStatus)}</div>` : ""}
     ${currentBatchId ? `<div class="currentResultSummaryNote">当前批次号：${escapeHtml(currentBatchId)}</div>` : ""}
+    ${submittedStageHint ? `<div class="currentResultSummaryNote">${escapeHtml(submittedStageHint)}</div>` : ""}
     ${storyboardSummary ? `<div class="currentResultSummaryNote">故事版：${escapeHtml(storyboardSummary)}</div>` : ""}
     ${workflowStatus.storyboardStatusSummary ? `<div class="currentResultSummaryNote">当前故事版进度：${escapeHtml(workflowStatus.storyboardStatusSummary)}</div>` : ""}
     ${workflowStatus.deliveryStatusSummary ? `<div class="currentResultSummaryNote">当前带走结果：${escapeHtml(workflowStatus.deliveryStatusSummary)}</div>` : ""}
@@ -4221,7 +4225,9 @@ function getCurrentNextActionSuggestion(record) {
   const deliverySummary = String(workflowStatus?.deliveryStatusSummary || "").trim();
 
   if (/^一键带走完成/.test(deliverySummary)) {
-    return submitted ? "结果已经带走完成，可继续等待本地服务批次结果。" : "结果已经带走完成；如果还要跑视频任务，点“提交生成”。";
+    return submitted
+      ? "视频任务已经进入本地服务阶段；文案和图片也已带走完成，接下来继续等批次结果。"
+      : "结果已经带走完成；如果还要跑视频任务，点“提交生成”。";
   }
   if (/^一键带走待继续/.test(deliverySummary)) {
     return "故事版还在处理中，稍后继续等待，或再点一次“一键带走全部结果”。";
@@ -4230,7 +4236,7 @@ function getCurrentNextActionSuggestion(record) {
     return `先点“${deliveryConfig.label}”，系统会在故事版就绪后继续带走结果。`;
   }
   if (submitted) {
-    return "已经提交到本地服务；如果还要整理文案和图片，点“一键带走全部结果”。";
+    return "视频任务已经提交到本地服务；如果还要整理文案和图片，点“一键带走全部结果”。";
   }
   if (deliveryConfig.action === "deliver") {
     return "优先点“一键带走全部结果”；如果只想先跑视频任务，也可以点“提交生成”。";
