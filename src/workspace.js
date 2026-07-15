@@ -4337,7 +4337,8 @@ function handleWizardPrev() {
 
 async function handleWizardNext() {
   const canGenerateFromCurrentInputs = Boolean(getSelectedTemplate()) && Boolean(nodes.productImages.files?.length) && !productImageAnalysisRunning;
-  if (currentWizardStep === 2 && !nodes.productImages.files?.length) {
+  const hasKnownProductImage = getKnownProductImageCount() > 0;
+  if (currentWizardStep === 2 && !hasKnownProductImage) {
     setActionFeedback("第二步至少需要上传 1 张商品图。", true);
     return;
   }

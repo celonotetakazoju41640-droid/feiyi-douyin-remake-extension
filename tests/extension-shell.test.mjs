@@ -327,3 +327,9 @@ test("workspace shell does not warn about missing product images when navigating
   assert.match(workspaceJs, /if \(step >= 3 && !hasKnownProductImage\) \{/);
   assert.match(workspaceJs, /setActionFeedback\("还没上传商品图。你可以先看后面的结构，但正式生成前需要先补商品图。", true\)/);
 });
+
+test("workspace shell lets restored projects move past wizard step 2 without forcing a fresh upload just to view later steps", () => {
+  assert.match(workspaceJs, /const hasKnownProductImage = getKnownProductImageCount\(\) > 0/);
+  assert.match(workspaceJs, /if \(currentWizardStep === 2 && !hasKnownProductImage\) \{/);
+  assert.match(workspaceJs, /setActionFeedback\("第二步至少需要上传 1 张商品图。", true\)/);
+});
