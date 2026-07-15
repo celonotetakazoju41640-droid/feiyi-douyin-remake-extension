@@ -51,8 +51,17 @@ test("workspace shell keeps the generate-page top flow in the same order as the 
     /<strong>1\. 选模板<\/strong>[\s\S]*?<strong>2\. 上传产品图<\/strong>/
   );
   assert.match(workspaceHtml, /先选模板/);
+  assert.match(workspaceHtml, /id="templateSelectionSummary"/);
   assert.match(workspaceHtml, /传图后自动识别/);
   assert.match(workspaceHtml, /先选模板，再上传商品图，然后直接点生成并一键带走结果。/);
+});
+
+test("workspace shell shows template and default model before generation starts", () => {
+  assert.match(workspaceJs, /function renderTemplateSelectionSummary\(\)/);
+  assert.match(workspaceJs, /<strong>当前模板上下文<\/strong>/);
+  assert.match(workspaceJs, /模板：\$\{escapeHtml\(template\.name \|\| "未命名模板"\)\}/);
+  assert.match(workspaceJs, /默认模型：\$\{escapeHtml\(template\.preferredModel \|\| "veo-3-fast"\)\}/);
+  assert.match(workspaceJs, /平台：\$\{escapeHtml\(getPlatformLabel\(template\.platform \|\| "tiktok"\)\)\}/);
 });
 
 test("workspace shell turns history into a project library plus detail workspace", () => {

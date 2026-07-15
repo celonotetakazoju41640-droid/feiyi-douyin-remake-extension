@@ -45,6 +45,7 @@ const nodes = {
   videoUrlText: document.querySelector("#videoUrlText"),
   templateGuideCard: document.querySelector("#templateGuideCard"),
   templateGuideSummary: document.querySelector("#templateGuideSummary"),
+  templateSelectionSummary: document.querySelector("#templateSelectionSummary"),
   jumpToManageButton: document.querySelector("#jumpToManageButton"),
   dismissTemplateGuideButton: document.querySelector("#dismissTemplateGuideButton"),
   stepTemplateCard: document.querySelector("#stepTemplateCard"),
@@ -250,6 +251,7 @@ function init() {
   renderProjects();
   renderCastList();
   renderAssetStatus();
+  renderTemplateSelectionSummary();
   renderTemplateGuide();
   renderManageScanSummary();
   updateGenerateButtonState();
@@ -1662,6 +1664,25 @@ function renderTemplateGuide() {
   `;
 }
 
+function renderTemplateSelectionSummary() {
+  if (!nodes.templateSelectionSummary) return;
+  const template = getSelectedTemplate();
+  if (!template) {
+    nodes.templateSelectionSummary.innerHTML = "";
+    return;
+  }
+  nodes.templateSelectionSummary.innerHTML = `
+    <div class="templateDeepDistillSummaryHead">
+      <strong>当前模板上下文</strong>
+    </div>
+    <div class="templateDeepDistillSummaryGrid">
+      <span class="templateDeepDistillChip">模板：${escapeHtml(template.name || "未命名模板")}</span>
+      <span class="templateDeepDistillChip">默认模型：${escapeHtml(template.preferredModel || "veo-3-fast")}</span>
+      <span class="templateDeepDistillChip">平台：${escapeHtml(getPlatformLabel(template.platform || "tiktok"))}</span>
+    </div>
+  `;
+}
+
 function renderManageTemplateSnapshot() {
   if (!nodes.manageTemplateSnapshot) return;
   const template = getSelectedTemplate();
@@ -1784,6 +1805,7 @@ function syncTemplateForm() {
   currentDeepDistillVideos = cloneDeepDistillVideos(template.deepDistillVideos || []);
   currentDeepDistillFiles = new Map();
   renderDeepDistillVideoList();
+  renderTemplateSelectionSummary();
   renderManageTemplateSnapshot();
   renderTemplateDeepDistillSummary();
   updatePlatformDependentUi();
