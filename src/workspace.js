@@ -163,6 +163,7 @@ const nodes = {
   currentResultSummary: document.querySelector("#currentResultSummary"),
   actionFeedback: document.querySelector("#actionFeedback"),
   remakeButton: document.querySelector("#remakeButton"),
+  remakeAndDeliverButton: document.querySelector("#remakeAndDeliverButton"),
   reopenOnboardingDockButton: document.querySelector("#reopenOnboardingDockButton"),
   seriesCount: document.querySelector("#seriesCount"),
   seriesStats: document.querySelector("#seriesStats"),
@@ -259,7 +260,8 @@ function bindEvents() {
   nodes.referenceVideoFile.addEventListener("change", handleReferenceVideoChange);
   nodes.productImages.addEventListener("change", handleProductImagesChange);
   nodes.targetDurationControl?.addEventListener("input", handleTargetDurationControlChange);
-  nodes.remakeButton?.addEventListener("click", handleGenerate);
+  nodes.remakeButton?.addEventListener("click", () => handleGenerate({ autoDeliver: false }));
+  nodes.remakeAndDeliverButton?.addEventListener("click", () => handleGenerate({ autoDeliver: true }));
   nodes.productName?.addEventListener("input", () => {
     updateGenerateButtonState();
     updateActionFeedback();
@@ -516,7 +518,7 @@ function removeSupportingCast(index) {
   renderCastList();
 }
 
-async function handleGenerate() {
+async function handleGenerate(options = {}) {
   const template = await prepareTemplateForGeneration();
   const productName = nodes.productName.value.trim();
   const referenceSummary = nodes.referenceBrief.value.trim();
@@ -586,6 +588,10 @@ async function handleGenerate() {
   syncFlowStepState();
   setWizardStep(4);
   setCurrentView("history");
+  if (options.autoDeliver) {
+    setActionFeedback("项目已生成，正在继续整理故事版和交付结果。");
+    await handleDeliveryShortcut();
+  }
 }
 
 function renderProjects() {
@@ -3849,7 +3855,11 @@ function updateGenerateButtonState() {
   if (!nodes.remakeButton) return;
   const hasTemplate = Boolean(getSelectedTemplate());
   const hasProductImage = Boolean(nodes.productImages?.files?.length);
-  nodes.remakeButton.disabled = !(hasTemplate && hasProductImage) || productImageAnalysisRunning;
+  const disabled = !(hasTemplate && hasProductImage) || productImageAnalysisRunning;
+  nodes.remakeButton.disabled = disabled;
+  if (nodes.remakeAndDeliverButton) {
+    nodes.remakeAndDeliverButton.disabled = disabled;
+  }
 }
 
 function syncFlowStepState() {
@@ -3880,8 +3890,8 @@ function getWizardStepConfig(step) {
     },
     3: {
       title: "生成项目",
-      description: "选好模板就能直接生成。",
-      nextLabel: "生成项目"
+      description: "选好模板后，可以只生成项目，也可以直接生成并一键带走结果。",
+      nextLabel: "生成并带走"
     },
     4: {
       title: "结果与提交",

@@ -27,7 +27,8 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /历史记录/);
   assert.match(workspaceHtml, /蒸馏管理/);
   assert.match(workspaceHtml, /蒸馏模型/);
-  assert.match(workspaceHtml, /生成项目/);
+  assert.match(workspaceHtml, /生成并一键带走结果/);
+  assert.match(workspaceHtml, /只生成项目/);
   assert.match(workspaceHtml, /只做两步：传图、选模板/);
   assert.match(workspaceHtml, /id="accountTemplateSelect"/);
   assert.match(workspaceHtml, /更多设置（可选）/);
@@ -96,7 +97,8 @@ test("workspace shell sends uploaded product images through the local vision ser
   assert.match(workspaceJs, /\/api\/product-image-insights/);
   assert.match(workspaceJs, /analyzeProductImageViaService/);
   assert.match(workspaceJs, /正在分析商品图内容/);
-  assert.match(workspaceJs, /nodes\.remakeButton\.disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /nodes\.remakeButton\.disabled = disabled/);
 });
 
 test("workspace shell batch export also downloads storyboard image files through the local proxy", () => {
@@ -115,6 +117,13 @@ test("workspace shell exposes a true one-click delivery action in the result are
   assert.match(workspaceJs, /一键带走全部结果/);
   assert.match(workspaceJs, /正在整理结果，会自动复制结果包并下载导出文件/);
   assert.match(workspaceJs, /故事版已就绪，继续自动整理结果/);
+});
+
+test("workspace shell lets generate-page primary action run straight into delivery", () => {
+  assert.match(workspaceHtml, /id="remakeAndDeliverButton"/);
+  assert.match(workspaceJs, /handleGenerate\(\{ autoDeliver: true \}\)/);
+  assert.match(workspaceJs, /项目已生成，正在继续整理故事版和交付结果/);
+  assert.match(workspaceJs, /await handleDeliveryShortcut\(\);/);
 });
 
 test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {
@@ -192,7 +201,8 @@ test("workspace shell allows generation with only uploaded product images by usi
   assert.match(workspaceJs, /const fallbackReferenceSummary = referenceSummary \|\| nodes\.referenceBrief\.value\.trim\(\) \|\| inferredFallback\.suggestedPrompt/);
   assert.match(workspaceJs, /nodes\.scenePrimaryLocation\.value = generationDefaults\.scenePlan\?\.primaryLocation \|\| ""/);
   assert.match(workspaceJs, /currentCastDraft = normalizeCastDraft\(generationDefaults\.cast\)/);
-  assert.match(workspaceJs, /nodes\.remakeButton\.disabled = !\(hasTemplate && hasProductImage\)/);
+  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /nodes\.remakeButton\.disabled = disabled/);
   assert.match(workspaceJs, /setActionFeedback\("商品图已就绪，可以直接生成。"\)/);
   assert.match(workspaceJs, /setActionFeedback\("可以直接生成。"\)/);
   assert.doesNotMatch(workspaceJs, /请先填写当前商品名/);
