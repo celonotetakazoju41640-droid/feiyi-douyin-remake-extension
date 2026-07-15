@@ -150,6 +150,7 @@ const nodes = {
   copyClipcatPromptButton: document.querySelector("#copyClipcatPromptButton"),
   copyBatchTasksButton: document.querySelector("#copyBatchTasksButton"),
   sendBatchTasksButton: document.querySelector("#sendBatchTasksButton"),
+  deliveryShortcutButton: document.querySelector("#deliveryShortcutButton"),
   storyboardShortcutButton: document.querySelector("#storyboardShortcutButton"),
   wizardPrevButton: document.querySelector("#wizardPrevButton"),
   wizardNextButton: document.querySelector("#wizardNextButton"),
@@ -214,6 +215,7 @@ let deepDistillAnalyzeTotalCount = 0;
 let currentCastDraft = [createDefaultCastDraftMember("host")];
 let storyboardRequestRunning = false;
 let productImageAnalysisRunning = false;
+let deliveryShortcutRunning = false;
 const storyboardPollIntervalMs = 3000;
 const storyboardPollMaxAttempts = 30;
 
@@ -276,6 +278,7 @@ function bindEvents() {
   nodes.copyClipcatPromptButton.addEventListener("click", copyClipcatPrompt);
   nodes.copyBatchTasksButton.addEventListener("click", copyBatchTasks);
   nodes.sendBatchTasksButton.addEventListener("click", sendBatchTasksToService);
+  nodes.deliveryShortcutButton?.addEventListener("click", handleDeliveryShortcut);
   nodes.storyboardShortcutButton?.addEventListener("click", handleStoryboardShortcut);
   nodes.wizardPrevButton?.addEventListener("click", handleWizardPrev);
   nodes.wizardNextButton?.addEventListener("click", handleWizardNext);
@@ -1160,10 +1163,10 @@ async function importJsonProject(event) {
   }
 }
 
-async function downloadBundle() {
+async function downloadBundle(options = {}) {
   if (!currentPackage) {
     setActionFeedback("当前没有可批量导出的项目。", true);
-    return;
+    return { success: false, textFileCount: 0, imageDownloadResult: { successCount: 0, failedCount: 0, totalCount: 0 } };
   }
   const bundle = buildExportBundle(currentPackage);
   for (const file of bundle.files) {
@@ -1174,14 +1177,21 @@ async function downloadBundle() {
   }
   const imageDownloadResult = await downloadStoryboardImagesForBundle(currentPackage);
   const totalFiles = bundle.files.length + imageDownloadResult.successCount;
-  if (imageDownloadResult.failedCount > 0) {
+  if (!options.silent && imageDownloadResult.failedCount > 0) {
     setActionFeedback(
       `文本文件已导出，故事版图片成功 ${imageDownloadResult.successCount}/${imageDownloadResult.totalCount} 张，其余图片请稍后再试。`,
       true
     );
-    return;
+    return { success: false, textFileCount: bundle.files.length, imageDownloadResult };
   }
-  setActionFeedback(`已按项目结构导出 ${totalFiles} 个文件${imageDownloadResult.successCount ? `，其中包含 ${imageDownloadResult.successCount} 张故事版图片` : ""}。`);
+  if (!options.silent) {
+    setActionFeedback(`已按项目结构导出 ${totalFiles} 个文件${imageDownloadResult.successCount ? `，其中包含 ${imageDownloadResult.successCount} 张故事版图片` : ""}。`);
+  }
+  return {
+    success: imageDownloadResult.failedCount === 0,
+    textFileCount: bundle.files.length,
+    imageDownloadResult
+  };
 }
 
 async function downloadStoryboardImagesForBundle(pkg) {
@@ -1216,13 +1226,16 @@ async function copyClipcatPrompt() {
   setActionFeedback("Clipcat 安全改写指令已复制。");
 }
 
-async function copyBatchTasks() {
+async function copyBatchTasks(options = {}) {
   if (!currentPackage) {
     setActionFeedback("当前没有可复制的结果包。", true);
-    return;
+    return false;
   }
   await navigator.clipboard.writeText(buildDeliveryPackageText(currentPackage));
-  setActionFeedback("完整结果包已复制。");
+  if (!options.silent) {
+    setActionFeedback("完整结果包已复制。");
+  }
+  return true;
 }
 
 function isBatchServiceOfflineError(error) {
@@ -3562,6 +3575,7 @@ function updateResultButtons() {
   nodes.downloadMarkdownButton.disabled = disabled;
   nodes.copyBatchTasksButton.disabled = disabled;
   nodes.sendBatchTasksButton.disabled = disabled;
+  updateDeliveryShortcutButton();
   updateStoryboardShortcutButton();
 }
 
@@ -3646,6 +3660,14 @@ function updateStoryboardShortcutButton() {
   nodes.storyboardShortcutButton.textContent = config.label;
 }
 
+function updateDeliveryShortcutButton() {
+  if (!nodes.deliveryShortcutButton) return;
+  const config = getDeliveryShortcutConfig(currentPackage);
+  nodes.deliveryShortcutButton.hidden = !config.visible;
+  nodes.deliveryShortcutButton.disabled = config.disabled;
+  nodes.deliveryShortcutButton.textContent = config.label;
+}
+
 function getStoryboardShortcutConfig(pkg) {
   if (!pkg?.project?.storyboardEnabled || !pkg?.storyboardTasks?.length) {
     return {
@@ -3698,6 +3720,34 @@ function getStoryboardShortcutConfig(pkg) {
   };
 }
 
+function getDeliveryShortcutConfig(pkg) {
+  if (!pkg) {
+    return {
+      visible: false,
+      disabled: true,
+      label: "一键带走全部结果",
+      action: "none"
+    };
+  }
+
+  const storyboardConfig = getStoryboardShortcutConfig(pkg);
+  if (pkg.project?.storyboardEnabled && storyboardConfig.action === "run") {
+    return {
+      visible: true,
+      disabled: storyboardConfig.disabled || deliveryShortcutRunning,
+      label: storyboardConfig.label.includes("等待") ? "先等故事版完成再带走" : "先生成故事版再带走",
+      action: "storyboard-first"
+    };
+  }
+
+  return {
+    visible: true,
+    disabled: deliveryShortcutRunning,
+    label: deliveryShortcutRunning ? "正在整理结果..." : "一键带走全部结果",
+    action: "deliver"
+  };
+}
+
 function summarizeStoryboardState(tasks = []) {
   if (!Array.isArray(tasks) || tasks.length === 0) return "";
   const succeededCount = tasks.filter((task) => String(task.status || "").trim().toLowerCase() === "succeeded").length;
@@ -3724,6 +3774,40 @@ async function handleStoryboardShortcut() {
   }
 
   await runStoryboardFlow();
+}
+
+async function handleDeliveryShortcut() {
+  const config = getDeliveryShortcutConfig(currentPackage);
+  if (config.action === "none") return;
+
+  if (config.action === "storyboard-first") {
+    await handleStoryboardShortcut();
+    return;
+  }
+
+  deliveryShortcutRunning = true;
+  updateDeliveryShortcutButton();
+  try {
+    setActionFeedback("正在整理结果，会自动复制结果包并下载导出文件。");
+    const copied = await copyBatchTasks({ silent: true });
+    const exportResult = await downloadBundle({ silent: true });
+    if (!copied) {
+      setActionFeedback("结果包整理失败：当前没有可复制的结果。", true);
+      return;
+    }
+    if (exportResult.imageDownloadResult.failedCount > 0) {
+      setActionFeedback(
+        `结果包已复制，文本文件已导出，故事版图片成功 ${exportResult.imageDownloadResult.successCount}/${exportResult.imageDownloadResult.totalCount} 张。`,
+        true
+      );
+      return;
+    }
+    const totalFiles = exportResult.textFileCount + exportResult.imageDownloadResult.successCount;
+    setActionFeedback(`结果包已复制，并已开始下载 ${totalFiles} 个文件。`);
+  } finally {
+    deliveryShortcutRunning = false;
+    updateDeliveryShortcutButton();
+  }
 }
 
 function buildCurrentResultSnapshot(pkg) {
