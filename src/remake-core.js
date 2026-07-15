@@ -970,6 +970,9 @@ export function buildExportBundle(pkg) {
 export function buildDeliveryPackageText(pkg) {
   const storyboardTasks = Array.isArray(pkg?.storyboardTasks) ? pkg.storyboardTasks : [];
   const batchTasks = Array.isArray(pkg?.batchVideoTasks) ? pkg.batchVideoTasks : [];
+  const videoPrompts = Array.isArray(pkg?.prompts?.videoShots) ? pkg.prompts.videoShots : [];
+  const keyframePrompts = Array.isArray(pkg?.prompts?.keyframes) ? pkg.prompts.keyframes : [];
+  const promptVariants = Array.isArray(pkg?.promptVariants) ? pkg.promptVariants : [];
   const summaryLines = [
     `项目：${pkg?.project?.projectName || "当前项目"}`,
     `商品：${pkg?.project?.productName || "未填写"}`,
@@ -979,6 +982,25 @@ export function buildDeliveryPackageText(pkg) {
     `参考摘要：${pkg?.project?.referenceSummary || "未填写"}`,
     ""
   ];
+
+  const videoPromptLines = videoPrompts.length
+    ? videoPrompts.flatMap((prompt, index) => [`【视频提示词 ${index + 1}】`, prompt || "未生成", ""])
+    : ["当前项目没有视频提示词。", ""];
+
+  const keyframePromptLines = keyframePrompts.length
+    ? keyframePrompts.flatMap((prompt, index) => [`【关键帧提示词 ${index + 1}】`, prompt || "未生成", ""])
+    : ["当前项目没有关键帧提示词。", ""];
+
+  const variantLines = promptVariants.length
+    ? promptVariants.flatMap((variant, index) => [
+        `【候选版本 ${index + 1}】${variant.title || `版本 ${index + 1}`}`,
+        `摘要：${variant.summary || "未生成"}`,
+        ...(Array.isArray(variant.videoShots) && variant.videoShots.length
+          ? variant.videoShots.map((line, shotIndex) => `${shotIndex + 1}. ${line}`)
+          : ["当前版本没有分镜提示词。"]),
+        ""
+      ])
+    : ["当前项目没有候选版本。", ""];
 
   const batchTaskLines = batchTasks.length
     ? batchTasks.flatMap((task, index) => [
@@ -992,21 +1014,32 @@ export function buildDeliveryPackageText(pkg) {
     : ["当前没有可复制的视频任务。", ""];
 
   const storyboardLines = storyboardTasks.length
-    ? storyboardTasks.flatMap((task, index) => [
-        `【故事版 ${index + 1}】${task.taskTitle || task.unitId || `故事版 ${index + 1}`}`,
-        `状态：${task.status || "idle"}`,
-        `任务 ID：${task.taskId || "未创建"}`,
-        `图片链接：${task.imageUrl || "暂无图片"}`,
-        task.errorMessage ? `失败原因：${task.errorMessage}` : "",
-        `故事版提示词：${task.prompt || "未生成"}`,
-        ""
-      ].filter(Boolean))
+    ? storyboardTasks.flatMap((task, index) =>
+        [
+          `【故事版 ${index + 1}】${task.taskTitle || task.unitId || `故事版 ${index + 1}`}`,
+          `状态：${task.status || "idle"}`,
+          `任务 ID：${task.taskId || "未创建"}`,
+          `图片链接：${task.imageUrl || "暂无图片"}`,
+          task.errorMessage ? `失败原因：${task.errorMessage}` : "",
+          `故事版提示词：${task.prompt || "未生成"}`,
+          ""
+        ].filter(Boolean)
+      )
     : ["当前项目没有故事版图结果。", ""];
 
   return [
     "# 复刻结果包",
     "",
     ...summaryLines,
+    "## 视频提示词",
+    "",
+    ...videoPromptLines,
+    "## 关键帧提示词",
+    "",
+    ...keyframePromptLines,
+    "## 候选版本",
+    "",
+    ...variantLines,
     "## 视频任务",
     "",
     ...batchTaskLines,

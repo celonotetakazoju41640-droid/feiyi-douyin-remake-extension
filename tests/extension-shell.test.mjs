@@ -5,6 +5,7 @@ import fs from "node:fs";
 const manifest = JSON.parse(fs.readFileSync(new URL("../manifest.json", import.meta.url), "utf8"));
 const workspaceHtml = fs.readFileSync(new URL("../src/workspace.html", import.meta.url), "utf8");
 const workspaceJs = fs.readFileSync(new URL("../src/workspace.js", import.meta.url), "utf8");
+const remakeCoreJs = fs.readFileSync(new URL("../src/remake-core.js", import.meta.url), "utf8");
 
 test("manifest declares MV3 background service worker and required local permissions", () => {
   assert.equal(manifest.background?.service_worker, "src/background.js");
@@ -147,6 +148,9 @@ test("workspace shell lets users copy a complete delivery pack instead of raw ta
   assert.match(workspaceHtml, /复制结果包/);
   assert.match(workspaceJs, /buildDeliveryPackageText/);
   assert.match(workspaceJs, /完整结果包已复制/);
+  assert.match(remakeCoreJs, /## 视频提示词/);
+  assert.match(remakeCoreJs, /## 关键帧提示词/);
+  assert.match(remakeCoreJs, /## 候选版本/);
   assert.doesNotMatch(workspaceJs, /批量视频任务 JSON 已复制/);
 });
 
