@@ -218,6 +218,7 @@ let deepDistillAnalyzeTotalCount = 0;
 let currentCastDraft = [createDefaultCastDraftMember("host")];
 let storyboardRequestRunning = false;
 let productImageAnalysisRunning = false;
+let lastAutoFilledInsights = createEmptyAutoFilledInsightsState();
 let deliveryShortcutRunning = false;
 const storyboardPollIntervalMs = 3000;
 const storyboardPollMaxAttempts = 30;
@@ -413,6 +414,43 @@ function createDefaultCastDraftMember(roleType = "supporting", index = 0) {
     behaviorRule: safeRoleType === "host" ? "负责讲解和展示商品" : "负责反应和烘托",
     voiceRule: safeRoleType === "host" ? "primary" : "silent"
   };
+}
+
+function createEmptyAutoFilledInsightsState() {
+  return {
+    productName: "",
+    productNotes: "",
+    referenceBrief: "",
+    scenePrimaryLocation: "",
+    sceneEnvironmentStyle: "",
+    sceneContinuityRule: "",
+    castSignature: ""
+  };
+}
+
+function buildCastDraftSignature(cast = []) {
+  return JSON.stringify(
+    normalizeCastDraft(cast).map((member) => ({
+      id: member.id,
+      roleType: member.roleType,
+      label: member.label,
+      presenceRule: member.presenceRule,
+      appearanceLock: member.appearanceLock,
+      behaviorRule: member.behaviorRule,
+      voiceRule: member.voiceRule
+    }))
+  );
+}
+
+function shouldReplaceAutoFilledField(currentValue, lastAutoFilledValue) {
+  const current = String(currentValue || "").trim();
+  const lastAutoFilled = String(lastAutoFilledValue || "").trim();
+  if (!current) return true;
+  return Boolean(lastAutoFilled) && current === lastAutoFilled;
+}
+
+function isCurrentCastDraftAutoFilled() {
+  return Boolean(lastAutoFilledInsights.castSignature) && buildCastDraftSignature(currentCastDraft) === lastAutoFilledInsights.castSignature;
 }
 
 function normalizeCastDraft(cast = []) {
@@ -2644,32 +2682,50 @@ async function autoFillProductInsightsFromImage(file) {
     updateGenerateButtonState();
   }
 
-  if (!nodes.productName.value.trim() && result.suggestedProductName && result.suggestedProductName !== "当前商品") {
-    nodes.productName.value = result.suggestedProductName;
+  const nextProductName = result.suggestedProductName && result.suggestedProductName !== "当前商品" ? result.suggestedProductName : "";
+  const nextProductNotes = result.sellingPoints.join("\n");
+  const nextReferenceBrief = result.suggestedPrompt || "";
+  const nextScenePrimaryLocation = generationDefaults.scenePlan?.primaryLocation || "";
+  const nextSceneEnvironmentStyle = generationDefaults.scenePlan?.environmentStyle || "";
+  const nextSceneContinuityRule = generationDefaults.scenePlan?.continuityRule || "";
+  const nextCastDraft = normalizeCastDraft(generationDefaults.cast || []);
+
+  if (shouldReplaceAutoFilledField(nodes.productName.value, lastAutoFilledInsights.productName) && nextProductName) {
+    nodes.productName.value = nextProductName;
   }
-  if (!splitLines(nodes.productNotes.value).length) {
-    nodes.productNotes.value = result.sellingPoints.join("\n");
+  if (shouldReplaceAutoFilledField(nodes.productNotes.value, lastAutoFilledInsights.productNotes) && nextProductNotes) {
+    nodes.productNotes.value = nextProductNotes;
   }
-  if (!nodes.referenceBrief.value.trim()) {
-    nodes.referenceBrief.value = result.suggestedPrompt;
+  if (shouldReplaceAutoFilledField(nodes.referenceBrief.value, lastAutoFilledInsights.referenceBrief) && nextReferenceBrief) {
+    nodes.referenceBrief.value = nextReferenceBrief;
   }
-  if (!nodes.scenePrimaryLocation?.value.trim()) {
-    nodes.scenePrimaryLocation.value = generationDefaults.scenePlan?.primaryLocation || "";
+  if (shouldReplaceAutoFilledField(nodes.scenePrimaryLocation?.value, lastAutoFilledInsights.scenePrimaryLocation) && nextScenePrimaryLocation) {
+    nodes.scenePrimaryLocation.value = nextScenePrimaryLocation;
   }
-  if (!nodes.sceneEnvironmentStyle?.value.trim()) {
-    nodes.sceneEnvironmentStyle.value = generationDefaults.scenePlan?.environmentStyle || "";
+  if (shouldReplaceAutoFilledField(nodes.sceneEnvironmentStyle?.value, lastAutoFilledInsights.sceneEnvironmentStyle) && nextSceneEnvironmentStyle) {
+    nodes.sceneEnvironmentStyle.value = nextSceneEnvironmentStyle;
   }
-  if (!nodes.sceneContinuityRule?.value.trim()) {
-    nodes.sceneContinuityRule.value = generationDefaults.scenePlan?.continuityRule || "";
+  if (shouldReplaceAutoFilledField(nodes.sceneContinuityRule?.value, lastAutoFilledInsights.sceneContinuityRule) && nextSceneContinuityRule) {
+    nodes.sceneContinuityRule.value = nextSceneContinuityRule;
   }
   const hasOnlyDefaultHost = currentCastDraft.length === 1
     && currentCastDraft[0]?.id === "host-1"
     && !String(currentCastDraft[0]?.appearanceLock || "").trim()
     && !String(currentCastDraft[0]?.behaviorRule || "").trim();
-  if (hasOnlyDefaultHost && generationDefaults.cast?.length) {
-    currentCastDraft = normalizeCastDraft(generationDefaults.cast);
+  const canReplaceCastDraft = hasOnlyDefaultHost || isCurrentCastDraftAutoFilled();
+  if (canReplaceCastDraft && generationDefaults.cast?.length) {
+    currentCastDraft = nextCastDraft;
     renderCastList();
   }
+  lastAutoFilledInsights = {
+    productName: nextProductName,
+    productNotes: nextProductNotes,
+    referenceBrief: nextReferenceBrief,
+    scenePrimaryLocation: nextScenePrimaryLocation,
+    sceneEnvironmentStyle: nextSceneEnvironmentStyle,
+    sceneContinuityRule: nextSceneContinuityRule,
+    castSignature: buildCastDraftSignature(nextCastDraft)
+  };
   setActionFeedback(
     usedVisionAnalysis
       ? "产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"
@@ -3665,6 +3721,7 @@ function syncFormWithCurrentPackage() {
     nodes.storyboardEnabled.checked = Boolean(currentPackage.project.storyboardEnabled);
   }
   currentCastDraft = normalizeCastDraft(currentPackage.project.cast || []);
+  lastAutoFilledInsights = createEmptyAutoFilledInsightsState();
   renderCastList();
 
   const template = normalizeAccountTemplate(currentPackage.project.accountTemplate);

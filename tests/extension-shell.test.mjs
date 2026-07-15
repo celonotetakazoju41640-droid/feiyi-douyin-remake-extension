@@ -125,6 +125,16 @@ test("workspace shell keeps product-image feedback truthful when visual analysis
   assert.match(workspaceJs, /usedVisionAnalysis\s*\?\s*"产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"\s*:\s*"产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿。"/);
 });
 
+test("workspace shell refreshes previous auto-filled product insights when users upload a new product image set", () => {
+  assert.match(workspaceJs, /let lastAutoFilledInsights = createEmptyAutoFilledInsightsState\(\);/);
+  assert.match(workspaceJs, /function shouldReplaceAutoFilledField\(currentValue, lastAutoFilledValue\)/);
+  assert.match(workspaceJs, /if \(shouldReplaceAutoFilledField\(nodes\.productName\.value, lastAutoFilledInsights\.productName\)/);
+  assert.match(workspaceJs, /if \(shouldReplaceAutoFilledField\(nodes\.productNotes\.value, lastAutoFilledInsights\.productNotes\)/);
+  assert.match(workspaceJs, /if \(shouldReplaceAutoFilledField\(nodes\.referenceBrief\.value, lastAutoFilledInsights\.referenceBrief\)/);
+  assert.match(workspaceJs, /const canReplaceCastDraft = hasOnlyDefaultHost \|\| isCurrentCastDraftAutoFilled\(\)/);
+  assert.match(workspaceJs, /lastAutoFilledInsights = \{/);
+});
+
 test("workspace shell batch export also downloads storyboard image files through the local proxy", () => {
   assert.match(workspaceJs, /downloadStoryboardImagesForBundle/);
   assert.match(workspaceJs, /已按项目结构导出/);
@@ -264,8 +274,8 @@ test("workspace shell allows generation with only uploaded product images by usi
   assert.match(workspaceJs, /const inferredFallback = inferProductInsightsFromAsset\(/);
   assert.match(workspaceJs, /const inferredGenerationDefaults = inferGenerationDefaultsFromAsset\(/);
   assert.match(workspaceJs, /const fallbackReferenceSummary = referenceSummary \|\| nodes\.referenceBrief\.value\.trim\(\) \|\| inferredFallback\.suggestedPrompt/);
-  assert.match(workspaceJs, /nodes\.scenePrimaryLocation\.value = generationDefaults\.scenePlan\?\.primaryLocation \|\| ""/);
-  assert.match(workspaceJs, /currentCastDraft = normalizeCastDraft\(generationDefaults\.cast\)/);
+  assert.match(workspaceJs, /const nextScenePrimaryLocation = generationDefaults\.scenePlan\?\.primaryLocation \|\| ""/);
+  assert.match(workspaceJs, /const nextCastDraft = normalizeCastDraft\(generationDefaults\.cast \|\| \[\]\)/);
   assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
   assert.match(workspaceJs, /nodes\.remakeButton\.disabled = disabled/);
   assert.match(workspaceJs, /setActionFeedback\("商品图已就绪，可以直接生成。"\)/);
