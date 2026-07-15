@@ -3775,7 +3775,7 @@ function getSelectedTemplate() {
 function updateResultButtons() {
   const disabled = !currentPackage;
   const currentProjectRecord = projects.find((item) => item.id === currentProjectId) || null;
-  const submitted = currentProjectRecord ? getHistoryProjectStatus(currentProjectRecord) === "已提交" : false;
+  const submitted = currentProjectRecord ? hasSubmittedBatchTasks(currentProjectRecord) : false;
   nodes.downloadBundleButton.disabled = disabled;
   nodes.downloadJsonButton.disabled = disabled;
   nodes.downloadMarkdownButton.disabled = disabled;
@@ -4663,8 +4663,6 @@ function getHistoryProjectStatus(record) {
   const deliveryStatusSummary = String(workflowStatus.deliveryStatusSummary || "").trim();
   const storyboardTasks = Array.isArray(record?.package?.storyboardTasks) ? record.package.storyboardTasks : [];
   const storyboardEnabled = Boolean(record?.package?.project?.storyboardEnabled);
-  const tasks = Array.isArray(record?.package?.batchVideoTasks) ? record.package.batchVideoTasks : [];
-  const submittedStatuses = new Set(["queued", "submitted", "running", "processing"]);
   const succeededStoryboardCount = storyboardTasks.filter((task) => canDownloadStoryboardTask(task)).length;
   const pendingStoryboardCount = storyboardTasks.filter(
     (task) => task.taskId && !["succeeded", "failed"].includes(String(task.status || "").trim().toLowerCase())
@@ -4678,9 +4676,16 @@ function getHistoryProjectStatus(record) {
     if (succeededStoryboardCount === storyboardTasks.length && succeededStoryboardCount > 0) return "待带走";
     if (creatableStoryboardCount > 0) return "待故事版";
   }
-  if (tasks.some((task) => task?.batchId)) return "已提交";
-  if (tasks.some((task) => submittedStatuses.has(String(task?.status || "").toLowerCase()))) return "已提交";
+  if (hasSubmittedBatchTasks(record)) return "已提交";
   return "可提交";
+}
+
+function hasSubmittedBatchTasks(record) {
+  const tasks = Array.isArray(record?.package?.batchVideoTasks) ? record.package.batchVideoTasks : [];
+  const submittedStatuses = new Set(["queued", "submitted", "running", "processing"]);
+  if (tasks.some((task) => task?.batchId)) return true;
+  if (tasks.some((task) => submittedStatuses.has(String(task?.status || "").toLowerCase()))) return true;
+  return false;
 }
 
 function loadAccountTemplates() {

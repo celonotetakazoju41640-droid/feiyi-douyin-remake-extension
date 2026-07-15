@@ -196,12 +196,15 @@ test("workspace shell marks submitted projects as submitted after send-to-servic
   assert.match(workspaceJs, /replaceCurrentProject\(currentPackage\);/);
   assert.match(workspaceJs, /renderProjects\(\);/);
   assert.match(workspaceJs, /setActionFeedback\(`已发送到本地服务，批次号：\$\{data\.batchId \|\| "未返回"\}`\)/);
+  assert.match(workspaceJs, /const submitted = currentProjectRecord \? hasSubmittedBatchTasks\(currentProjectRecord\) : false/);
   assert.match(workspaceJs, /nodes\.sendBatchTasksButton\.textContent = submitted \? "已提交到本地服务" : "提交生成"/);
   assert.match(workspaceJs, /nodes\.sendBatchTasksButton\.disabled = disabled \|\| submitted/);
   assert.match(workspaceJs, /const currentBatchId = currentPackage\.batchVideoTasks\?\.find\(\(task\) => task\.batchId\)\?\.batchId \|\| ""/);
   assert.match(workspaceJs, /当前批次号：/);
-  assert.match(workspaceJs, /const submittedStatuses = new Set\(\["queued", "submitted", "running", "processing"\]\)/);
-  assert.match(workspaceJs, /if \(tasks\.some\(\(task\) => task\?\.batchId\)\) return "已提交"/);
+  assert.match(workspaceJs, /function hasSubmittedBatchTasks\(record\)/);
+  assert.match(workspaceJs, /if \(tasks\.some\(\(task\) => task\?\.batchId\)\) return true/);
+  assert.match(workspaceJs, /if \(tasks\.some\(\(task\) => submittedStatuses\.has\(String\(task\?\.status \|\| ""\)\.toLowerCase\(\)\)\)\) return true/);
+  assert.match(workspaceJs, /if \(hasSubmittedBatchTasks\(record\)\) return "已提交"/);
 });
 
 test("workspace shell persists storyboard and delivery summaries with each project record", () => {
