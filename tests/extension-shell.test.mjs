@@ -293,6 +293,7 @@ test("workspace shell keeps primary-action feedback aligned with disabled-state 
   assert.doesNotMatch(workspaceJs, /if \(!hasImages && !hasPrompt\) {\s*setActionFeedback\("先上传商品图。"\)/);
   assert.match(workspaceJs, /const hasFreshProductImage = Boolean\(nodes\.productImages\?\.files\?\.length\)/);
   assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasFreshProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /nodes\.wizardNextButton\.disabled = currentWizardStep === 4 \|\| \(currentWizardStep === 3 && !canGenerateFromCurrentInputs\)/);
   assert.match(workspaceJs, /renderGenerateFlowStatus\(\);/);
 });
 
@@ -312,4 +313,11 @@ test("workspace shell clears stale local product uploads when switching to anoth
   assert.match(workspaceJs, /nodes\.sampleProduct\.hidden = false/);
   assert.match(workspaceJs, /clearLocalProductUploadState\(\);/);
   assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasFreshProductImage\) \|\| productImageAnalysisRunning/);
+});
+
+test("workspace shell does not let the wizard bypass the same fresh-upload generation gate", () => {
+  assert.match(workspaceJs, /const canGenerateFromCurrentInputs = Boolean\(getSelectedTemplate\(\)\) && Boolean\(nodes\.productImages\.files\?\.length\) && !productImageAnalysisRunning/);
+  assert.match(workspaceJs, /if \(currentWizardStep === 3\) \{/);
+  assert.match(workspaceJs, /if \(!canGenerateFromCurrentInputs\) \{/);
+  assert.match(workspaceJs, /setActionFeedback\("请先重新上传当前项目要用的商品图，再开始新一轮生成。", true\)/);
 });

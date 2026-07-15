@@ -4313,8 +4313,9 @@ function renderWizardStep() {
     nodes.wizardPrevButton.hidden = currentWizardStep === 1;
   }
   if (nodes.wizardNextButton) {
+    const canGenerateFromCurrentInputs = Boolean(getSelectedTemplate()) && Boolean(nodes.productImages.files?.length) && !productImageAnalysisRunning;
     nodes.wizardNextButton.textContent = config.nextLabel;
-    nodes.wizardNextButton.disabled = currentWizardStep === 4;
+    nodes.wizardNextButton.disabled = currentWizardStep === 4 || (currentWizardStep === 3 && !canGenerateFromCurrentInputs);
   }
 }
 
@@ -4335,11 +4336,16 @@ function handleWizardPrev() {
 }
 
 async function handleWizardNext() {
+  const canGenerateFromCurrentInputs = Boolean(getSelectedTemplate()) && Boolean(nodes.productImages.files?.length) && !productImageAnalysisRunning;
   if (currentWizardStep === 2 && !nodes.productImages.files?.length) {
     setActionFeedback("第二步至少需要上传 1 张商品图。", true);
     return;
   }
   if (currentWizardStep === 3) {
+    if (!canGenerateFromCurrentInputs) {
+      setActionFeedback("请先重新上传当前项目要用的商品图，再开始新一轮生成。", true);
+      return;
+    }
     await handleGenerate();
     return;
   }
