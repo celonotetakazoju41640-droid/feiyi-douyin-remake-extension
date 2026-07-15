@@ -134,6 +134,9 @@ test("workspace shell exposes a true one-click delivery action in the result are
   assert.match(workspaceJs, /一键带走完成：结果包已复制/);
   assert.match(workspaceJs, /一键带走失败：/);
   assert.match(workspaceJs, /结果整理失败：/);
+  assert.match(workspaceJs, /copyBatchTasks\(\{ silent: true \}\)\.catch/);
+  assert.match(workspaceJs, /downloadBundle\(\{ silent: true \}\)\.catch/);
+  assert.match(workspaceJs, /复制结果包失败，但导出已继续完成/);
 });
 
 test("workspace shell lets generate-page primary action run straight into delivery", () => {

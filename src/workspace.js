@@ -3951,13 +3951,54 @@ async function runDeliveryShortcut() {
   updateDeliveryShortcutButton();
   try {
     setActionFeedback("正在整理结果，会自动复制结果包并下载导出文件。");
-    const copied = await copyBatchTasks({ silent: true });
-    const exportResult = await downloadBundle({ silent: true });
-    if (!copied) {
+    const copyResult = await copyBatchTasks({ silent: true }).catch((error) => ({
+      ok: false,
+      error
+    }));
+    const exportResult = await downloadBundle({ silent: true }).catch((error) => ({
+      success: false,
+      error,
+      textFileCount: 0,
+      imageDownloadResult: { successCount: 0, failedCount: 0, totalCount: 0 }
+    }));
+    const copySucceeded = copyResult === true || copyResult?.ok !== false;
+    const exportSucceeded = !exportResult?.error;
+    if (!copySucceeded && !exportSucceeded) {
+      const copyDetail =
+        copyResult?.error instanceof Error ? copyResult.error.message.trim() : String(copyResult?.error || "").trim();
+      const exportDetail =
+        exportResult?.error instanceof Error ? exportResult.error.message.trim() : String(exportResult?.error || "").trim();
+      const detail = [copyDetail, exportDetail].filter(Boolean).join("；");
       updateWorkflowStatus(currentProjectId, {
-        deliveryStatusSummary: "一键带走失败：当前没有可复制的结果。"
+        deliveryStatusSummary: `一键带走失败：${detail || "复制结果包和导出文件都没成功。"}`
       });
-      setActionFeedback("结果包整理失败：当前没有可复制的结果。", true);
+      setActionFeedback(`结果整理失败：${detail || "复制结果包和导出文件都没成功。"} `, true);
+      return;
+    }
+    if (!exportSucceeded) {
+      const detail = exportResult?.error instanceof Error ? exportResult.error.message.trim() : String(exportResult?.error || "").trim();
+      updateWorkflowStatus(currentProjectId, {
+        deliveryStatusSummary: `一键带走失败：导出没成功。${detail || "请检查本地导出权限后再试。"}`
+      });
+      setActionFeedback(`结果整理失败：导出没成功。${detail || "请检查本地导出权限后再试。"}`, true);
+      return;
+    }
+    if (!copySucceeded && exportResult.imageDownloadResult.failedCount > 0) {
+      updateWorkflowStatus(currentProjectId, {
+        deliveryStatusSummary: `一键带走部分完成：复制结果包失败，但文本文件已导出，故事版图片成功 ${exportResult.imageDownloadResult.successCount}/${exportResult.imageDownloadResult.totalCount} 张。`
+      });
+      setActionFeedback(
+        `复制结果包失败，但导出已继续完成：文本文件已导出，故事版图片成功 ${exportResult.imageDownloadResult.successCount}/${exportResult.imageDownloadResult.totalCount} 张。`,
+        true
+      );
+      return;
+    }
+    if (!copySucceeded) {
+      const totalFiles = exportResult.textFileCount + exportResult.imageDownloadResult.successCount;
+      updateWorkflowStatus(currentProjectId, {
+        deliveryStatusSummary: `一键带走部分完成：复制结果包失败，但已开始下载 ${totalFiles} 个文件。`
+      });
+      setActionFeedback(`复制结果包失败，但导出已继续完成：已开始下载 ${totalFiles} 个文件。`, true);
       return;
     }
     if (exportResult.imageDownloadResult.failedCount > 0) {
