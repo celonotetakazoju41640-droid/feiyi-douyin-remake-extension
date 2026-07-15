@@ -620,19 +620,20 @@ function renderProjects() {
       const isActive = item.id === currentProjectId;
       const firstSellingPoint = pkg.project.sellingPoints?.[0] || "按当前项目主卖点执行";
       const previewText = pkg.project.referenceSummary || firstSellingPoint;
+      const compactSummary = previewText.length > 84 ? `${previewText.slice(0, 84)}...` : previewText;
       return `
         <article class="historyProjectCard ${isActive ? "is-active" : ""}">
-          <div class="historyProjectPreview">
-            <strong>${escapeHtml(pkg.project.accountTemplate?.name || "当前模板")}</strong>
-            <span>${escapeHtml(previewText)}</span>
-          </div>
           <div class="historyProjectMeta">
-            <strong>${escapeHtml(pkg.project.projectName)}</strong>
-            <p>商品：${escapeHtml(pkg.project.productName)}</p>
+            <div class="historyProjectTopline">
+              <span class="historyProjectTemplate">${escapeHtml(pkg.project.accountTemplate?.name || "当前模板")}</span>
+              ${isActive ? '<span class="historyProjectActiveTag">当前</span>' : ""}
+            </div>
+            <strong>${escapeHtml(pkg.project.productName || pkg.project.projectName)}</strong>
+            <p>${escapeHtml(compactSummary)}</p>
             <div class="historyProjectBadges">
-              <span class="countBadge">${pkg.shots.length} 个镜头</span>
               <span class="countBadge">${pkg.batchVideoTasks?.length || 0} 条任务</span>
               <span class="countBadge">${escapeHtml(pkg.project.aspectRatio || "9:16")}</span>
+              <span class="countBadge">${pkg.shots.length} 镜头</span>
             </div>
           </div>
           <div class="historyProjectActions">
