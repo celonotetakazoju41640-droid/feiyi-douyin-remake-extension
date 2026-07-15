@@ -101,11 +101,19 @@ test("workspace shell keeps storyboard enabled by default for the main one-chain
 
 test("workspace shell sends uploaded product images through the local vision service before final fallback", () => {
   assert.match(workspaceJs, /productImageAnalysisRunning/);
+  assert.match(workspaceJs, /const template = syncPreferredTemplateForCurrentPlatform\(\) \|\| getSelectedTemplate\(\) \|\| \{\}/);
   assert.match(workspaceJs, /\/api\/product-image-insights/);
   assert.match(workspaceJs, /analyzeProductImageViaService/);
   assert.match(workspaceJs, /正在分析商品图内容/);
   assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
   assert.match(workspaceJs, /nodes\.remakeButton\.disabled = disabled/);
+});
+
+test("workspace shell syncs the preferred platform template before upload analysis and final generation", () => {
+  assert.match(workspaceJs, /function syncPreferredTemplateForCurrentPlatform\(\)/);
+  assert.match(workspaceJs, /const preferredTemplate = pickPreferredTemplateForPlatform\(platform, profileUrl\)/);
+  assert.match(workspaceJs, /selectedTemplateId = preferredTemplate\.id/);
+  assert.match(workspaceJs, /const template = syncPreferredTemplateForCurrentPlatform\(\) \|\| getSelectedTemplate\(\);/);
 });
 
 test("workspace shell keeps product-image feedback truthful when visual analysis falls back", () => {

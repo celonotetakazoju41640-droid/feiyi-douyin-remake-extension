@@ -2527,17 +2527,10 @@ function syncTargetDurationControl(value) {
 async function prepareTemplateForGeneration() {
   const platform = nodes.templatePlatform.value || "tiktok";
   const profileUrl = nodes.templateProfileUrl.value.trim();
-  const preferredTemplate = pickPreferredTemplateForPlatform(platform, profileUrl);
-
-  if (preferredTemplate) {
-    selectedTemplateId = preferredTemplate.id;
-    renderTemplateOptions();
-    syncTemplateForm();
-    applyTemplateToGenerationFields();
-  }
+  const template = syncPreferredTemplateForCurrentPlatform() || getSelectedTemplate();
 
   if (!profileUrl) {
-    return getSelectedTemplate();
+    return template;
   }
 
   if (!isProfileAutoScanSupported(platform) || !isSupportedProfileUrl(profileUrl, platform)) {
@@ -2582,8 +2575,22 @@ function pickPreferredTemplateForPlatform(platform, profileUrl = "") {
   return accountTemplates.find((item) => item.platform === platform) || accountTemplates[0] || null;
 }
 
+function syncPreferredTemplateForCurrentPlatform() {
+  const platform = nodes.templatePlatform.value || "tiktok";
+  const profileUrl = nodes.templateProfileUrl.value.trim();
+  const preferredTemplate = pickPreferredTemplateForPlatform(platform, profileUrl);
+  if (!preferredTemplate) return null;
+  if (preferredTemplate.id !== selectedTemplateId) {
+    selectedTemplateId = preferredTemplate.id;
+    renderTemplateOptions();
+    syncTemplateForm();
+    applyTemplateToGenerationFields();
+  }
+  return preferredTemplate;
+}
+
 async function autoFillProductInsightsFromImage(file) {
-  const template = getSelectedTemplate() || {};
+  const template = syncPreferredTemplateForCurrentPlatform() || getSelectedTemplate() || {};
   const fallbackResult = inferProductInsightsFromAsset({
     fileName: file?.name || "",
     productName: nodes.productName.value.trim(),
