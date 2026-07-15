@@ -4441,7 +4441,9 @@ function formatHistoryProjectTime(value) {
 
 function getHistoryProjectStatus(record) {
   const tasks = Array.isArray(record?.package?.batchVideoTasks) ? record.package.batchVideoTasks : [];
-  if (tasks.some((task) => String(task?.status || "").toLowerCase() === "queued")) return "已提交";
+  const submittedStatuses = new Set(["queued", "submitted", "running", "processing"]);
+  if (tasks.some((task) => task?.batchId)) return "已提交";
+  if (tasks.some((task) => submittedStatuses.has(String(task?.status || "").toLowerCase()))) return "已提交";
   return "可提交";
 }
 

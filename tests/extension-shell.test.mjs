@@ -150,6 +150,8 @@ test("workspace shell marks submitted projects as submitted after send-to-servic
   assert.match(workspaceJs, /nodes\.sendBatchTasksButton\.disabled = disabled \|\| submitted/);
   assert.match(workspaceJs, /const currentBatchId = currentPackage\.batchVideoTasks\?\.find\(\(task\) => task\.batchId\)\?\.batchId \|\| ""/);
   assert.match(workspaceJs, /当前批次号：/);
+  assert.match(workspaceJs, /const submittedStatuses = new Set\(\["queued", "submitted", "running", "processing"\]\)/);
+  assert.match(workspaceJs, /if \(tasks\.some\(\(task\) => task\?\.batchId\)\) return "已提交"/);
 });
 
 test("workspace shell lets generate-page primary action run straight into delivery", () => {
