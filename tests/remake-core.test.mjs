@@ -494,6 +494,34 @@ test("buildMarkdownFromPackage includes storyboard results for delivery", () => 
   assert.match(markdown, /图片链接：https:\/\/cdn\.example\.com\/storyboard-1\.png/);
 });
 
+test("buildMarkdownFromPackage keeps batch tracking details for delivery handoff", () => {
+  const pkg = buildRemakePackage({
+    projectName: "batch-delivery-demo",
+    referenceSummary: "host demo plus proof",
+    productName: "odor remover box",
+    sellingPoints: ["Fast visible result", "Easy to use"],
+    storyboardEnabled: true,
+    accountTemplate: {
+      name: "Demo template",
+      platform: "tiktok",
+      defaultVoiceLanguage: "英文",
+      sampleVideoUrls: ["https://example.com/video-1"],
+      rewriteRules: "Keep the product label readable."
+    }
+  });
+  pkg.batchVideoTasks[0].taskId = "video-task-001";
+  pkg.batchVideoTasks[0].batchId = "batch-001";
+  pkg.batchVideoTasks[0].sourceLinks = ["https://example.com/video-1"];
+  pkg.batchVideoTasks[0].extraRules = "Keep the product label readable.";
+
+  const markdown = buildMarkdownFromPackage(pkg);
+
+  assert.match(markdown, /任务编号：video-task-001/);
+  assert.match(markdown, /批次号：batch-001/);
+  assert.match(markdown, /参考链接：https:\/\/example\.com\/video-1/);
+  assert.match(markdown, /附加要求：Keep the product label readable\./);
+});
+
 test("buildExportBundle includes storyboard task files and image links", () => {
   const pkg = buildRemakePackage({
     projectName: "storyboard-bundle-demo",
@@ -519,6 +547,36 @@ test("buildExportBundle includes storyboard task files and image links", () => {
   assert.match(storyboardMarkdown.content, /task-456/);
   assert.match(storyboardJson.content, /storyboard-2\.png/);
   assert.match(storyboardLinks.content, /https:\/\/cdn\.example\.com\/storyboard-2\.png/);
+});
+
+test("buildExportBundle keeps batch tracking details in exported task markdown", () => {
+  const pkg = buildRemakePackage({
+    projectName: "batch-bundle-demo",
+    referenceSummary: "host demo plus proof",
+    productName: "odor remover box",
+    sellingPoints: ["Fast visible result", "Easy to use"],
+    storyboardEnabled: false,
+    accountTemplate: {
+      name: "Demo template",
+      platform: "tiktok",
+      defaultVoiceLanguage: "英文",
+      sampleVideoUrls: ["https://example.com/video-2"],
+      rewriteRules: "Do not add subtitles."
+    }
+  });
+  pkg.batchVideoTasks[0].taskId = "video-task-002";
+  pkg.batchVideoTasks[0].batchId = "batch-002";
+  pkg.batchVideoTasks[0].sourceLinks = ["https://example.com/video-2"];
+  pkg.batchVideoTasks[0].extraRules = "Do not add subtitles.";
+
+  const bundle = buildExportBundle(pkg);
+  const batchTasksMarkdown = bundle.files.find((file) => file.path.endsWith("06-批量视频任务.md"));
+
+  assert.ok(batchTasksMarkdown);
+  assert.match(batchTasksMarkdown.content, /任务编号：video-task-002/);
+  assert.match(batchTasksMarkdown.content, /批次号：batch-002/);
+  assert.match(batchTasksMarkdown.content, /参考链接：https:\/\/example\.com\/video-2/);
+  assert.match(batchTasksMarkdown.content, /附加要求：Do not add subtitles\./);
 });
 
 test("buildProfileSelectionComparisonSummary highlights selected sample drift", () => {

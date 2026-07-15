@@ -617,10 +617,13 @@ export function buildMarkdownFromPackage(pkg) {
   pkg.batchVideoTasks.forEach((task) => {
     lines.push(`### ${task.taskTitle}`);
     lines.push(`- 任务编号：${task.taskId}`);
+    lines.push(`- 批次号：${task.batchId || "未提交"}`);
     lines.push(`- 风格：${task.variantTitle}`);
     lines.push(`- 模型：${task.model}`);
     lines.push(`- 时长：${task.durationSeconds} 秒`);
     lines.push(`- 状态：${task.status}`);
+    lines.push(`- 参考链接：${Array.isArray(task.sourceLinks) && task.sourceLinks.length ? task.sourceLinks.join(" / ") : "未填写"}`);
+    lines.push(`- 附加要求：${task.extraRules || "未填写"}`);
     lines.push(`- 指令：${task.prompt}`);
     lines.push("");
   });
@@ -857,10 +860,13 @@ export function buildExportBundle(pkg) {
       (task) => [
         `## ${task.taskTitle}`,
         `- 任务编号：${task.taskId}`,
+        `- 批次号：${task.batchId || "未提交"}`,
         `- 模型：${task.model}`,
         `- 模板：${task.accountTemplateName}`,
         `- 时长：${task.durationSeconds} 秒`,
         `- 口播语言：${task.voiceLanguage}`,
+        `- 参考链接：${Array.isArray(task.sourceLinks) && task.sourceLinks.length ? task.sourceLinks.join(" / ") : "未填写"}`,
+        `- 附加要求：${task.extraRules || "未填写"}`,
         `- 批量指令：${task.prompt}`,
         ""
       ].join("\n")
