@@ -3692,6 +3692,7 @@ function replaceCurrentProject(pkg) {
 
 function syncFormWithCurrentPackage() {
   if (!currentPackage) return;
+  clearLocalProductUploadState();
   nodes.productName.value = currentPackage.project.productName || "";
   nodes.referenceBrief.value = currentPackage.project.referenceSummary || "";
   nodes.productNotes.value = (currentPackage.project.sellingPoints || []).join("\n");
@@ -3812,6 +3813,26 @@ function getKnownProductImageCount() {
   const currentInputCount = nodes.productImages?.files?.length || 0;
   if (currentInputCount > 0) return currentInputCount;
   return Number(currentPackage?.project?.clipcatConfig?.productImageCount || 0);
+}
+
+function clearLocalProductUploadState() {
+  if (productPreviewUrl) {
+    URL.revokeObjectURL(productPreviewUrl);
+    productPreviewUrl = "";
+  }
+  if (nodes.productImages) {
+    nodes.productImages.value = "";
+  }
+  if (nodes.productHeroImage) {
+    nodes.productHeroImage.src = "";
+    nodes.productHeroImage.hidden = true;
+  }
+  if (nodes.sampleProduct) {
+    nodes.sampleProduct.hidden = false;
+  }
+  if (nodes.productHeroBadge) {
+    nodes.productHeroBadge.hidden = true;
+  }
 }
 
 function getWorkflowStatus(projectId = currentProjectId) {

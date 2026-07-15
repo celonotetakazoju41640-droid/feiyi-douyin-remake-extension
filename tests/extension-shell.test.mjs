@@ -304,3 +304,12 @@ test("workspace shell keeps known uploaded-image status after project restore ev
   assert.match(workspaceJs, /renderAssetStatus\(\);/);
   assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。"/);
 });
+
+test("workspace shell clears stale local product uploads when switching to another restored project", () => {
+  assert.match(workspaceJs, /function clearLocalProductUploadState\(\)/);
+  assert.match(workspaceJs, /nodes\.productImages\.value = ""/);
+  assert.match(workspaceJs, /nodes\.productHeroImage\.hidden = true/);
+  assert.match(workspaceJs, /nodes\.sampleProduct\.hidden = false/);
+  assert.match(workspaceJs, /clearLocalProductUploadState\(\);/);
+  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasFreshProductImage\) \|\| productImageAnalysisRunning/);
+});
