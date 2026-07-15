@@ -219,6 +219,7 @@ let currentCastDraft = [createDefaultCastDraftMember("host")];
 let storyboardRequestRunning = false;
 let productImageAnalysisRunning = false;
 let lastAutoFilledInsights = createEmptyAutoFilledInsightsState();
+let lastProductImageInsightStatus = "";
 let deliveryShortcutRunning = false;
 const storyboardPollIntervalMs = 3000;
 const storyboardPollMaxAttempts = 30;
@@ -380,6 +381,7 @@ async function handleProductImagesChange() {
     productPreviewUrl = "";
   }
   if (!file) {
+    resetProductImageInsightStatus();
     nodes.productHeroImage.hidden = true;
     nodes.sampleProduct.hidden = false;
     nodes.productHeroBadge.hidden = true;
@@ -425,6 +427,10 @@ function createEmptyAutoFilledInsightsState() {
     sceneContinuityRule: "",
     castSignature: ""
   };
+}
+
+function resetProductImageInsightStatus() {
+  lastProductImageInsightStatus = "";
 }
 
 function buildCastDraftSignature(cast = []) {
@@ -2730,6 +2736,7 @@ async function autoFillProductInsightsFromImage(file) {
     sceneContinuityRule: nextSceneContinuityRule,
     castSignature: buildCastDraftSignature(nextCastDraft)
   };
+  lastProductImageInsightStatus = usedVisionAnalysis ? "已识别完成" : "已按文件名兜底提炼";
   setActionFeedback(
     usedVisionAnalysis
       ? "产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"
@@ -3727,6 +3734,7 @@ function syncFormWithCurrentPackage() {
   }
   currentCastDraft = normalizeCastDraft(currentPackage.project.cast || []);
   lastAutoFilledInsights = createEmptyAutoFilledInsightsState();
+  resetProductImageInsightStatus();
   renderCastList();
 
   const template = normalizeAccountTemplate(currentPackage.project.accountTemplate);
@@ -3825,6 +3833,7 @@ function getKnownProductImageCount() {
 }
 
 function clearLocalProductUploadState() {
+  resetProductImageInsightStatus();
   if (productPreviewUrl) {
     URL.revokeObjectURL(productPreviewUrl);
     productPreviewUrl = "";
@@ -3898,7 +3907,7 @@ function buildGenerateFlowStatusItems() {
     },
     {
       label: "2. 商品图",
-      status: hasProductImage ? `已上传 ${knownProductImageCount} 张` : "待上传"
+      status: hasProductImage ? `已上传 ${knownProductImageCount} 张${lastProductImageInsightStatus ? `，${lastProductImageInsightStatus}` : ""}` : "待上传"
     },
     {
       label: "3. 生成项目",
@@ -3934,6 +3943,7 @@ function buildGenerateFlowStatusSummary() {
   if (currentStatus.deliveryStatusSummary) return currentStatus.deliveryStatusSummary;
   if (currentStatus.storyboardStatusSummary) return currentStatus.storyboardStatusSummary;
   if (currentPackage && !hasFreshProductImage) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";
+  if (lastProductImageInsightStatus) return `商品图已就绪，${lastProductImageInsightStatus}，可以直接生成。`;
   if (currentPackage) return "项目已生成，可继续故事版、提交生成或一键带走结果。";
   return "当前已具备生成条件，直接点主按钮即可。";
 }

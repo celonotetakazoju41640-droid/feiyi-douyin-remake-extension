@@ -135,6 +135,14 @@ test("workspace shell keeps product-image feedback truthful when visual analysis
   assert.match(workspaceJs, /usedVisionAnalysis\s*\?\s*"产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"\s*:\s*"产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿。"/);
 });
 
+test("workspace shell keeps product-image analysis completion visible in the main flow state", () => {
+  assert.match(workspaceJs, /let lastProductImageInsightStatus = ""/);
+  assert.match(workspaceJs, /lastProductImageInsightStatus = usedVisionAnalysis\s*\?\s*"已识别完成"\s*:\s*"已按文件名兜底提炼"/);
+  assert.match(workspaceJs, /lastProductImageInsightStatus = ""/);
+  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{lastProductImageInsightStatus \? `，\$\{lastProductImageInsightStatus\}` : ""\}` : "待上传"/);
+  assert.match(workspaceJs, /if \(lastProductImageInsightStatus\) return `商品图已就绪，\$\{lastProductImageInsightStatus\}，可以直接生成。`;/);
+});
+
 test("workspace shell does not immediately overwrite completed product-image insight feedback after upload", () => {
   assert.match(
     workspaceJs,
@@ -336,7 +344,7 @@ test("workspace shell keeps known uploaded-image status after project restore ev
   assert.match(workspaceJs, /function getKnownProductImageCount\(\)/);
   assert.match(workspaceJs, /currentPackage\?\.project\?\.clipcatConfig\?\.productImageCount/);
   assert.match(workspaceJs, /nodes\.productUploadStatus\.textContent = productCount \? `商品图：已上传 \$\{productCount\} 张` : "商品图：未上传"/);
-  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张` : "待上传"/);
+  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{lastProductImageInsightStatus \? `，\$\{lastProductImageInsightStatus\}` : ""\}` : "待上传"/);
   assert.match(workspaceJs, /renderAssetStatus\(\);/);
   assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。"/);
 });
