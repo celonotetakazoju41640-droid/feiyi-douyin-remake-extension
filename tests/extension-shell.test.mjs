@@ -215,6 +215,17 @@ test("workspace shell persists storyboard and delivery summaries with each proje
   assert.match(workspaceJs, /deliveryStatusSummary: packageWorkflowStatus\.deliveryStatusSummary \|\| ""/);
 });
 
+test("workspace shell history status reflects downstream storyboard and delivery stages, not only submit state", () => {
+  assert.match(workspaceJs, /if \(/);
+  assert.match(workspaceJs, /deliveryStatusSummary/);
+  assert.match(workspaceJs, /return "已带走"/);
+  assert.match(workspaceJs, /return "待带走"/);
+  assert.match(workspaceJs, /return "故事版中"/);
+  assert.match(workspaceJs, /return "待故事版"/);
+  assert.match(workspaceJs, /return "已提交"/);
+  assert.match(workspaceJs, /return "可提交"/);
+});
+
 test("workspace shell preserves imported batch and storyboard progress when restoring a JSON project", () => {
   assert.match(workspaceJs, /currentPackage = restoreImportedProjectState\(regeneratePrompts\(parsed\), parsed\);/);
   assert.match(workspaceJs, /function restoreImportedProjectState\(nextPkg, importedPkg\)/);

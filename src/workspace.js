@@ -4659,8 +4659,25 @@ function formatHistoryProjectTime(value) {
 }
 
 function getHistoryProjectStatus(record) {
+  const workflowStatus = record?.package?.workflowStatus || {};
+  const deliveryStatusSummary = String(workflowStatus.deliveryStatusSummary || "").trim();
+  const storyboardTasks = Array.isArray(record?.package?.storyboardTasks) ? record.package.storyboardTasks : [];
+  const storyboardEnabled = Boolean(record?.package?.project?.storyboardEnabled);
   const tasks = Array.isArray(record?.package?.batchVideoTasks) ? record.package.batchVideoTasks : [];
   const submittedStatuses = new Set(["queued", "submitted", "running", "processing"]);
+  const succeededStoryboardCount = storyboardTasks.filter((task) => canDownloadStoryboardTask(task)).length;
+  const pendingStoryboardCount = storyboardTasks.filter(
+    (task) => task.taskId && !["succeeded", "failed"].includes(String(task.status || "").trim().toLowerCase())
+  ).length;
+  const creatableStoryboardCount = storyboardTasks.filter((task) => shouldCreateStoryboardTask(task)).length;
+
+  if (/^一键带走完成|^一键带走部分完成/.test(deliveryStatusSummary)) return "已带走";
+  if (/^正在整理结果/.test(deliveryStatusSummary)) return "带走中";
+  if (storyboardEnabled && storyboardTasks.length) {
+    if (pendingStoryboardCount > 0) return "故事版中";
+    if (succeededStoryboardCount === storyboardTasks.length && succeededStoryboardCount > 0) return "待带走";
+    if (creatableStoryboardCount > 0) return "待故事版";
+  }
   if (tasks.some((task) => task?.batchId)) return "已提交";
   if (tasks.some((task) => submittedStatuses.has(String(task?.status || "").toLowerCase()))) return "已提交";
   return "可提交";
