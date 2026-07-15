@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildProductImageInsightsPrompt,
   buildStoryboardImageDownloadMeta,
   buildKieStoryboardTaskRequest,
   buildDeepDistillPrompt,
@@ -33,6 +34,23 @@ test("buildStoryboardImageDownloadMeta infers filename and content type for stor
 
   assert.equal(meta.fileName, "storyboard-task-123.webp");
   assert.equal(meta.contentType, "image/webp");
+});
+
+test("buildProductImageInsightsPrompt asks for structured product, scene, and cast output", () => {
+  const prompt = buildProductImageInsightsPrompt({
+    fileName: "kitchen-cleaner-spray.png",
+    productName: "",
+    template: {
+      platform: "tiktok",
+      name: "Clean Demo",
+      contentPositioning: "before-after cleaning demo"
+    }
+  });
+
+  assert.match(prompt, /sellingPoints/);
+  assert.match(prompt, /scenePlan/);
+  assert.match(prompt, /cast/);
+  assert.match(prompt, /TikTok/i);
 });
 
 test("buildDeepDistillPrompt asks for timeline-based structure analysis instead of generic summary", () => {

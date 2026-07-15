@@ -213,6 +213,7 @@ let deepDistillAnalyzeCurrentIndex = 0;
 let deepDistillAnalyzeTotalCount = 0;
 let currentCastDraft = [createDefaultCastDraftMember("host")];
 let storyboardRequestRunning = false;
+let productImageAnalysisRunning = false;
 const storyboardPollIntervalMs = 3000;
 const storyboardPollMaxAttempts = 30;
 
@@ -362,7 +363,7 @@ function handleReferenceVideoChange() {
   updateActionFeedback();
 }
 
-function handleProductImagesChange() {
+async function handleProductImagesChange() {
   const file = nodes.productImages.files?.[0];
   if (productPreviewUrl) {
     URL.revokeObjectURL(productPreviewUrl);
@@ -382,7 +383,7 @@ function handleProductImagesChange() {
   nodes.productHeroImage.hidden = false;
   nodes.sampleProduct.hidden = true;
   nodes.productHeroBadge.hidden = true;
-  autoFillProductInsightsFromImage(file);
+  await autoFillProductInsightsFromImage(file);
   renderAssetStatus();
   updateGenerateButtonState();
   updateActionFeedback();
@@ -2425,13 +2426,58 @@ function pickPreferredTemplateForPlatform(platform, profileUrl = "") {
   return accountTemplates.find((item) => item.platform === platform) || accountTemplates[0] || null;
 }
 
-function autoFillProductInsightsFromImage(file) {
+async function autoFillProductInsightsFromImage(file) {
   const template = getSelectedTemplate() || {};
-  const result = inferProductInsightsFromAsset({
+  const fallbackResult = inferProductInsightsFromAsset({
     fileName: file?.name || "",
     productName: nodes.productName.value.trim(),
     template
   });
+  const fallbackGenerationDefaults = inferGenerationDefaultsFromAsset({
+    fileName: file?.name || "",
+    productName: nodes.productName.value.trim() || fallbackResult.suggestedProductName,
+    template
+  });
+
+  productImageAnalysisRunning = true;
+  updateGenerateButtonState();
+  setActionFeedback("正在分析商品图内容，会自动提炼卖点、场景和角色草稿。");
+
+  let result = fallbackResult;
+  let generationDefaults = fallbackGenerationDefaults;
+  try {
+    const analyzed = await analyzeProductImageViaService(file, template);
+    result = {
+      suggestedProductName: analyzed.productName || fallbackResult.suggestedProductName,
+      sellingPoints: analyzed.sellingPoints?.length ? analyzed.sellingPoints : fallbackResult.sellingPoints,
+      suggestedPrompt: analyzed.suggestedPrompt || fallbackResult.suggestedPrompt
+    };
+    generationDefaults = {
+      scenePlan: {
+        primaryLocation: analyzed.scenePlan?.primaryLocation || fallbackGenerationDefaults.scenePlan?.primaryLocation || "",
+        environmentStyle: analyzed.scenePlan?.environmentStyle || fallbackGenerationDefaults.scenePlan?.environmentStyle || "",
+        continuityRule: analyzed.scenePlan?.continuityRule || fallbackGenerationDefaults.scenePlan?.continuityRule || ""
+      },
+      cast: analyzed.cast?.length
+        ? analyzed.cast.map((member, index) => ({
+            id: `${member.roleType === "supporting" ? "support" : "host"}-${index + 1}`,
+            roleType: member.roleType || (index === 0 ? "host" : "supporting"),
+            label: member.label || (index === 0 ? "主讲人" : `配角${index}`),
+            presenceRule: member.presenceRule || "always",
+            appearanceLock: member.appearanceLock || "",
+            behaviorRule: member.behaviorRule || "",
+            voiceRule: member.voiceRule || (index === 0 ? "primary" : "silent")
+          }))
+        : fallbackGenerationDefaults.cast
+    };
+  } catch (error) {
+    const message = getFriendlyBatchServiceErrorMessage(error, "分析商品图");
+    const detail = isBatchServiceOfflineError(error) ? `${message} 启动命令：${batchServiceCommand}` : message;
+    setActionFeedback(`商品图视觉分析暂时没成功，已先按文件名和模板自动提炼一版。${detail}`, true);
+  } finally {
+    productImageAnalysisRunning = false;
+    updateGenerateButtonState();
+  }
 
   if (!nodes.productName.value.trim() && result.suggestedProductName && result.suggestedProductName !== "当前商品") {
     nodes.productName.value = result.suggestedProductName;
@@ -2442,11 +2488,6 @@ function autoFillProductInsightsFromImage(file) {
   if (!nodes.referenceBrief.value.trim()) {
     nodes.referenceBrief.value = result.suggestedPrompt;
   }
-  const generationDefaults = inferGenerationDefaultsFromAsset({
-    fileName: file?.name || "",
-    productName: nodes.productName.value.trim() || result.suggestedProductName,
-    template
-  });
   if (!nodes.scenePrimaryLocation?.value.trim()) {
     nodes.scenePrimaryLocation.value = generationDefaults.scenePlan?.primaryLocation || "";
   }
@@ -2464,7 +2505,30 @@ function autoFillProductInsightsFromImage(file) {
     currentCastDraft = normalizeCastDraft(generationDefaults.cast);
     renderCastList();
   }
-  setActionFeedback("产品图已上传，已自动提炼一版商品名、卖点和提示词草稿。");
+  setActionFeedback("产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。");
+}
+
+async function analyzeProductImageViaService(file, template) {
+  const analysisImageDataUrl = await createProductAnalysisImageDataUrl(file);
+  const response = await fetch(`${batchServiceBaseUrl}/api/product-image-insights`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      imageDataUrl: analysisImageDataUrl,
+      fileName: file?.name || "",
+      productName: nodes.productName.value.trim(),
+      template: {
+        name: template?.name || "",
+        platform: template?.platform || "tiktok",
+        contentPositioning: template?.contentPositioning || ""
+      }
+    })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `${response.status} ${response.statusText}`);
+  }
+  return data.result || {};
 }
 
 function renderProfileScanState() {
@@ -3478,6 +3542,10 @@ function updateActionFeedback() {
   const hasTemplate = Boolean(getSelectedTemplate());
   const hasImages = Boolean(nodes.productImages.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
+  if (productImageAnalysisRunning) {
+    setActionFeedback("正在分析商品图内容，完成后会自动补卖点、场景和提示词草稿。");
+    return;
+  }
   if (!hasTemplate && !hasImages && !hasPrompt) {
     setActionFeedback("先上传商品图。");
     return;
@@ -3661,7 +3729,7 @@ function updateGenerateButtonState() {
   if (!nodes.remakeButton) return;
   const hasTemplate = Boolean(getSelectedTemplate());
   const hasProductImage = Boolean(nodes.productImages?.files?.length);
-  nodes.remakeButton.disabled = !(hasTemplate && hasProductImage);
+  nodes.remakeButton.disabled = !(hasTemplate && hasProductImage) || productImageAnalysisRunning;
 }
 
 function syncFlowStepState() {
@@ -3952,6 +4020,12 @@ function readFileAsDataUrl(file) {
   });
 }
 
+async function createProductAnalysisImageDataUrl(file) {
+  if (!file) return "";
+  const sourceDataUrl = await readFileAsDataUrl(file);
+  return resizeImageDataUrlToFit(sourceDataUrl, 1024, 1024);
+}
+
 function resizeImageDataUrl(sourceDataUrl, width, height) {
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -3975,6 +4049,29 @@ function resizeImageDataUrl(sourceDataUrl, width, height) {
       resolve(canvas.toDataURL("image/jpeg", 0.82));
     };
     image.onerror = () => reject(new Error("缩略图加载失败"));
+    image.src = sourceDataUrl;
+  });
+}
+
+function resizeImageDataUrlToFit(sourceDataUrl, maxWidth, maxHeight) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("无法创建分析图片"));
+        return;
+      }
+      context.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
+    };
+    image.onerror = () => reject(new Error("分析图片加载失败"));
     image.src = sourceDataUrl;
   });
 }

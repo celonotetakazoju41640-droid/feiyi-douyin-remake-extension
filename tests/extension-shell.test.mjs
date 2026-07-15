@@ -91,6 +91,14 @@ test("workspace shell keeps storyboard enabled by default for the main one-chain
   assert.match(workspaceJs, /resetStoryboardDefaultToggle\(\);/);
 });
 
+test("workspace shell sends uploaded product images through the local vision service before final fallback", () => {
+  assert.match(workspaceJs, /productImageAnalysisRunning/);
+  assert.match(workspaceJs, /\/api\/product-image-insights/);
+  assert.match(workspaceJs, /analyzeProductImageViaService/);
+  assert.match(workspaceJs, /正在分析商品图内容/);
+  assert.match(workspaceJs, /nodes\.remakeButton\.disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+});
+
 test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {
   assert.match(workspaceHtml, /id="copyBatchTasksButton"/);
   assert.match(workspaceHtml, /复制结果包/);

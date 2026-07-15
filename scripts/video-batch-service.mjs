@@ -115,6 +115,20 @@ const server = createServer(async (request, response) => {
       });
     }
 
+    if (request.method === "POST" && request.url === "/api/product-image-insights") {
+      const body = await readJsonBody(request);
+      if (!getGeminiApiKey(config)) {
+        return sendJson(response, 400, { message: "当前本地服务没有读到 GEMINI_API_KEY，暂时不能自动分析商品图。" });
+      }
+      const result = await analyzeProductImage(body, config);
+      return sendJson(response, 200, {
+        ok: true,
+        provider: "packyapi-google-gemini",
+        model: getGeminiModel(config),
+        result
+      });
+    }
+
     if (request.method === "POST" && request.url === "/api/storyboards") {
       const body = await readJsonBody(request);
       const result = await createStoryboardTask(body, config);
@@ -180,6 +194,35 @@ export function buildStoryboardImageDownloadMeta(taskId, imageUrl = "", contentT
     fileName: `storyboard-${normalizedTaskId}.${ext}`,
     contentType: normalizedContentType || `image/${ext}`
   };
+}
+
+export function buildProductImageInsightsPrompt(input = {}) {
+  const fileName = String(input.fileName || "").trim() || "未命名商品图";
+  const productName = String(input.productName || "").trim();
+  const template = input.template || {};
+  const platform = String(template.platform || "").trim().toLowerCase() === "douyin" ? "抖音" : "TikTok";
+
+  return [
+    "你是电商短视频投放策划，任务是根据一张商品图，提炼出可直接用于短视频生成的商品理解，不要只做图像描述。",
+    "先判断这是什么商品、可能卖什么、最适合放进什么生活场景，再给出短视频复刻所需的结构化结果。",
+    "不要泛泛讲审美，不要堆行业黑话，要尽量让结果能直接回填到生成表单里。",
+    "",
+    `当前平台：${platform}`,
+    `当前商品图文件名：${fileName}`,
+    `用户已填写商品名：${productName || "未填写"}`,
+    `当前模板：${String(template.name || "").trim() || "未填写"}`,
+    `模板内容定位：${String(template.contentPositioning || "").trim() || "未填写"}`,
+    "",
+    "请严格只返回一个 JSON 对象，不要带 markdown，不要带解释，不要带代码块。",
+    "字段要求：",
+    "- productName: 结合图片内容推断的商品名，尽量短，适合直接放进表单。",
+    "- sellingPoints: 数组，3 到 4 条，写成可直接用于短视频卖点的短句。",
+    "- suggestedPrompt: 一条可直接当创作要求草稿的短视频方向说明。",
+    "- scenePlan: 对象，包含 primaryLocation、environmentStyle、continuityRule。",
+    "- cast: 数组，至少 1 个角色对象。字段包含 roleType、label、appearanceLock、behaviorRule、voiceRule、presenceRule。",
+    "",
+    "输出必须更偏‘投放可执行’，不是纯视觉描述。"
+  ].join("\n");
 }
 
 async function createStoryboardTask(body, config) {
@@ -338,6 +381,59 @@ async function analyzeDeepDistillVideo(video, config) {
   };
 }
 
+async function analyzeProductImage(input, config) {
+  const image = parseDataUrlImage(String(input.imageDataUrl || "").trim());
+  if (!image) {
+    throw new Error("没有收到可分析的商品图片数据。");
+  }
+
+  const prompt = buildProductImageInsightsPrompt(input);
+  const response = await fetch(
+    `${getGeminiBaseUrl(config).replace(/\/$/, "")}/v1beta/models/${encodeURIComponent(getGeminiModel(config))}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-goog-api-key": getGeminiApiKey(config),
+        ...(getGeminiTokenGroup(config) ? { "x-token-group": getGeminiTokenGroup(config) } : {})
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: prompt },
+              {
+                inlineData: {
+                  mimeType: image.mimeType,
+                  data: image.base64
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json"
+        }
+      })
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(readGeminiError(data) || `${response.status} ${response.statusText}`);
+  }
+
+  const text = extractGeminiText(data);
+  const parsed = parseLooseJson(text);
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error(`商品图视觉分析结果不可解析：${text.slice(0, 120) || "空结果"}`);
+  }
+
+  return normalizeProductImageInsightsResult(parsed);
+}
+
 export function buildDeepDistillPrompt(video) {
   const durationSeconds = Number(video.durationSeconds || 0);
   const frames = Array.isArray(video.frames) ? video.frames : [];
@@ -396,6 +492,46 @@ export function buildDeepDistillPrompt(video) {
       2
     )
   ].join("\n");
+}
+
+function normalizeProductImageInsightsResult(raw = {}) {
+  const scenePlan = raw.scenePlan && typeof raw.scenePlan === "object" ? raw.scenePlan : {};
+  const cast = Array.isArray(raw.cast) ? raw.cast : [];
+  const sellingPoints = Array.isArray(raw.sellingPoints)
+    ? raw.sellingPoints.map((item) => String(item || "").trim()).filter(Boolean).slice(0, 4)
+    : [];
+
+  const normalizedCast = cast.length
+    ? cast.map((member, index) => ({
+        roleType: String(member.roleType || (index === 0 ? "host" : "supporting")).trim() || (index === 0 ? "host" : "supporting"),
+        label: String(member.label || (index === 0 ? "主讲人" : `配角${index}`)).trim() || (index === 0 ? "主讲人" : `配角${index}`),
+        appearanceLock: String(member.appearanceLock || "").trim(),
+        behaviorRule: String(member.behaviorRule || "").trim(),
+        voiceRule: String(member.voiceRule || (index === 0 ? "primary" : "silent")).trim() || (index === 0 ? "primary" : "silent"),
+        presenceRule: String(member.presenceRule || "always").trim() || "always"
+      }))
+    : [];
+
+  return {
+    productName: String(raw.productName || "").trim(),
+    sellingPoints,
+    suggestedPrompt: String(raw.suggestedPrompt || "").trim(),
+    scenePlan: {
+      primaryLocation: String(scenePlan.primaryLocation || "").trim(),
+      environmentStyle: String(scenePlan.environmentStyle || "").trim(),
+      continuityRule: String(scenePlan.continuityRule || "").trim()
+    },
+    cast: normalizedCast
+  };
+}
+
+function parseDataUrlImage(dataUrl = "") {
+  const match = String(dataUrl || "").match(/^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i);
+  if (!match) return null;
+  return {
+    mimeType: match[1],
+    base64: match[2]
+  };
 }
 
 function buildFrameParts(frames) {
