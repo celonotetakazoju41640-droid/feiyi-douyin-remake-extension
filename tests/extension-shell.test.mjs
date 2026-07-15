@@ -84,6 +84,13 @@ test("workspace shell exposes a main storyboard shortcut in the result area", ()
   assert.match(workspaceJs, /补齐故事版图片/);
 });
 
+test("workspace shell keeps storyboard enabled by default for the main one-chain flow", () => {
+  assert.match(workspaceHtml, /id="storyboardEnabled" type="checkbox" checked/);
+  assert.match(workspaceHtml, /生成故事版叙事图任务（默认开启）/);
+  assert.match(workspaceJs, /function resetStoryboardDefaultToggle/);
+  assert.match(workspaceJs, /resetStoryboardDefaultToggle\(\);/);
+});
+
 test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {
   assert.match(workspaceHtml, /id="copyBatchTasksButton"/);
   assert.match(workspaceHtml, /复制结果包/);

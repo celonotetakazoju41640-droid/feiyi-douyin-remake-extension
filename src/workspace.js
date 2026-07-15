@@ -1127,6 +1127,7 @@ function clearProjects() {
   currentPackage = null;
   currentProjectId = null;
   saveProjects();
+  resetStoryboardDefaultToggle();
   renderProjects();
   nodes.projectDetailPanel.innerHTML = "";
   nodes.shotEditorPanel.innerHTML = "";
@@ -1609,6 +1610,12 @@ function applyTemplateToGenerationFields() {
   nodes.clipcatVoiceLanguage.value = template.defaultVoiceLanguage || "英文";
   nodes.clipcatExtraRules.value = template.rewriteRules || "";
   updatePlatformDependentUi();
+}
+
+function resetStoryboardDefaultToggle() {
+  if (nodes.storyboardEnabled) {
+    nodes.storyboardEnabled.checked = true;
+  }
 }
 
 function cloneDeepDistillVideos(videos = []) {
