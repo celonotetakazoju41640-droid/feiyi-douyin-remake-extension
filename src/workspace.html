@@ -29,7 +29,7 @@
           <strong>使用说明</strong>
           <p>左侧切栏目，右侧处理内容。</p>
         </div>
-        <code id="startCommand">流程：传图 -> 选模板 -> 生成项目 -> 去历史记录提交。</code>
+        <code id="startCommand">流程：选模板 -> 传图 -> 生成项目 -> 去历史记录提交。</code>
         <div class="serviceHelpActions">
           <button id="copyStartCommandButton" type="button">复制结构说明</button>
           <button id="retryHealthButton" type="button">重新查看</button>
@@ -63,7 +63,7 @@
               <header class="contentHeader">
                 <div class="generateHeaderBlock">
                   <h2>生成</h2>
-                  <p>只做两步：传图、选模板。</p>
+                  <p>只做两步：选模板、传图。</p>
                 </div>
               </header>
 
@@ -91,10 +91,24 @@
                   </div>
 
                   <div class="generateTaskTop">
+                    <section class="generateComposerCard">
+                      <div class="contentSectionHead">
+                        <strong>1. 选模板</strong>
+                        <p>先选模板</p>
+                      </div>
+                      <div class="generateControlGrid simpleSettingsGrid generatePrimaryConfigGrid">
+                        <label class="fieldBlock">
+                          蒸馏模型
+                          <select id="accountTemplateSelect"></select>
+                        </label>
+                      </div>
+                      <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
+                    </section>
+
                     <section class="generateUploadCard">
                       <div class="contentSectionHead">
-                        <strong>1. 上传产品图</strong>
-                        <p>先传图</p>
+                        <strong>2. 上传产品图</strong>
+                        <p>传图后自动识别</p>
                       </div>
                       <div class="simpleImageUploadRow">
                         <label class="simpleProductTile">
@@ -110,24 +124,10 @@
                       <div class="uploadStatusRow" aria-label="素材状态">
                         <span id="productUploadStatus" class="uploadStatusBadge">商品图：未上传</span>
                       </div>
-                    </section>
-
-                    <section class="generateComposerCard">
-                      <div class="contentSectionHead">
-                        <strong>2. 选模板</strong>
-                        <p>选好就能直接生成</p>
-                      </div>
-                      <div class="generateControlGrid simpleSettingsGrid generatePrimaryConfigGrid">
-                        <label class="fieldBlock">
-                          蒸馏模型
-                          <select id="accountTemplateSelect"></select>
-                        </label>
-                      </div>
-                      <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
                       <div class="generatePrimaryActionRow">
                         <button id="remakeAndDeliverButton" class="primaryButton" type="button">生成并一键带走结果</button>
                         <button id="remakeButton" class="ghostButton" type="button">只生成项目</button>
-                        <p id="actionFeedback">先上传商品图，然后直接点生成并一键带走结果。</p>
+                        <p id="actionFeedback">先选模板，再上传商品图，然后直接点生成并一键带走结果。</p>
                       </div>
                     </section>
                   </div>

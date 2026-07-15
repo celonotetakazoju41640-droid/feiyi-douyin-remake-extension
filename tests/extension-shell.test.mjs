@@ -30,7 +30,7 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /蒸馏模型/);
   assert.match(workspaceHtml, /生成并一键带走结果/);
   assert.match(workspaceHtml, /只生成项目/);
-  assert.match(workspaceHtml, /只做两步：传图、选模板/);
+  assert.match(workspaceHtml, /只做两步：选模板、传图/);
   assert.match(workspaceHtml, /id="accountTemplateSelect"/);
   assert.match(workspaceHtml, /更多设置（可选）/);
   assert.match(workspaceHtml, /先把项目跑起来，其它内容都可以后面再补/);
@@ -43,6 +43,16 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /id="generateFlowStatusSummary"/);
   assert.match(workspaceHtml, /id="generateFlowStatusList"/);
   assert.match(workspaceHtml, /主流程状态/);
+});
+
+test("workspace shell keeps the generate-page top flow in the same order as the system guidance", () => {
+  assert.match(
+    workspaceHtml,
+    /<strong>1\. 选模板<\/strong>[\s\S]*?<strong>2\. 上传产品图<\/strong>/
+  );
+  assert.match(workspaceHtml, /先选模板/);
+  assert.match(workspaceHtml, /传图后自动识别/);
+  assert.match(workspaceHtml, /先选模板，再上传商品图，然后直接点生成并一键带走结果。/);
 });
 
 test("workspace shell turns history into a project library plus detail workspace", () => {
