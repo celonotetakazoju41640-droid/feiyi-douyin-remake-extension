@@ -59,6 +59,7 @@ test("workspace shell turns history into a project library plus detail workspace
   assert.match(workspaceJs, /thumbnailDataUrl/);
   assert.match(workspaceJs, /formatHistoryProjectTime/);
   assert.match(workspaceJs, /getHistoryProjectStatus/);
+  assert.match(workspaceJs, /nodes\.currentTaskStatusBadge\.textContent = currentProjectStatus/);
 });
 
 test("workspace shell turns storyboard generation into a one-click auto-wait flow", () => {
@@ -137,6 +138,14 @@ test("workspace shell exposes a true one-click delivery action in the result are
   assert.match(workspaceJs, /copyBatchTasks\(\{ silent: true \}\)\.catch/);
   assert.match(workspaceJs, /downloadBundle\(\{ silent: true \}\)\.catch/);
   assert.match(workspaceJs, /复制结果包失败，但导出已继续完成/);
+});
+
+test("workspace shell marks submitted projects as submitted after send-to-service succeeds", () => {
+  assert.match(workspaceJs, /task\.status = data\.status \|\| "queued"/);
+  assert.match(workspaceJs, /task\.batchId = data\.batchId \|\| task\.batchId \|\| ""/);
+  assert.match(workspaceJs, /replaceCurrentProject\(currentPackage\);/);
+  assert.match(workspaceJs, /renderProjects\(\);/);
+  assert.match(workspaceJs, /setActionFeedback\(`已发送到本地服务，批次号：\$\{data\.batchId \|\| "未返回"\}`\)/);
 });
 
 test("workspace shell lets generate-page primary action run straight into delivery", () => {

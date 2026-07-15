@@ -635,7 +635,9 @@ function renderProjects() {
   if (nodes.historyWorkspaceSection) {
     nodes.historyWorkspaceSection.hidden = false;
   }
-  nodes.currentTaskStatusBadge.textContent = "可继续";
+  const currentProjectRecord = projects.find((item) => item.id === currentProjectId) || projects[0];
+  const currentProjectStatus = getHistoryProjectStatus(currentProjectRecord);
+  nodes.currentTaskStatusBadge.textContent = currentProjectStatus;
   nodes.currentTaskUnitLabel.textContent = `第 1 条 / 共 ${currentPackage?.batchVideoTasks?.length || 1} 条`;
   nodes.currentTaskHint.textContent = currentPackage
     ? currentPackage.project.projectName
@@ -1324,6 +1326,14 @@ async function sendBatchTasksToService() {
     if (!response.ok) {
       throw new Error(data.message || `${response.status} ${response.statusText}`);
     }
+    (currentPackage.batchVideoTasks || []).forEach((task) => {
+      task.status = data.status || "queued";
+      task.batchId = data.batchId || task.batchId || "";
+      task.updatedAt = new Date().toISOString();
+    });
+    replaceCurrentProject(currentPackage);
+    renderProjects();
+    renderProjectDetail();
     setActionFeedback(`已发送到本地服务，批次号：${data.batchId || "未返回"}`);
     refreshBatchServiceHealth();
   } catch (error) {
