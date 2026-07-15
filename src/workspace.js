@@ -2491,8 +2491,10 @@ async function autoFillProductInsightsFromImage(file) {
 
   let result = fallbackResult;
   let generationDefaults = fallbackGenerationDefaults;
+  let usedVisionAnalysis = false;
   try {
     const analyzed = await analyzeProductImageViaService(file, template);
+    usedVisionAnalysis = true;
     result = {
       suggestedProductName: analyzed.productName || fallbackResult.suggestedProductName,
       sellingPoints: analyzed.sellingPoints?.length ? analyzed.sellingPoints : fallbackResult.sellingPoints,
@@ -2551,7 +2553,11 @@ async function autoFillProductInsightsFromImage(file) {
     currentCastDraft = normalizeCastDraft(generationDefaults.cast);
     renderCastList();
   }
-  setActionFeedback("产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。");
+  setActionFeedback(
+    usedVisionAnalysis
+      ? "产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"
+      : "产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿。"
+  );
 }
 
 async function analyzeProductImageViaService(file, template) {

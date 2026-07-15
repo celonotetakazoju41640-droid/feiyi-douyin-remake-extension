@@ -101,6 +101,13 @@ test("workspace shell sends uploaded product images through the local vision ser
   assert.match(workspaceJs, /nodes\.remakeButton\.disabled = disabled/);
 });
 
+test("workspace shell keeps product-image feedback truthful when visual analysis falls back", () => {
+  assert.match(workspaceJs, /let usedVisionAnalysis = false/);
+  assert.match(workspaceJs, /usedVisionAnalysis = true/);
+  assert.match(workspaceJs, /商品图视觉分析暂时没成功，已先按文件名和模板自动提炼一版/);
+  assert.match(workspaceJs, /usedVisionAnalysis\s*\?\s*"产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"\s*:\s*"产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿。"/);
+});
+
 test("workspace shell batch export also downloads storyboard image files through the local proxy", () => {
   assert.match(workspaceJs, /downloadStoryboardImagesForBundle/);
   assert.match(workspaceJs, /已按项目结构导出/);
