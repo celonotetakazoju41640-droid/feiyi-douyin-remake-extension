@@ -163,6 +163,14 @@ test("workspace shell persists storyboard and delivery summaries with each proje
   assert.match(workspaceJs, /deliveryStatusSummary: packageWorkflowStatus\.deliveryStatusSummary \|\| ""/);
 });
 
+test("workspace shell preserves imported batch and storyboard progress when restoring a JSON project", () => {
+  assert.match(workspaceJs, /currentPackage = restoreImportedProjectState\(regeneratePrompts\(parsed\), parsed\);/);
+  assert.match(workspaceJs, /function restoreImportedProjectState\(nextPkg, importedPkg\)/);
+  assert.match(workspaceJs, /batchId: matchedTask\.batchId \|\| task\.batchId \|\| ""/);
+  assert.match(workspaceJs, /imageUrl: matchedTask\.imageUrl \|\| task\.imageUrl \|\| ""/);
+  assert.match(workspaceJs, /workflowStatus: \{/);
+});
+
 test("workspace shell lets generate-page primary action run straight into delivery", () => {
   assert.match(workspaceHtml, /id="remakeAndDeliverButton"/);
   assert.match(workspaceJs, /handleGenerate\(\{ autoDeliver: true \}\)/);

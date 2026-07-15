@@ -1194,7 +1194,7 @@ async function importJsonProject(event) {
   try {
     const text = await file.text();
     const parsed = JSON.parse(text);
-    currentPackage = regeneratePrompts(parsed);
+    currentPackage = restoreImportedProjectState(regeneratePrompts(parsed), parsed);
     const record = {
       id: `project-${Date.now()}`,
       createdAt: new Date().toISOString(),
@@ -1211,6 +1211,64 @@ async function importJsonProject(event) {
   } finally {
     event.target.value = "";
   }
+}
+
+function restoreImportedProjectState(nextPkg, importedPkg) {
+  const restoredBatchTasks = mergeImportedBatchTasks(nextPkg?.batchVideoTasks, importedPkg?.batchVideoTasks);
+  const restoredStoryboardTasks = mergeImportedStoryboardTasks(nextPkg?.storyboardTasks, importedPkg?.storyboardTasks);
+  return {
+    ...nextPkg,
+    batchVideoTasks: restoredBatchTasks,
+    storyboardTasks: restoredStoryboardTasks,
+    workflowStatus: {
+      storyboardStatusSummary: importedPkg?.workflowStatus?.storyboardStatusSummary || "",
+      deliveryStatusSummary: importedPkg?.workflowStatus?.deliveryStatusSummary || ""
+    }
+  };
+}
+
+function mergeImportedBatchTasks(nextTasks, importedTasks) {
+  const safeNextTasks = Array.isArray(nextTasks) ? nextTasks : [];
+  const safeImportedTasks = Array.isArray(importedTasks) ? importedTasks : [];
+  return safeNextTasks.map((task, index) => {
+    const matchedTask =
+      safeImportedTasks.find((item) => item?.taskTitle && item.taskTitle === task.taskTitle) ||
+      safeImportedTasks[index] ||
+      {};
+    return {
+      ...task,
+      status: matchedTask.status || task.status || "idle",
+      taskId: matchedTask.taskId || task.taskId || "",
+      batchId: matchedTask.batchId || task.batchId || "",
+      createdAt: matchedTask.createdAt || task.createdAt || "",
+      updatedAt: matchedTask.updatedAt || task.updatedAt || ""
+    };
+  });
+}
+
+function mergeImportedStoryboardTasks(nextTasks, importedTasks) {
+  const safeNextTasks = Array.isArray(nextTasks) ? nextTasks : [];
+  const safeImportedTasks = Array.isArray(importedTasks) ? importedTasks : [];
+  return safeNextTasks.map((task, index) => {
+    const matchedTask =
+      safeImportedTasks.find(
+        (item) =>
+          (item?.unitId && item.unitId === task.unitId) ||
+          (item?.taskTitle && item.taskTitle === task.taskTitle)
+      ) ||
+      safeImportedTasks[index] ||
+      {};
+    return {
+      ...task,
+      provider: matchedTask.provider || task.provider || "",
+      status: matchedTask.status || task.status || "idle",
+      taskId: matchedTask.taskId || task.taskId || "",
+      imageUrl: matchedTask.imageUrl || task.imageUrl || "",
+      errorMessage: matchedTask.errorMessage || task.errorMessage || "",
+      createdAt: matchedTask.createdAt || task.createdAt || "",
+      updatedAt: matchedTask.updatedAt || task.updatedAt || ""
+    };
+  });
 }
 
 async function downloadBundle(options = {}) {
