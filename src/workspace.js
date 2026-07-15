@@ -3787,6 +3787,7 @@ function renderCurrentResultSummary() {
   const storyboardCount = currentPackage.storyboardTasks?.length || 0;
   const storyboardSummary = summarizeStoryboardState(currentPackage.storyboardTasks || []);
   const workflowStatus = getWorkflowStatus();
+  const currentBatchId = currentPackage.batchVideoTasks?.find((task) => task.batchId)?.batchId || "";
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
   nodes.currentResultSummary.hidden = false;
@@ -3808,6 +3809,7 @@ function renderCurrentResultSummary() {
       <span class="currentResultChip">收口：${escapeHtml(resultSnapshot.cta)}</span>
     </div>
     <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
+    ${currentBatchId ? `<div class="currentResultSummaryNote">当前批次号：${escapeHtml(currentBatchId)}</div>` : ""}
     ${storyboardSummary ? `<div class="currentResultSummaryNote">故事版：${escapeHtml(storyboardSummary)}</div>` : ""}
     ${workflowStatus.storyboardStatusSummary ? `<div class="currentResultSummaryNote">当前故事版进度：${escapeHtml(workflowStatus.storyboardStatusSummary)}</div>` : ""}
     ${workflowStatus.deliveryStatusSummary ? `<div class="currentResultSummaryNote">当前带走结果：${escapeHtml(workflowStatus.deliveryStatusSummary)}</div>` : ""}
