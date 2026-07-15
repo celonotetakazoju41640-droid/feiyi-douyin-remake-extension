@@ -297,6 +297,13 @@ test("workspace shell keeps primary-action feedback aligned with disabled-state 
   assert.match(workspaceJs, /renderGenerateFlowStatus\(\);/);
 });
 
+test("workspace shell does not tell restored projects they can regenerate before a fresh product-image upload", () => {
+  assert.match(workspaceJs, /const hasFreshProductImage = Boolean\(nodes\.productImages\?\.files\?\.length\)/);
+  assert.match(workspaceJs, /if \(currentPackage && !hasFreshProductImage\) \{/);
+  assert.match(workspaceJs, /setActionFeedback\("当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。"\)/);
+  assert.match(workspaceJs, /if \(currentPackage && !hasFreshProductImage\) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";/);
+});
+
 test("workspace shell keeps known uploaded-image status after project restore even when the file input is empty", () => {
   assert.match(workspaceJs, /function getKnownProductImageCount\(\)/);
   assert.match(workspaceJs, /currentPackage\?\.project\?\.clipcatConfig\?\.productImageCount/);

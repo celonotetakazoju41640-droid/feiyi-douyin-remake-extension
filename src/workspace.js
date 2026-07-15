@@ -3776,6 +3776,7 @@ function updateActionFeedback() {
   const hasTemplate = Boolean(getSelectedTemplate());
   const knownProductImageCount = getKnownProductImageCount();
   const hasProductImage = knownProductImageCount > 0;
+  const hasFreshProductImage = Boolean(nodes.productImages?.files?.length);
   const hasPrompt = Boolean(nodes.referenceBrief.value.trim());
   if (productImageAnalysisRunning) {
     setActionFeedback("正在分析商品图内容，完成后会自动补卖点、场景和提示词草稿。");
@@ -3791,6 +3792,10 @@ function updateActionFeedback() {
   }
   if (!hasProductImage) {
     setActionFeedback("再上传商品图就能生成。");
+    return;
+  }
+  if (currentPackage && !hasFreshProductImage) {
+    setActionFeedback("当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。");
     return;
   }
   if (!hasPrompt) {
@@ -3914,6 +3919,7 @@ function buildGenerateFlowStatusSummary() {
   const hasTemplate = Boolean(getSelectedTemplate());
   const knownProductImageCount = getKnownProductImageCount();
   const hasProductImage = knownProductImageCount > 0;
+  const hasFreshProductImage = Boolean(nodes.productImages?.files?.length);
   const currentStatus = getWorkflowStatus();
 
   if (productImageAnalysisRunning) return "正在识别商品图内容，识别完就能生成。";
@@ -3923,6 +3929,7 @@ function buildGenerateFlowStatusSummary() {
   if (deliveryShortcutRunning) return "正在一键整理结果，复制和导出会自动继续。";
   if (currentStatus.deliveryStatusSummary) return currentStatus.deliveryStatusSummary;
   if (currentStatus.storyboardStatusSummary) return currentStatus.storyboardStatusSummary;
+  if (currentPackage && !hasFreshProductImage) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";
   if (currentPackage) return "项目已生成，可继续故事版、提交生成或一键带走结果。";
   return "当前已具备生成条件，直接点主按钮即可。";
 }
