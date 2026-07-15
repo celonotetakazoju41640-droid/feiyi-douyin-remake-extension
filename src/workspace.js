@@ -398,7 +398,6 @@ async function handleProductImagesChange() {
   await autoFillProductInsightsFromImage(file);
   renderAssetStatus();
   updateGenerateButtonState();
-  updateActionFeedback();
   syncFlowStepState();
 }
 

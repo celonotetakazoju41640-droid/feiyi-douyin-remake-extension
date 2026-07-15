@@ -125,6 +125,17 @@ test("workspace shell keeps product-image feedback truthful when visual analysis
   assert.match(workspaceJs, /usedVisionAnalysis\s*\?\s*"产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"\s*:\s*"产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿。"/);
 });
 
+test("workspace shell does not immediately overwrite completed product-image insight feedback after upload", () => {
+  assert.match(
+    workspaceJs,
+    /await autoFillProductInsightsFromImage\(file\);\s*renderAssetStatus\(\);\s*updateGenerateButtonState\(\);\s*syncFlowStepState\(\);/
+  );
+  assert.doesNotMatch(
+    workspaceJs,
+    /await autoFillProductInsightsFromImage\(file\);\s*renderAssetStatus\(\);\s*updateGenerateButtonState\(\);\s*updateActionFeedback\(\);/
+  );
+});
+
 test("workspace shell refreshes previous auto-filled product insights when users upload a new product image set", () => {
   assert.match(workspaceJs, /let lastAutoFilledInsights = createEmptyAutoFilledInsightsState\(\);/);
   assert.match(workspaceJs, /function shouldReplaceAutoFilledField\(currentValue, lastAutoFilledValue\)/);
