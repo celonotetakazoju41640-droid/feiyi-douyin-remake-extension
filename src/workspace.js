@@ -747,9 +747,14 @@ function renderProjectDetail() {
           `镜头 ${shot.shotNumber}：${shot.title}\n目标：${shot.purpose}\n动作：${shot.action}\n商品任务：${shot.productRole}\n口播意图：${shot.lineIntent}`
       )
       .join("\n\n"),
-    prompts: currentPackage.prompts.videoShots
-      .map((prompt, index) => `视频提示词 ${index + 1}\n${prompt}`)
-      .join("\n\n"),
+    prompts: [
+      "## 视频提示词",
+      "",
+      ...(currentPackage.prompts.videoShots || []).flatMap((prompt, index) => [`视频提示词 ${index + 1}`, prompt || "未生成", ""]),
+      "## 关键帧提示词",
+      "",
+      ...(currentPackage.prompts.keyframes || []).flatMap((prompt, index) => [`关键帧提示词 ${index + 1}`, prompt || "未生成", ""])
+    ].join("\n"),
     variants: (currentPackage.promptVariants || [])
       .map(
         (variant) =>

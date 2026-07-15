@@ -230,6 +230,13 @@ test("workspace shell lets users copy a complete delivery pack instead of raw ta
   assert.doesNotMatch(workspaceJs, /批量视频任务 JSON 已复制/);
 });
 
+test("workspace shell prompt detail keeps both video prompts and keyframe prompts visible", () => {
+  assert.match(
+    workspaceJs,
+    /prompts:\s*\[\s*"## 视频提示词",[\s\S]*currentPackage\.prompts\.videoShots[\s\S]*"## 关键帧提示词",[\s\S]*currentPackage\.prompts\.keyframes/
+  );
+});
+
 test("workspace shell includes scene plan, cast editor, and storyboard toggle", () => {
   assert.match(workspaceHtml, /id="scenePrimaryLocation"/);
   assert.match(workspaceHtml, /id="storyboardEnabled"/);
