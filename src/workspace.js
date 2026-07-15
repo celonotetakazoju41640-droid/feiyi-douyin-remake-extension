@@ -3634,11 +3634,14 @@ function getSelectedTemplate() {
 
 function updateResultButtons() {
   const disabled = !currentPackage;
+  const currentProjectRecord = projects.find((item) => item.id === currentProjectId) || null;
+  const submitted = currentProjectRecord ? getHistoryProjectStatus(currentProjectRecord) === "已提交" : false;
   nodes.downloadBundleButton.disabled = disabled;
   nodes.downloadJsonButton.disabled = disabled;
   nodes.downloadMarkdownButton.disabled = disabled;
   nodes.copyBatchTasksButton.disabled = disabled;
-  nodes.sendBatchTasksButton.disabled = disabled;
+  nodes.sendBatchTasksButton.textContent = submitted ? "已提交到本地服务" : "提交生成";
+  nodes.sendBatchTasksButton.disabled = disabled || submitted;
   updateDeliveryShortcutButton();
   updateStoryboardShortcutButton();
 }
