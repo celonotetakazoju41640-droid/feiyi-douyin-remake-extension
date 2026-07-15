@@ -3735,6 +3735,7 @@ function syncFormWithCurrentPackage() {
   saveAccountTemplates();
   renderTemplateOptions();
   syncTemplateForm();
+  renderAssetStatus();
   syncFlowStepState();
 }
 
