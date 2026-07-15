@@ -3975,6 +3975,13 @@ async function runDeliveryShortcut() {
       deliveryStatusSummary: `一键带走完成：结果包已复制，已开始下载 ${totalFiles} 个文件。`
     });
     setActionFeedback(`结果包已复制，并已开始下载 ${totalFiles} 个文件。`);
+  } catch (error) {
+    const detail = error instanceof Error ? error.message.trim() : String(error || "").trim();
+    const fallback = "请检查剪贴板权限、本地导出权限和故事版图片状态后再试。";
+    updateWorkflowStatus(currentProjectId, {
+      deliveryStatusSummary: `一键带走失败：${detail || fallback}`
+    });
+    setActionFeedback(`结果整理失败：${detail || fallback}`, true);
   } finally {
     deliveryShortcutRunning = false;
     renderGenerateFlowStatus();
