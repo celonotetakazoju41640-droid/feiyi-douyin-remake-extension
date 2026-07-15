@@ -109,10 +109,12 @@ test("workspace shell batch export also downloads storyboard image files through
 test("workspace shell exposes a true one-click delivery action in the result area", () => {
   assert.match(workspaceHtml, /id="deliveryShortcutButton"/);
   assert.match(workspaceJs, /handleDeliveryShortcut/);
+  assert.match(workspaceJs, /runDeliveryShortcut/);
   assert.match(workspaceJs, /getDeliveryShortcutConfig/);
   assert.match(workspaceJs, /先生成故事版再带走/);
   assert.match(workspaceJs, /一键带走全部结果/);
   assert.match(workspaceJs, /正在整理结果，会自动复制结果包并下载导出文件/);
+  assert.match(workspaceJs, /故事版已就绪，继续自动整理结果/);
 });
 
 test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {

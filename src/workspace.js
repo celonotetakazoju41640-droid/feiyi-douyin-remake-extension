@@ -3782,9 +3782,18 @@ async function handleDeliveryShortcut() {
 
   if (config.action === "storyboard-first") {
     await handleStoryboardShortcut();
+    const nextConfig = getDeliveryShortcutConfig(currentPackage);
+    if (nextConfig.action === "deliver") {
+      setActionFeedback("故事版已就绪，继续自动整理结果。");
+      await runDeliveryShortcut();
+    }
     return;
   }
 
+  await runDeliveryShortcut();
+}
+
+async function runDeliveryShortcut() {
   deliveryShortcutRunning = true;
   updateDeliveryShortcutButton();
   try {
