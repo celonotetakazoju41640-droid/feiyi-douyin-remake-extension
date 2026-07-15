@@ -59,6 +59,7 @@ const nodes = {
   productImages: document.querySelector("#productImages"),
   productHeroImage: document.querySelector("#productHeroImage"),
   productUploadStatus: document.querySelector("#productUploadStatus"),
+  productInsightSummary: document.querySelector("#productInsightSummary"),
   sampleProduct: document.querySelector("#sampleProduct"),
   productHeroBadge: document.querySelector("#productHeroBadge"),
   productName: document.querySelector("#productName"),
@@ -273,7 +274,11 @@ function bindEvents() {
   nodes.productName?.addEventListener("input", () => {
     updateGenerateButtonState();
     updateActionFeedback();
+    renderProductInsightSummary();
   });
+  nodes.productNotes?.addEventListener("input", renderProductInsightSummary);
+  nodes.scenePrimaryLocation?.addEventListener("input", renderProductInsightSummary);
+  nodes.sceneEnvironmentStyle?.addEventListener("input", renderProductInsightSummary);
   nodes.storyboardEnabled?.addEventListener("change", updateActionFeedback);
   nodes.addSupportingCast?.addEventListener("click", handleAddSupportingCast);
   nodes.referenceBrief?.addEventListener("input", () => {
@@ -540,6 +545,7 @@ function renderCastList() {
   nodes.castList.querySelectorAll("[data-cast-remove]").forEach((button) => {
     button.addEventListener("click", () => removeSupportingCast(Number(button.dataset.castRemove)));
   });
+  renderProductInsightSummary();
 }
 
 function handleCastFieldChange(event) {
@@ -3853,6 +3859,40 @@ function renderAssetStatus() {
     nodes.productUploadStatus.classList.toggle("is-ready", productCount > 0);
     nodes.productUploadStatus.classList.toggle("is-optional", false);
   }
+  renderProductInsightSummary();
+}
+
+function renderProductInsightSummary() {
+  if (!nodes.productInsightSummary) return;
+  const productCount = getKnownProductImageCount();
+  const currentStatus = getWorkflowStatus();
+  const insightStatus = currentStatus.productImageInsightStatusSummary || lastProductImageInsightStatus;
+  const productName = String(nodes.productName?.value || "").trim();
+  const firstSellingPoint = splitLines(nodes.productNotes?.value || "")[0] || "";
+  const primaryScene = String(nodes.scenePrimaryLocation?.value || nodes.sceneEnvironmentStyle?.value || "").trim();
+  const castLabels = normalizeCastDraft(currentCastDraft)
+    .map((member) => String(member.label || "").trim())
+    .filter(Boolean);
+  const castSummary = castLabels.length ? castLabels.join(" / ") : "";
+  const hasSummary = Boolean(productCount || insightStatus || productName || firstSellingPoint || primaryScene || castSummary);
+
+  if (!hasSummary) {
+    nodes.productInsightSummary.innerHTML = "";
+    return;
+  }
+
+  nodes.productInsightSummary.innerHTML = `
+    <div class="templateDeepDistillSummaryHead">
+      <strong>商品图识别摘要</strong>
+    </div>
+    <div class="templateDeepDistillSummaryGrid">
+      <span class="templateDeepDistillChip">识别：${escapeHtml(insightStatus || (productCount ? "已上传待识别" : "未开始"))}</span>
+      <span class="templateDeepDistillChip">商品：${escapeHtml(productName || "待识别")}</span>
+      <span class="templateDeepDistillChip">主卖点：${escapeHtml(firstSellingPoint || "待识别")}</span>
+      <span class="templateDeepDistillChip">主场景：${escapeHtml(primaryScene || "待识别")}</span>
+      <span class="templateDeepDistillChip">角色结构：${escapeHtml(castSummary || "待识别")}</span>
+    </div>
+  `;
 }
 
 function getKnownProductImageCount() {

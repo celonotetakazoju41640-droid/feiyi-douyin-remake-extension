@@ -163,6 +163,17 @@ test("workspace shell keeps product-image analysis completion visible in the mai
   assert.match(workspaceJs, /if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/);
 });
 
+test("workspace shell shows a concise product-image recognition summary before generation", () => {
+  assert.match(workspaceHtml, /id="productInsightSummary"/);
+  assert.match(workspaceJs, /function renderProductInsightSummary\(\)/);
+  assert.match(workspaceJs, /<strong>商品图识别摘要<\/strong>/);
+  assert.match(workspaceJs, /识别：\$\{escapeHtml\(insightStatus \|\| \(productCount \? "已上传待识别" : "未开始"\)\)\}/);
+  assert.match(workspaceJs, /商品：\$\{escapeHtml\(productName \|\| "待识别"\)\}/);
+  assert.match(workspaceJs, /主卖点：\$\{escapeHtml\(firstSellingPoint \|\| "待识别"\)\}/);
+  assert.match(workspaceJs, /主场景：\$\{escapeHtml\(primaryScene \|\| "待识别"\)\}/);
+  assert.match(workspaceJs, /角色结构：\$\{escapeHtml\(castSummary \|\| "待识别"\)\}/);
+});
+
 test("workspace shell does not immediately overwrite completed product-image insight feedback after upload", () => {
   assert.match(
     workspaceJs,
