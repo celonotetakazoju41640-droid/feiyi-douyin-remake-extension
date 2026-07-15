@@ -2678,12 +2678,14 @@ async function autoFillProductInsightsFromImage(file) {
 }
 
 async function analyzeProductImageViaService(file, template) {
-  const analysisImageDataUrl = await createProductAnalysisImageDataUrl(file);
+  const analysisImages = await createProductAnalysisImageDataUrls(Array.from(nodes.productImages.files || []));
   const response = await fetch(`${batchServiceBaseUrl}/api/product-image-insights`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      imageDataUrl: analysisImageDataUrl,
+      imageDataUrl: analysisImages[0] || "",
+      imageDataUrls: analysisImages,
+      fileNames: Array.from(nodes.productImages.files || []).map((item) => item?.name || "").filter(Boolean),
       fileName: file?.name || "",
       productName: nodes.productName.value.trim(),
       template: {
@@ -4461,6 +4463,12 @@ async function createProductAnalysisImageDataUrl(file) {
   if (!file) return "";
   const sourceDataUrl = await readFileAsDataUrl(file);
   return resizeImageDataUrlToFit(sourceDataUrl, 1024, 1024);
+}
+
+async function createProductAnalysisImageDataUrls(files = []) {
+  const safeFiles = Array.isArray(files) ? files.filter(Boolean) : [];
+  const results = await Promise.all(safeFiles.map((file) => createProductAnalysisImageDataUrl(file)));
+  return results.filter(Boolean);
 }
 
 function resizeImageDataUrl(sourceDataUrl, width, height) {

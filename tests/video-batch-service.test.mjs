@@ -53,6 +53,24 @@ test("buildProductImageInsightsPrompt asks for structured product, scene, and ca
   assert.match(prompt, /TikTok/i);
 });
 
+test("buildProductImageInsightsPrompt mentions multi-image context when multiple product images are provided", () => {
+  const prompt = buildProductImageInsightsPrompt({
+    fileNames: ["front.png", "usage.png", "detail.png"],
+    productName: "",
+    template: {
+      platform: "tiktok",
+      name: "Clean Demo",
+      contentPositioning: "before-after cleaning demo"
+    }
+  });
+
+  assert.match(prompt, /当前共上传 3 张商品图/);
+  assert.match(prompt, /需要综合多张图片/);
+  assert.match(prompt, /front\.png/);
+  assert.match(prompt, /usage\.png/);
+  assert.match(prompt, /detail\.png/);
+});
+
 test("buildDeepDistillPrompt asks for timeline-based structure analysis instead of generic summary", () => {
   const prompt = buildDeepDistillPrompt({
     fileName: "demo.mp4",

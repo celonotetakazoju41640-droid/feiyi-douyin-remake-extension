@@ -198,21 +198,27 @@ export function buildStoryboardImageDownloadMeta(taskId, imageUrl = "", contentT
 
 export function buildProductImageInsightsPrompt(input = {}) {
   const fileName = String(input.fileName || "").trim() || "未命名商品图";
+  const fileNames = Array.isArray(input.fileNames)
+    ? input.fileNames.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
   const productName = String(input.productName || "").trim();
   const template = input.template || {};
   const platform = String(template.platform || "").trim().toLowerCase() === "douyin" ? "抖音" : "TikTok";
+  const fileSummary = fileNames.length ? fileNames.join(" / ") : fileName;
 
   return [
-    "你是电商短视频投放策划，任务是根据一张商品图，提炼出可直接用于短视频生成的商品理解，不要只做图像描述。",
+    "你是电商短视频投放策划，任务是根据商品图，提炼出可直接用于短视频生成的商品理解，不要只做图像描述。",
     "先判断这是什么商品、可能卖什么、最适合放进什么生活场景，再给出短视频复刻所需的结构化结果。",
     "不要泛泛讲审美，不要堆行业黑话，要尽量让结果能直接回填到生成表单里。",
     "",
     `当前平台：${platform}`,
     `当前商品图文件名：${fileName}`,
+    `当前共上传 ${Math.max(1, fileNames.length || 1)} 张商品图：${fileSummary}`,
     `用户已填写商品名：${productName || "未填写"}`,
     `当前模板：${String(template.name || "").trim() || "未填写"}`,
     `模板内容定位：${String(template.contentPositioning || "").trim() || "未填写"}`,
     "",
+    "如果收到多张商品图，需要综合多张图片判断同一商品的外观、使用方式、卖点和最适合的场景，不要只盯第一张。",
     "请严格只返回一个 JSON 对象，不要带 markdown，不要带解释，不要带代码块。",
     "字段要求：",
     "- productName: 结合图片内容推断的商品名，尽量短，适合直接放进表单。",
@@ -382,8 +388,17 @@ async function analyzeDeepDistillVideo(video, config) {
 }
 
 async function analyzeProductImage(input, config) {
-  const image = parseDataUrlImage(String(input.imageDataUrl || "").trim());
-  if (!image) {
+  const imageInputs = Array.isArray(input.imageDataUrls) ? input.imageDataUrls : [];
+  const images = imageInputs
+    .map((item) => parseDataUrlImage(String(item || "").trim()))
+    .filter(Boolean);
+  if (!images.length) {
+    const singleImage = parseDataUrlImage(String(input.imageDataUrl || "").trim());
+    if (singleImage) {
+      images.push(singleImage);
+    }
+  }
+  if (!images.length) {
     throw new Error("没有收到可分析的商品图片数据。");
   }
 
@@ -403,12 +418,12 @@ async function analyzeProductImage(input, config) {
             role: "user",
             parts: [
               { text: prompt },
-              {
+              ...images.map((image) => ({
                 inlineData: {
                   mimeType: image.mimeType,
                   data: image.base64
                 }
-              }
+              }))
             ]
           }
         ],
