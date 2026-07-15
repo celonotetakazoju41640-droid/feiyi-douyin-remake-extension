@@ -150,6 +150,7 @@ const nodes = {
   copyClipcatPromptButton: document.querySelector("#copyClipcatPromptButton"),
   copyBatchTasksButton: document.querySelector("#copyBatchTasksButton"),
   sendBatchTasksButton: document.querySelector("#sendBatchTasksButton"),
+  storyboardShortcutButton: document.querySelector("#storyboardShortcutButton"),
   wizardPrevButton: document.querySelector("#wizardPrevButton"),
   wizardNextButton: document.querySelector("#wizardNextButton"),
   wizardStepTag: document.querySelector("#wizardStepTag"),
@@ -274,6 +275,7 @@ function bindEvents() {
   nodes.copyClipcatPromptButton.addEventListener("click", copyClipcatPrompt);
   nodes.copyBatchTasksButton.addEventListener("click", copyBatchTasks);
   nodes.sendBatchTasksButton.addEventListener("click", sendBatchTasksToService);
+  nodes.storyboardShortcutButton?.addEventListener("click", handleStoryboardShortcut);
   nodes.wizardPrevButton?.addEventListener("click", handleWizardPrev);
   nodes.wizardNextButton?.addEventListener("click", handleWizardNext);
   nodes.openOnboardingButton?.addEventListener("click", openOnboarding);
@@ -3462,6 +3464,7 @@ function updateResultButtons() {
   nodes.downloadMarkdownButton.disabled = disabled;
   nodes.copyBatchTasksButton.disabled = disabled;
   nodes.sendBatchTasksButton.disabled = disabled;
+  updateStoryboardShortcutButton();
 }
 
 function updateActionFeedback() {
@@ -3506,6 +3509,7 @@ function renderCurrentResultSummary() {
   const taskCount = currentPackage.batchVideoTasks?.length || 0;
   const shotCount = currentPackage.shots?.length || 0;
   const storyboardCount = currentPackage.storyboardTasks?.length || 0;
+  const storyboardSummary = summarizeStoryboardState(currentPackage.storyboardTasks || []);
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
   nodes.currentResultSummary.hidden = false;
@@ -3527,8 +3531,97 @@ function renderCurrentResultSummary() {
       <span class="currentResultChip">收口：${escapeHtml(resultSnapshot.cta)}</span>
     </div>
     <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
+    ${storyboardSummary ? `<div class="currentResultSummaryNote">故事版：${escapeHtml(storyboardSummary)}</div>` : ""}
     <div class="currentResultSummaryNote">${escapeHtml(resultSnapshot.overview)}</div>
   `;
+}
+
+function updateStoryboardShortcutButton() {
+  if (!nodes.storyboardShortcutButton) return;
+  const config = getStoryboardShortcutConfig(currentPackage);
+  nodes.storyboardShortcutButton.hidden = !config.visible;
+  nodes.storyboardShortcutButton.disabled = config.disabled;
+  nodes.storyboardShortcutButton.textContent = config.label;
+}
+
+function getStoryboardShortcutConfig(pkg) {
+  if (!pkg?.project?.storyboardEnabled || !pkg?.storyboardTasks?.length) {
+    return {
+      visible: false,
+      disabled: true,
+      label: "生成故事版图",
+      action: "none"
+    };
+  }
+
+  const tasks = pkg.storyboardTasks || [];
+  const succeededCount = tasks.filter((task) => canDownloadStoryboardTask(task)).length;
+  const pendingCount = tasks.filter(
+    (task) => task.taskId && !["succeeded", "failed"].includes(String(task.status || "").trim().toLowerCase())
+  ).length;
+  const failedOrIdleCount = tasks.filter((task) => shouldCreateStoryboardTask(task)).length;
+
+  if (succeededCount === tasks.length && succeededCount > 0) {
+    return {
+      visible: true,
+      disabled: false,
+      label: `下载故事版图片（${succeededCount} 张）`,
+      action: "download"
+    };
+  }
+
+  if (pendingCount > 0) {
+    return {
+      visible: true,
+      disabled: storyboardRequestRunning,
+      label: `继续等待故事版（${pendingCount} 条）`,
+      action: "run"
+    };
+  }
+
+  if (failedOrIdleCount > 0) {
+    return {
+      visible: true,
+      disabled: storyboardRequestRunning,
+      label: succeededCount > 0 ? `补齐故事版图片（剩余 ${failedOrIdleCount} 条）` : "生成故事版图",
+      action: "run"
+    };
+  }
+
+  return {
+    visible: true,
+    disabled: storyboardRequestRunning,
+    label: "生成故事版图",
+    action: "run"
+  };
+}
+
+function summarizeStoryboardState(tasks = []) {
+  if (!Array.isArray(tasks) || tasks.length === 0) return "";
+  const succeededCount = tasks.filter((task) => String(task.status || "").trim().toLowerCase() === "succeeded").length;
+  const failedCount = tasks.filter((task) => String(task.status || "").trim().toLowerCase() === "failed").length;
+  const pendingCount = tasks.length - succeededCount - failedCount;
+
+  if (succeededCount === tasks.length) return `已生成完成，可直接下载 ${succeededCount} 张图片`;
+  if (pendingCount > 0 && succeededCount > 0) return `已完成 ${succeededCount} 张，剩余 ${pendingCount} 张还在处理中`;
+  if (pendingCount > 0) return `当前还有 ${pendingCount} 张待生成`;
+  if (failedCount > 0 && succeededCount > 0) return `已完成 ${succeededCount} 张，失败 ${failedCount} 张`;
+  if (failedCount > 0) return `当前有 ${failedCount} 张生成失败，可直接补跑`;
+  return "";
+}
+
+async function handleStoryboardShortcut() {
+  const config = getStoryboardShortcutConfig(currentPackage);
+  if (config.action === "none") return;
+  activeDetailTab = "storyboards";
+  renderProjectDetail();
+
+  if (config.action === "download") {
+    await downloadAllStoryboardImages();
+    return;
+  }
+
+  await runStoryboardFlow();
 }
 
 function buildCurrentResultSnapshot(pkg) {

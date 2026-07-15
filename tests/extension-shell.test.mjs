@@ -75,6 +75,15 @@ test("workspace shell lets users download storyboard image files through the loc
   assert.match(workspaceJs, /故事版图片已开始下载/);
 });
 
+test("workspace shell exposes a main storyboard shortcut in the result area", () => {
+  assert.match(workspaceHtml, /id="storyboardShortcutButton"/);
+  assert.match(workspaceJs, /handleStoryboardShortcut/);
+  assert.match(workspaceJs, /getStoryboardShortcutConfig/);
+  assert.match(workspaceJs, /下载故事版图片/);
+  assert.match(workspaceJs, /继续等待故事版/);
+  assert.match(workspaceJs, /补齐故事版图片/);
+});
+
 test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {
   assert.match(workspaceHtml, /id="copyBatchTasksButton"/);
   assert.match(workspaceHtml, /复制结果包/);
