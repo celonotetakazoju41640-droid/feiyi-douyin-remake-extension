@@ -56,13 +56,15 @@ test("workspace shell turns history into a project library plus detail workspace
   assert.match(workspaceJs, /getHistoryProjectStatus/);
 });
 
-test("workspace shell wires storyboard generation and refresh through the local service", () => {
-  assert.match(workspaceJs, /data-storyboard-generate/);
-  assert.match(workspaceJs, /data-storyboard-refresh/);
+test("workspace shell turns storyboard generation into a one-click auto-wait flow", () => {
+  assert.match(workspaceJs, /data-storyboard-run/);
   assert.match(workspaceJs, /\/api\/storyboards/);
-  assert.match(workspaceJs, /generateStoryboardTasks/);
-  assert.match(workspaceJs, /refreshStoryboardTasks/);
+  assert.match(workspaceJs, /runStoryboardFlow/);
+  assert.match(workspaceJs, /pollStoryboardTasksToTerminal/);
+  assert.match(workspaceJs, /点击一次后会自动提交并等待结果/);
+  assert.match(workspaceJs, /稍后再点一次按钮，会继续帮你查询结果/);
   assert.match(workspaceJs, /formatStoryboardStatus/);
+  assert.doesNotMatch(workspaceJs, /data-storyboard-refresh/);
 });
 
 test("workspace shell includes scene plan, cast editor, and storyboard toggle", () => {
