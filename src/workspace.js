@@ -60,6 +60,7 @@ const nodes = {
   productHeroImage: document.querySelector("#productHeroImage"),
   productUploadStatus: document.querySelector("#productUploadStatus"),
   productInsightSummary: document.querySelector("#productInsightSummary"),
+  generationExpectationSummary: document.querySelector("#generationExpectationSummary"),
   sampleProduct: document.querySelector("#sampleProduct"),
   productHeroBadge: document.querySelector("#productHeroBadge"),
   productName: document.querySelector("#productName"),
@@ -252,6 +253,7 @@ function init() {
   renderProjects();
   renderCastList();
   renderAssetStatus();
+  renderGenerationExpectationSummary();
   renderTemplateSelectionSummary();
   renderTemplateGuide();
   renderManageScanSummary();
@@ -269,6 +271,8 @@ function bindEvents() {
   nodes.referenceVideoFile.addEventListener("change", handleReferenceVideoChange);
   nodes.productImages.addEventListener("change", handleProductImagesChange);
   nodes.targetDurationControl?.addEventListener("input", handleTargetDurationControlChange);
+  nodes.generationCount?.addEventListener("change", renderGenerationExpectationSummary);
+  nodes.aspectRatioSelect?.addEventListener("change", renderGenerationExpectationSummary);
   nodes.remakeButton?.addEventListener("click", () => handleGenerate({ autoDeliver: false }));
   nodes.remakeAndDeliverButton?.addEventListener("click", () => handleGenerate({ autoDeliver: true }));
   nodes.productName?.addEventListener("input", () => {
@@ -279,7 +283,10 @@ function bindEvents() {
   nodes.productNotes?.addEventListener("input", renderProductInsightSummary);
   nodes.scenePrimaryLocation?.addEventListener("input", renderProductInsightSummary);
   nodes.sceneEnvironmentStyle?.addEventListener("input", renderProductInsightSummary);
-  nodes.storyboardEnabled?.addEventListener("change", updateActionFeedback);
+  nodes.storyboardEnabled?.addEventListener("change", () => {
+    updateActionFeedback();
+    renderGenerationExpectationSummary();
+  });
   nodes.addSupportingCast?.addEventListener("click", handleAddSupportingCast);
   nodes.referenceBrief?.addEventListener("input", () => {
     updateGenerateButtonState();
@@ -3860,6 +3867,7 @@ function renderAssetStatus() {
     nodes.productUploadStatus.classList.toggle("is-optional", false);
   }
   renderProductInsightSummary();
+  renderGenerationExpectationSummary();
 }
 
 function renderProductInsightSummary() {
@@ -3892,6 +3900,29 @@ function renderProductInsightSummary() {
       <span class="templateDeepDistillChip">主场景：${escapeHtml(primaryScene || "待识别")}</span>
       <span class="templateDeepDistillChip">角色结构：${escapeHtml(castSummary || "待识别")}</span>
     </div>
+  `;
+}
+
+function renderGenerationExpectationSummary() {
+  if (!nodes.generationExpectationSummary) return;
+  const template = getSelectedTemplate();
+  const expectedCount = Math.max(1, Number(nodes.generationCount?.value || template?.defaultGenerationCount || 3));
+  const storyboardEnabled = Boolean(nodes.storyboardEnabled?.checked);
+  const aspectRatio = String(nodes.aspectRatioSelect?.value || "9:16").trim();
+  const primaryActionSummary = storyboardEnabled
+    ? "主按钮会：先生成项目，再自动接故事版，并继续一键带走结果。"
+    : "主按钮会：先生成项目，再直接一键带走结果。";
+
+  nodes.generationExpectationSummary.innerHTML = `
+    <div class="templateDeepDistillSummaryHead">
+      <strong>生成后会得到什么</strong>
+    </div>
+    <div class="templateDeepDistillSummaryGrid">
+      <span class="templateDeepDistillChip">任务数：预计 ${expectedCount} 条</span>
+      <span class="templateDeepDistillChip">比例：${escapeHtml(aspectRatio)}</span>
+      <span class="templateDeepDistillChip">故事版：${storyboardEnabled ? "会一起生成" : "这轮不生成"}</span>
+    </div>
+    <p class="templateDeepDistillSummaryText">${escapeHtml(primaryActionSummary)}</p>
   `;
 }
 

@@ -174,6 +174,17 @@ test("workspace shell shows a concise product-image recognition summary before g
   assert.match(workspaceJs, /角色结构：\$\{escapeHtml\(castSummary \|\| "待识别"\)\}/);
 });
 
+test("workspace shell shows expected outputs before generation starts", () => {
+  assert.match(workspaceHtml, /id="generationExpectationSummary"/);
+  assert.match(workspaceJs, /function renderGenerationExpectationSummary\(\)/);
+  assert.match(workspaceJs, /<strong>生成后会得到什么<\/strong>/);
+  assert.match(workspaceJs, /任务数：预计 \$\{expectedCount\} 条/);
+  assert.match(workspaceJs, /比例：\$\{escapeHtml\(aspectRatio\)\}/);
+  assert.match(workspaceJs, /故事版：\$\{storyboardEnabled \? "会一起生成" : "这轮不生成"\}/);
+  assert.match(workspaceJs, /主按钮会：先生成项目，再自动接故事版，并继续一键带走结果。/);
+  assert.match(workspaceJs, /主按钮会：先生成项目，再直接一键带走结果。/);
+});
+
 test("workspace shell does not immediately overwrite completed product-image insight feedback after upload", () => {
   assert.match(
     workspaceJs,
