@@ -139,8 +139,9 @@ test("workspace shell keeps product-image analysis completion visible in the mai
   assert.match(workspaceJs, /let lastProductImageInsightStatus = ""/);
   assert.match(workspaceJs, /lastProductImageInsightStatus = usedVisionAnalysis\s*\?\s*"已识别完成"\s*:\s*"已按文件名兜底提炼"/);
   assert.match(workspaceJs, /lastProductImageInsightStatus = ""/);
-  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{lastProductImageInsightStatus \? `，\$\{lastProductImageInsightStatus\}` : ""\}` : "待上传"/);
-  assert.match(workspaceJs, /if \(lastProductImageInsightStatus\) return `商品图已就绪，\$\{lastProductImageInsightStatus\}，可以直接生成。`;/);
+  assert.match(workspaceJs, /const productImageInsightStatus = currentStatus\.productImageInsightStatusSummary \|\| lastProductImageInsightStatus/);
+  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{productImageInsightStatus \? `，\$\{productImageInsightStatus\}` : ""\}` : "待上传"/);
+  assert.match(workspaceJs, /if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/);
 });
 
 test("workspace shell does not immediately overwrite completed product-image insight feedback after upload", () => {
@@ -205,9 +206,11 @@ test("workspace shell marks submitted projects as submitted after send-to-servic
 
 test("workspace shell persists storyboard and delivery summaries with each project record", () => {
   assert.match(workspaceJs, /record\.package\.workflowStatus = \{/);
+  assert.match(workspaceJs, /productImageInsightStatusSummary: nextStatus\.productImageInsightStatusSummary \|\| ""/);
   assert.match(workspaceJs, /storyboardStatusSummary: nextStatus\.storyboardStatusSummary \|\| ""/);
   assert.match(workspaceJs, /deliveryStatusSummary: nextStatus\.deliveryStatusSummary \|\| ""/);
   assert.match(workspaceJs, /const packageWorkflowStatus = projectRecord\?\.package\?\.workflowStatus \|\| \{\}/);
+  assert.match(workspaceJs, /productImageInsightStatusSummary: packageWorkflowStatus\.productImageInsightStatusSummary \|\| ""/);
   assert.match(workspaceJs, /storyboardStatusSummary: packageWorkflowStatus\.storyboardStatusSummary \|\| ""/);
   assert.match(workspaceJs, /deliveryStatusSummary: packageWorkflowStatus\.deliveryStatusSummary \|\| ""/);
 });
@@ -218,6 +221,7 @@ test("workspace shell preserves imported batch and storyboard progress when rest
   assert.match(workspaceJs, /batchId: matchedTask\.batchId \|\| task\.batchId \|\| ""/);
   assert.match(workspaceJs, /imageUrl: matchedTask\.imageUrl \|\| task\.imageUrl \|\| ""/);
   assert.match(workspaceJs, /workflowStatus: \{/);
+  assert.match(workspaceJs, /productImageInsightStatusSummary: importedPkg\?\.workflowStatus\?\.productImageInsightStatusSummary \|\| ""/);
 });
 
 test("workspace shell lets generate-page primary action run straight into delivery", () => {
@@ -344,7 +348,7 @@ test("workspace shell keeps known uploaded-image status after project restore ev
   assert.match(workspaceJs, /function getKnownProductImageCount\(\)/);
   assert.match(workspaceJs, /currentPackage\?\.project\?\.clipcatConfig\?\.productImageCount/);
   assert.match(workspaceJs, /nodes\.productUploadStatus\.textContent = productCount \? `商品图：已上传 \$\{productCount\} 张` : "商品图：未上传"/);
-  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{lastProductImageInsightStatus \? `，\$\{lastProductImageInsightStatus\}` : ""\}` : "待上传"/);
+  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{productImageInsightStatus \? `，\$\{productImageInsightStatus\}` : ""\}` : "待上传"/);
   assert.match(workspaceJs, /renderAssetStatus\(\);/);
   assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。"/);
 });

@@ -628,6 +628,7 @@ async function handleGenerate(options = {}) {
   projects.unshift(record);
   currentProjectId = record.id;
   updateWorkflowStatus(record.id, {
+    productImageInsightStatusSummary: lastProductImageInsightStatus || "",
     storyboardStatusSummary: currentPackage.project.storyboardEnabled ? "故事版已排进主链路，生成后可直接开始。" : "",
     deliveryStatusSummary: ""
   });
@@ -1269,6 +1270,7 @@ function restoreImportedProjectState(nextPkg, importedPkg) {
     batchVideoTasks: restoredBatchTasks,
     storyboardTasks: restoredStoryboardTasks,
     workflowStatus: {
+      productImageInsightStatusSummary: importedPkg?.workflowStatus?.productImageInsightStatusSummary || "",
       storyboardStatusSummary: importedPkg?.workflowStatus?.storyboardStatusSummary || "",
       deliveryStatusSummary: importedPkg?.workflowStatus?.deliveryStatusSummary || ""
     }
@@ -3856,6 +3858,7 @@ function clearLocalProductUploadState() {
 function getWorkflowStatus(projectId = currentProjectId) {
   if (!projectId) {
     return {
+      productImageInsightStatusSummary: "",
       storyboardStatusSummary: "",
       deliveryStatusSummary: ""
     };
@@ -3864,6 +3867,7 @@ function getWorkflowStatus(projectId = currentProjectId) {
   const packageWorkflowStatus = projectRecord?.package?.workflowStatus || {};
   return (
     projectWorkflowStatus.get(projectId) || {
+      productImageInsightStatusSummary: packageWorkflowStatus.productImageInsightStatusSummary || "",
       storyboardStatusSummary: packageWorkflowStatus.storyboardStatusSummary || "",
       deliveryStatusSummary: packageWorkflowStatus.deliveryStatusSummary || ""
     }
@@ -3880,6 +3884,7 @@ function updateWorkflowStatus(projectId, partial = {}) {
   const record = projects.find((item) => item.id === projectId) || null;
   if (record?.package) {
     record.package.workflowStatus = {
+      productImageInsightStatusSummary: nextStatus.productImageInsightStatusSummary || "",
       storyboardStatusSummary: nextStatus.storyboardStatusSummary || "",
       deliveryStatusSummary: nextStatus.deliveryStatusSummary || ""
     };
@@ -3897,6 +3902,7 @@ function buildGenerateFlowStatusItems() {
   const knownProductImageCount = getKnownProductImageCount();
   const hasProductImage = knownProductImageCount > 0;
   const currentStatus = getWorkflowStatus();
+  const productImageInsightStatus = currentStatus.productImageInsightStatusSummary || lastProductImageInsightStatus;
   const storyboardSummary = currentStatus.storyboardStatusSummary || summarizeStoryboardState(currentPackage?.storyboardTasks || []);
   const deliverySummary = currentStatus.deliveryStatusSummary;
 
@@ -3907,7 +3913,7 @@ function buildGenerateFlowStatusItems() {
     },
     {
       label: "2. 商品图",
-      status: hasProductImage ? `已上传 ${knownProductImageCount} 张${lastProductImageInsightStatus ? `，${lastProductImageInsightStatus}` : ""}` : "待上传"
+      status: hasProductImage ? `已上传 ${knownProductImageCount} 张${productImageInsightStatus ? `，${productImageInsightStatus}` : ""}` : "待上传"
     },
     {
       label: "3. 生成项目",
@@ -3934,6 +3940,7 @@ function buildGenerateFlowStatusSummary() {
   const hasProductImage = knownProductImageCount > 0;
   const hasFreshProductImage = Boolean(nodes.productImages?.files?.length);
   const currentStatus = getWorkflowStatus();
+  const productImageInsightStatus = currentStatus.productImageInsightStatusSummary || lastProductImageInsightStatus;
 
   if (productImageAnalysisRunning) return "正在识别商品图内容，识别完就能生成。";
   if (!hasTemplate && !hasProductImage) return "先选蒸馏模型，再上传商品图。";
@@ -3943,7 +3950,7 @@ function buildGenerateFlowStatusSummary() {
   if (currentStatus.deliveryStatusSummary) return currentStatus.deliveryStatusSummary;
   if (currentStatus.storyboardStatusSummary) return currentStatus.storyboardStatusSummary;
   if (currentPackage && !hasFreshProductImage) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";
-  if (lastProductImageInsightStatus) return `商品图已就绪，${lastProductImageInsightStatus}，可以直接生成。`;
+  if (productImageInsightStatus) return `商品图已就绪，${productImageInsightStatus}，可以直接生成。`;
   if (currentPackage) return "项目已生成，可继续故事版、提交生成或一键带走结果。";
   return "当前已具备生成条件，直接点主按钮即可。";
 }
@@ -3973,6 +3980,7 @@ function renderCurrentResultSummary() {
   const storyboardCount = currentPackage.storyboardTasks?.length || 0;
   const storyboardSummary = summarizeStoryboardState(currentPackage.storyboardTasks || []);
   const workflowStatus = getWorkflowStatus();
+  const productImageInsightStatus = workflowStatus.productImageInsightStatusSummary || "";
   const currentBatchId = currentPackage.batchVideoTasks?.find((task) => task.batchId)?.batchId || "";
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
@@ -3995,6 +4003,7 @@ function renderCurrentResultSummary() {
       <span class="currentResultChip">收口：${escapeHtml(resultSnapshot.cta)}</span>
     </div>
     <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
+    ${productImageInsightStatus ? `<div class="currentResultSummaryNote">商品图识别：${escapeHtml(productImageInsightStatus)}</div>` : ""}
     ${currentBatchId ? `<div class="currentResultSummaryNote">当前批次号：${escapeHtml(currentBatchId)}</div>` : ""}
     ${storyboardSummary ? `<div class="currentResultSummaryNote">故事版：${escapeHtml(storyboardSummary)}</div>` : ""}
     ${workflowStatus.storyboardStatusSummary ? `<div class="currentResultSummaryNote">当前故事版进度：${escapeHtml(workflowStatus.storyboardStatusSummary)}</div>` : ""}
@@ -4523,6 +4532,7 @@ function loadProjects() {
             ? {
                 ...item.package,
                 workflowStatus: {
+                  productImageInsightStatusSummary: item.package.workflowStatus?.productImageInsightStatusSummary || "",
                   storyboardStatusSummary: item.package.workflowStatus?.storyboardStatusSummary || "",
                   deliveryStatusSummary: item.package.workflowStatus?.deliveryStatusSummary || ""
                 }
