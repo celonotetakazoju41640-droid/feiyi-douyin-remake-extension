@@ -210,6 +210,7 @@ let deepDistillAnalyzeProgressValue = 0;
 let deepDistillAnalyzeCurrentIndex = 0;
 let deepDistillAnalyzeTotalCount = 0;
 let currentCastDraft = [createDefaultCastDraftMember("host")];
+let storyboardRequestRunning = false;
 
 function setProfileScanStage(stageKey, progressValue = null) {
   profileScanStageKey = stageKey || "idle";
@@ -733,7 +734,11 @@ function renderProjectDetail() {
         )
         .join("")}
     </div>
-    <div class="detailContent">${metaTextMap[activeDetailTab] ? `<div class="detailMeta">${escapeHtml(metaTextMap[activeDetailTab])}</div>` : ""}<pre>${escapeHtml(tabMap[activeDetailTab] || "")}</pre></div>
+    <div class="detailContent">${
+      activeDetailTab === "storyboards"
+        ? renderStoryboardDetailPanel(currentPackage.storyboardTasks || [])
+        : `${metaTextMap[activeDetailTab] ? `<div class="detailMeta">${escapeHtml(metaTextMap[activeDetailTab])}</div>` : ""}<pre>${escapeHtml(tabMap[activeDetailTab] || "")}</pre>`
+    }</div>
   `;
 
   nodes.projectDetailPanel.querySelectorAll("[data-detail-tab]").forEach((button) => {
@@ -742,6 +747,155 @@ function renderProjectDetail() {
       renderProjectDetail();
     });
   });
+
+  bindStoryboardDetailEvents();
+}
+
+function renderStoryboardDetailPanel(tasks) {
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return `<div class="emptyStateCard"><strong>当前没有故事版任务</strong><p>回到生成页勾选故事版后，再生成一次项目。</p></div>`;
+  }
+
+  return `
+    <div class="storyboardDetailToolbar">
+      <button class="primaryButton" type="button" data-storyboard-generate ${storyboardRequestRunning ? "disabled" : ""}>生成故事版图</button>
+      <button class="ghostButton" type="button" data-storyboard-refresh ${storyboardRequestRunning ? "disabled" : ""}>刷新状态</button>
+    </div>
+    <div class="storyboardDetailGrid">
+      ${tasks
+        .map(
+          (task) => `
+            <article class="storyboardDetailCard">
+              <div class="storyboardDetailHead">
+                <strong>${escapeHtml(task.taskTitle || task.unitId || "故事版任务")}</strong>
+                <span class="countBadge">${escapeHtml(formatStoryboardStatus(task.status))}</span>
+              </div>
+              ${
+                task.imageUrl
+                  ? `<img class="storyboardDetailImage" src="${escapeHtml(task.imageUrl)}" alt="${escapeHtml(task.taskTitle || task.unitId || "故事版图")}" />`
+                  : `<div class="storyboardDetailEmpty">当前还没有故事版图片</div>`
+              }
+              <div class="storyboardDetailMeta">
+                <span>任务 ID：${escapeHtml(task.taskId || "未创建")}</span>
+                <span>Provider：${escapeHtml(task.provider || "未设置")}</span>
+              </div>
+              ${task.errorMessage ? `<div class="detailMeta is-error">${escapeHtml(task.errorMessage)}</div>` : ""}
+              <pre>${escapeHtml(task.prompt || "当前还没有故事版提示词。")}</pre>
+            </article>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function bindStoryboardDetailEvents() {
+  const generateButton = nodes.projectDetailPanel.querySelector("[data-storyboard-generate]");
+  const refreshButton = nodes.projectDetailPanel.querySelector("[data-storyboard-refresh]");
+  generateButton?.addEventListener("click", generateStoryboardTasks);
+  refreshButton?.addEventListener("click", refreshStoryboardTasks);
+}
+
+async function generateStoryboardTasks() {
+  if (!currentPackage?.storyboardTasks?.length) {
+    setActionFeedback("当前没有故事版任务可生成。", true);
+    return;
+  }
+  if (storyboardRequestRunning) return;
+
+  storyboardRequestRunning = true;
+  setActionFeedback("正在创建故事版图任务。");
+
+  try {
+    for (const task of currentPackage.storyboardTasks) {
+      const response = await fetch(`${batchServiceBaseUrl}/api/storyboards`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          prompt: task.prompt,
+          aspectRatio: currentPackage.project.aspectRatio || "9:16",
+          model: "gpt-image/1.5-text-to-image"
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message || `${response.status} ${response.statusText}`);
+      }
+      task.taskId = String(data.taskId || "").trim();
+      task.provider = data.provider || task.provider || "kie-gpt-image";
+      task.status = data.status || "queued";
+      task.imageUrl = data.imageUrl || "";
+      task.errorMessage = data.errorMessage || "";
+      task.createdAt = task.createdAt || new Date().toISOString();
+      task.updatedAt = new Date().toISOString();
+    }
+
+    replaceCurrentProject(currentPackage);
+    renderProjects();
+    renderProjectDetail();
+    setActionFeedback("故事版图任务已创建，可以点“刷新状态”查看结果。");
+  } catch (error) {
+    const message = getFriendlyBatchServiceErrorMessage(error, "生成故事版图");
+    const detail = isBatchServiceOfflineError(error) ? `${message} 启动命令：${batchServiceCommand}` : message;
+    setActionFeedback(`故事版图生成失败：${detail}`, true);
+  } finally {
+    storyboardRequestRunning = false;
+    renderProjectDetail();
+  }
+}
+
+async function refreshStoryboardTasks() {
+  if (!currentPackage?.storyboardTasks?.length) {
+    setActionFeedback("当前没有故事版任务可刷新。", true);
+    return;
+  }
+  if (storyboardRequestRunning) return;
+
+  const queryableTasks = currentPackage.storyboardTasks.filter((task) => task.taskId);
+  if (!queryableTasks.length) {
+    setActionFeedback("当前还没有故事版任务 ID，先点“生成故事版图”。", true);
+    return;
+  }
+
+  storyboardRequestRunning = true;
+  setActionFeedback("正在刷新故事版图状态。");
+
+  try {
+    for (const task of queryableTasks) {
+      const response = await fetch(`${batchServiceBaseUrl}/api/storyboards/${encodeURIComponent(task.taskId)}`);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.message || `${response.status} ${response.statusText}`);
+      }
+      task.provider = data.provider || task.provider || "kie-gpt-image";
+      task.status = data.status || task.status || "queued";
+      task.imageUrl = data.imageUrl || task.imageUrl || "";
+      task.errorMessage = data.errorMessage || "";
+      task.updatedAt = new Date().toISOString();
+    }
+
+    replaceCurrentProject(currentPackage);
+    renderProjects();
+    renderProjectDetail();
+    setActionFeedback("故事版图状态已刷新。");
+  } catch (error) {
+    const message = getFriendlyBatchServiceErrorMessage(error, "刷新故事版图");
+    const detail = isBatchServiceOfflineError(error) ? `${message} 启动命令：${batchServiceCommand}` : message;
+    setActionFeedback(`刷新失败：${detail}`, true);
+  } finally {
+    storyboardRequestRunning = false;
+    renderProjectDetail();
+  }
+}
+
+function formatStoryboardStatus(status) {
+  const value = String(status || "").trim().toLowerCase();
+  if (value === "succeeded") return "已完成";
+  if (value === "running") return "生成中";
+  if (value === "queued") return "排队中";
+  if (value === "failed") return "失败";
+  if (value === "idle") return "待生成";
+  return status || "待生成";
 }
 
 function renderShotEditor() {

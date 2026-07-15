@@ -5979,6 +5979,76 @@ body {
   padding: 6px 12px;
 }
 
+.storyboardDetailToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.storyboardDetailGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.storyboardDetailCard {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e7dac4;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffdf8 0%, #fffaf2 100%);
+}
+
+.storyboardDetailHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.storyboardDetailHead strong {
+  color: #2f261d;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.storyboardDetailImage {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 14px;
+  border: 1px solid #e6d8c1;
+  background: #fff;
+}
+
+.storyboardDetailEmpty {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  border: 1px dashed #dccfb8;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf8 0%, #faf4e9 100%);
+  color: #7b705f;
+  font-size: 12px;
+}
+
+.storyboardDetailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  color: #7a6a54;
+  font-size: 12px;
+}
+
+.detailMeta.is-error {
+  color: #a12626;
+  background: #fff1f1;
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
 .historyEmptyCard {
   min-height: 84px;
   display: grid;
