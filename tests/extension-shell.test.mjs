@@ -39,6 +39,9 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /开始前先看/);
   assert.match(workspaceHtml, /id="acknowledgeOnboardingButton"/);
   assert.match(workspaceHtml, /class="panelSidebar panelSidebarCompact"/);
+  assert.match(workspaceHtml, /id="generateFlowStatusSummary"/);
+  assert.match(workspaceHtml, /id="generateFlowStatusList"/);
+  assert.match(workspaceHtml, /主流程状态/);
 });
 
 test("workspace shell turns history into a project library plus detail workspace", () => {
@@ -62,6 +65,8 @@ test("workspace shell turns storyboard generation into a one-click auto-wait flo
   assert.match(workspaceJs, /\/api\/storyboards/);
   assert.match(workspaceJs, /runStoryboardFlow/);
   assert.match(workspaceJs, /pollStoryboardTasksToTerminal/);
+  assert.match(workspaceJs, /storyboardStatusSummary/);
+  assert.match(workspaceJs, /renderStoryboardStatusSummary/);
   assert.match(workspaceJs, /点击一次后会自动提交并等待结果/);
   assert.match(workspaceJs, /稍后再点一次按钮，会继续帮你查询结果/);
   assert.match(workspaceJs, /formatStoryboardStatus/);
@@ -120,10 +125,12 @@ test("workspace shell exposes a true one-click delivery action in the result are
   assert.match(workspaceJs, /handleDeliveryShortcut/);
   assert.match(workspaceJs, /runDeliveryShortcut/);
   assert.match(workspaceJs, /getDeliveryShortcutConfig/);
+  assert.match(workspaceJs, /deliveryStatusSummary/);
   assert.match(workspaceJs, /先生成故事版再带走/);
   assert.match(workspaceJs, /一键带走全部结果/);
   assert.match(workspaceJs, /正在整理结果，会自动复制结果包并下载导出文件/);
   assert.match(workspaceJs, /故事版已就绪，继续自动整理结果/);
+  assert.match(workspaceJs, /一键带走完成：结果包已复制/);
 });
 
 test("workspace shell lets generate-page primary action run straight into delivery", () => {
@@ -214,4 +221,12 @@ test("workspace shell allows generation with only uploaded product images by usi
   assert.match(workspaceJs, /setActionFeedback\("可以直接生成。"\)/);
   assert.doesNotMatch(workspaceJs, /请先填写当前商品名/);
   assert.doesNotMatch(workspaceJs, /请先填写你的创作提示词/);
+});
+
+test("workspace shell keeps primary-action feedback aligned with disabled-state rules", () => {
+  assert.match(workspaceJs, /setActionFeedback\("先选蒸馏模型。"\)/);
+  assert.match(workspaceJs, /setActionFeedback\("先选蒸馏模型，再上传商品图。"\)/);
+  assert.match(workspaceJs, /setActionFeedback\("再上传商品图就能生成。"\)/);
+  assert.match(workspaceJs, /const disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
+  assert.match(workspaceJs, /renderGenerateFlowStatus\(\);/);
 });

@@ -161,6 +161,8 @@ const nodes = {
   currentTaskUnitLabel: document.querySelector("#currentTaskUnitLabel"),
   currentTaskHint: document.querySelector("#currentTaskHint"),
   currentResultSummary: document.querySelector("#currentResultSummary"),
+  generateFlowStatusSummary: document.querySelector("#generateFlowStatusSummary"),
+  generateFlowStatusList: document.querySelector("#generateFlowStatusList"),
   actionFeedback: document.querySelector("#actionFeedback"),
   remakeButton: document.querySelector("#remakeButton"),
   remakeAndDeliverButton: document.querySelector("#remakeAndDeliverButton"),
@@ -219,6 +221,7 @@ let productImageAnalysisRunning = false;
 let deliveryShortcutRunning = false;
 const storyboardPollIntervalMs = 3000;
 const storyboardPollMaxAttempts = 30;
+const projectWorkflowStatus = new Map();
 
 function setProfileScanStage(stageKey, progressValue = null) {
   profileScanStageKey = stageKey || "idle";
@@ -249,6 +252,7 @@ function init() {
   renderManageScanSummary();
   updateGenerateButtonState();
   updateActionFeedback();
+  renderGenerateFlowStatus();
   refreshBatchServiceHealth();
   syncFlowStepState();
   renderWizardStep();
@@ -380,6 +384,8 @@ async function handleProductImagesChange() {
     nodes.productHeroBadge.hidden = true;
     renderAssetStatus();
     updateGenerateButtonState();
+    updateActionFeedback();
+    syncFlowStepState();
     return;
   }
 
@@ -578,6 +584,10 @@ async function handleGenerate(options = {}) {
   };
   projects.unshift(record);
   currentProjectId = record.id;
+  updateWorkflowStatus(record.id, {
+    storyboardStatusSummary: currentPackage.project.storyboardEnabled ? "故事版已排进主链路，生成后可直接开始。" : "",
+    deliveryStatusSummary: ""
+  });
   saveProjects();
   syncFormWithCurrentPackage();
   renderProjects();
@@ -779,6 +789,7 @@ function renderStoryboardDetailPanel(tasks) {
       <button class="primaryButton" type="button" data-storyboard-run ${storyboardRequestRunning ? "disabled" : ""}>${storyboardPrimaryLabel}</button>
       <button class="ghostButton" type="button" data-storyboard-download-all ${downloadableCount ? "" : "disabled"}>下载全部故事版图片${downloadableCount ? `（${downloadableCount} 张）` : ""}</button>
       <div class="detailMeta">${storyboardRequestRunning ? "系统正在自动等待结果，当前页会继续回填状态。" : "点击一次后会自动提交并等待结果，不用再手动刷新。"}</div>
+      <div id="storyboardStatusSummary" class="detailMeta">${escapeHtml(renderStoryboardStatusSummary())}</div>
     </div>
     <div class="storyboardDetailGrid">
       ${tasks
@@ -827,6 +838,9 @@ async function runStoryboardFlow() {
   if (storyboardRequestRunning) return;
 
   storyboardRequestRunning = true;
+  updateWorkflowStatus(currentProjectId, {
+    storyboardStatusSummary: "正在准备故事版任务。"
+  });
   renderProjectDetail();
 
   try {
@@ -835,33 +849,55 @@ async function runStoryboardFlow() {
     const queryableTasks = currentPackage.storyboardTasks.filter((task) => task.taskId);
 
     if (!queryableTasks.length) {
+      updateWorkflowStatus(currentProjectId, {
+        storyboardStatusSummary: "故事版任务还没成功创建，请再试一次。"
+      });
       setActionFeedback("故事版图任务还没成功创建，请再试一次。", true);
       return;
     }
 
     if (createdCount > 0) {
+      updateWorkflowStatus(currentProjectId, {
+        storyboardStatusSummary: `故事版任务已提交，正在等待 ${queryableTasks.length} 条结果。`
+      });
       setActionFeedback(`故事版图任务已提交，正在等待结果（${queryableTasks.length} 条）。`);
     } else {
+      updateWorkflowStatus(currentProjectId, {
+        storyboardStatusSummary: "检测到已有故事版任务，继续自动等待结果。"
+      });
       setActionFeedback("检测到已有故事版图任务，继续自动等待结果。");
     }
 
     const pollResult = await pollStoryboardTasksToTerminal(queryableTasks);
     if (pollResult.completed && pollResult.failedCount === 0) {
+      updateWorkflowStatus(currentProjectId, {
+        storyboardStatusSummary: `故事版已全部完成，共 ${pollResult.succeededCount} 张。`
+      });
       setActionFeedback(`故事版图已生成完成，共 ${pollResult.succeededCount} 张。`);
       return;
     }
     if (pollResult.completed) {
+      updateWorkflowStatus(currentProjectId, {
+        storyboardStatusSummary: `故事版已结束：成功 ${pollResult.succeededCount} 张，失败 ${pollResult.failedCount} 张。`
+      });
       setActionFeedback(`故事版图已结束：成功 ${pollResult.succeededCount} 张，失败 ${pollResult.failedCount} 张。`, pollResult.failedCount > 0);
       return;
     }
 
+    updateWorkflowStatus(currentProjectId, {
+      storyboardStatusSummary: `故事版还在处理中，当前成功 ${pollResult.succeededCount} 张，失败 ${pollResult.failedCount} 张，可稍后继续等待。`
+    });
     setActionFeedback("故事版图任务还在处理中，已停止自动等待。稍后再点一次按钮，会继续帮你查询结果。");
   } catch (error) {
     const message = getFriendlyBatchServiceErrorMessage(error, "生成故事版图");
     const detail = isBatchServiceOfflineError(error) ? `${message} 启动命令：${batchServiceCommand}` : message;
+    updateWorkflowStatus(currentProjectId, {
+      storyboardStatusSummary: `故事版生成失败：${detail}`
+    });
     setActionFeedback(`故事版图生成失败：${detail}`, true);
   } finally {
     storyboardRequestRunning = false;
+    renderGenerateFlowStatus();
     renderProjectDetail();
   }
 }
@@ -871,6 +907,9 @@ async function ensureStoryboardTasksCreated(tasks, forceRegenerate = false) {
 
   for (let index = 0; index < creatableTasks.length; index += 1) {
     const task = creatableTasks[index];
+    updateWorkflowStatus(currentProjectId, {
+      storyboardStatusSummary: `正在提交故事版图 ${index + 1}/${creatableTasks.length}。`
+    });
     setActionFeedback(`正在提交故事版图 ${index + 1}/${creatableTasks.length}。`);
     const response = await fetch(`${batchServiceBaseUrl}/api/storyboards`, {
       method: "POST",
@@ -931,6 +970,9 @@ async function pollStoryboardTasksToTerminal(tasks) {
       };
     }
 
+    updateWorkflowStatus(currentProjectId, {
+      storyboardStatusSummary: `故事版生成中，已完成 ${succeededCount}/${tasks.length}，剩余 ${pendingCount} 张（第 ${attempt}/${storyboardPollMaxAttempts} 次检查）。`
+    });
     setActionFeedback(`故事版图生成中，已完成 ${succeededCount}/${tasks.length}，剩余 ${pendingCount} 张（第 ${attempt}/${storyboardPollMaxAttempts} 次检查）。`);
     if (attempt < storyboardPollMaxAttempts) {
       await delay(storyboardPollIntervalMs);
@@ -3599,8 +3641,12 @@ function updateActionFeedback() {
     setActionFeedback("正在分析商品图内容，完成后会自动补卖点、场景和提示词草稿。");
     return;
   }
-  if (!hasTemplate && !hasImages && !hasPrompt) {
-    setActionFeedback("先上传商品图。");
+  if (!hasTemplate && !hasImages) {
+    setActionFeedback("先选蒸馏模型，再上传商品图。");
+    return;
+  }
+  if (!hasTemplate) {
+    setActionFeedback("先选蒸馏模型。");
     return;
   }
   if (!hasImages && !hasPrompt) {
@@ -3627,6 +3673,99 @@ function renderAssetStatus() {
   }
 }
 
+function getWorkflowStatus(projectId = currentProjectId) {
+  if (!projectId) {
+    return {
+      storyboardStatusSummary: "",
+      deliveryStatusSummary: ""
+    };
+  }
+  return (
+    projectWorkflowStatus.get(projectId) || {
+      storyboardStatusSummary: "",
+      deliveryStatusSummary: ""
+    }
+  );
+}
+
+function updateWorkflowStatus(projectId, partial = {}) {
+  if (!projectId) return;
+  const nextStatus = {
+    ...getWorkflowStatus(projectId),
+    ...partial
+  };
+  projectWorkflowStatus.set(projectId, nextStatus);
+  if (projectId === currentProjectId) {
+    renderGenerateFlowStatus();
+    renderCurrentResultSummary();
+    renderProjectDetail();
+  }
+}
+
+function buildGenerateFlowStatusItems() {
+  const hasTemplate = Boolean(getSelectedTemplate());
+  const hasProductImage = Boolean(nodes.productImages?.files?.length);
+  const currentStatus = getWorkflowStatus();
+  const storyboardSummary = currentStatus.storyboardStatusSummary || summarizeStoryboardState(currentPackage?.storyboardTasks || []);
+  const deliverySummary = currentStatus.deliveryStatusSummary;
+
+  return [
+    {
+      label: "1. 蒸馏模型",
+      status: hasTemplate ? "已选好" : "待选择"
+    },
+    {
+      label: "2. 商品图",
+      status: hasProductImage ? `已上传 ${nodes.productImages?.files?.length || 0} 张` : "待上传"
+    },
+    {
+      label: "3. 生成项目",
+      status: currentPackage ? "已生成" : productImageAnalysisRunning ? "识别中" : hasTemplate && hasProductImage ? "可开始" : "未就绪"
+    },
+    {
+      label: "4. 故事版",
+      status: currentPackage?.project?.storyboardEnabled
+        ? storyboardSummary || "待生成"
+        : currentPackage
+          ? "未开启"
+          : "生成后开启"
+    },
+    {
+      label: "5. 带走结果",
+      status: deliveryShortcutRunning ? "整理中" : deliverySummary || (currentPackage ? "待带走" : "生成后可用")
+    }
+  ];
+}
+
+function buildGenerateFlowStatusSummary() {
+  const hasTemplate = Boolean(getSelectedTemplate());
+  const hasProductImage = Boolean(nodes.productImages?.files?.length);
+  const currentStatus = getWorkflowStatus();
+
+  if (productImageAnalysisRunning) return "正在识别商品图内容，识别完就能生成。";
+  if (!hasTemplate && !hasProductImage) return "先选蒸馏模型，再上传商品图。";
+  if (!hasTemplate) return "先选蒸馏模型。";
+  if (!hasProductImage) return "再上传商品图就能生成。";
+  if (deliveryShortcutRunning) return "正在一键整理结果，复制和导出会自动继续。";
+  if (currentStatus.deliveryStatusSummary) return currentStatus.deliveryStatusSummary;
+  if (currentStatus.storyboardStatusSummary) return currentStatus.storyboardStatusSummary;
+  if (currentPackage) return "项目已生成，可继续故事版、提交生成或一键带走结果。";
+  return "当前已具备生成条件，直接点主按钮即可。";
+}
+
+function renderGenerateFlowStatus() {
+  if (!nodes.generateFlowStatusSummary || !nodes.generateFlowStatusList) return;
+  nodes.generateFlowStatusSummary.textContent = buildGenerateFlowStatusSummary();
+  nodes.generateFlowStatusList.innerHTML = buildGenerateFlowStatusItems()
+    .map((item) => `<span class="currentResultChip">${escapeHtml(item.label)}：${escapeHtml(item.status)}</span>`)
+    .join("");
+}
+
+function renderStoryboardStatusSummary() {
+  const currentStatus = getWorkflowStatus();
+  return currentStatus.storyboardStatusSummary || summarizeStoryboardState(currentPackage?.storyboardTasks || []) || "当前还没开始生成故事版图。";
+}
+
 function renderCurrentResultSummary() {
   if (!nodes.currentResultSummary) return;
   if (!currentPackage) {
@@ -3638,6 +3777,7 @@ function renderCurrentResultSummary() {
   const shotCount = currentPackage.shots?.length || 0;
   const storyboardCount = currentPackage.storyboardTasks?.length || 0;
   const storyboardSummary = summarizeStoryboardState(currentPackage.storyboardTasks || []);
+  const workflowStatus = getWorkflowStatus();
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
   nodes.currentResultSummary.hidden = false;
@@ -3660,6 +3800,8 @@ function renderCurrentResultSummary() {
     </div>
     <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
     ${storyboardSummary ? `<div class="currentResultSummaryNote">故事版：${escapeHtml(storyboardSummary)}</div>` : ""}
+    ${workflowStatus.storyboardStatusSummary ? `<div class="currentResultSummaryNote">当前故事版进度：${escapeHtml(workflowStatus.storyboardStatusSummary)}</div>` : ""}
+    ${workflowStatus.deliveryStatusSummary ? `<div class="currentResultSummaryNote">当前带走结果：${escapeHtml(workflowStatus.deliveryStatusSummary)}</div>` : ""}
     <div class="currentResultSummaryNote">${escapeHtml(resultSnapshot.overview)}</div>
   `;
 }
@@ -3807,16 +3949,25 @@ async function handleDeliveryShortcut() {
 
 async function runDeliveryShortcut() {
   deliveryShortcutRunning = true;
+  updateWorkflowStatus(currentProjectId, {
+    deliveryStatusSummary: "正在整理结果：复制结果包、导出文本和下载故事版图片。"
+  });
   updateDeliveryShortcutButton();
   try {
     setActionFeedback("正在整理结果，会自动复制结果包并下载导出文件。");
     const copied = await copyBatchTasks({ silent: true });
     const exportResult = await downloadBundle({ silent: true });
     if (!copied) {
+      updateWorkflowStatus(currentProjectId, {
+        deliveryStatusSummary: "一键带走失败：当前没有可复制的结果。"
+      });
       setActionFeedback("结果包整理失败：当前没有可复制的结果。", true);
       return;
     }
     if (exportResult.imageDownloadResult.failedCount > 0) {
+      updateWorkflowStatus(currentProjectId, {
+        deliveryStatusSummary: `一键带走完成：结果包已复制，文本文件已导出，故事版图片成功 ${exportResult.imageDownloadResult.successCount}/${exportResult.imageDownloadResult.totalCount} 张。`
+      });
       setActionFeedback(
         `结果包已复制，文本文件已导出，故事版图片成功 ${exportResult.imageDownloadResult.successCount}/${exportResult.imageDownloadResult.totalCount} 张。`,
         true
@@ -3824,9 +3975,14 @@ async function runDeliveryShortcut() {
       return;
     }
     const totalFiles = exportResult.textFileCount + exportResult.imageDownloadResult.successCount;
+    updateWorkflowStatus(currentProjectId, {
+      deliveryStatusSummary: `一键带走完成：结果包已复制，已开始下载 ${totalFiles} 个文件。`
+    });
     setActionFeedback(`结果包已复制，并已开始下载 ${totalFiles} 个文件。`);
   } finally {
     deliveryShortcutRunning = false;
+    renderGenerateFlowStatus();
+    renderCurrentResultSummary();
     updateDeliveryShortcutButton();
   }
 }
@@ -3866,6 +4022,7 @@ function updateGenerateButtonState() {
   if (nodes.remakeAndDeliverButton) {
     nodes.remakeAndDeliverButton.disabled = disabled;
   }
+  renderGenerateFlowStatus();
 }
 
 function syncFlowStepState() {
