@@ -696,10 +696,11 @@ function renderProjects() {
   }
   const currentProjectRecord = projects.find((item) => item.id === currentProjectId) || projects[0];
   const currentProjectStatus = getHistoryProjectStatus(currentProjectRecord);
+  const nextActionSuggestion = getCurrentNextActionSuggestion(currentProjectRecord);
   nodes.currentTaskStatusBadge.textContent = currentProjectStatus;
   nodes.currentTaskUnitLabel.textContent = `第 1 条 / 共 ${currentPackage?.batchVideoTasks?.length || 1} 条`;
   nodes.currentTaskHint.textContent = currentPackage
-    ? currentPackage.project.projectName
+    ? `下一步建议：${nextActionSuggestion}`
     : "当前任务已准备好，可以继续处理。";
 
   nodes.seriesList.innerHTML = projects
@@ -4082,6 +4083,7 @@ function renderCurrentResultSummary() {
   const currentBatchId = currentPackage.batchVideoTasks?.find((task) => task.batchId)?.batchId || "";
   const firstSellingPoint = currentPackage.project.sellingPoints?.[0] || "按当前项目主卖点执行";
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
+  const nextActionSuggestion = getCurrentNextActionSuggestion(projects.find((item) => item.id === currentProjectId) || null);
   nodes.currentResultSummary.hidden = false;
   nodes.currentResultSummary.innerHTML = `
     <div class="currentResultSummaryHead">
@@ -4107,6 +4109,7 @@ function renderCurrentResultSummary() {
     ${storyboardSummary ? `<div class="currentResultSummaryNote">故事版：${escapeHtml(storyboardSummary)}</div>` : ""}
     ${workflowStatus.storyboardStatusSummary ? `<div class="currentResultSummaryNote">当前故事版进度：${escapeHtml(workflowStatus.storyboardStatusSummary)}</div>` : ""}
     ${workflowStatus.deliveryStatusSummary ? `<div class="currentResultSummaryNote">当前带走结果：${escapeHtml(workflowStatus.deliveryStatusSummary)}</div>` : ""}
+    <div class="currentResultSummaryNote">下一步建议：${escapeHtml(nextActionSuggestion)}</div>
     <div class="currentResultSummaryNote">${escapeHtml(resultSnapshot.overview)}</div>
   `;
 }
@@ -4205,6 +4208,37 @@ function getDeliveryShortcutConfig(pkg) {
     label: deliveryShortcutRunning ? "正在整理结果..." : "一键带走全部结果",
     action: "deliver"
   };
+}
+
+function getCurrentNextActionSuggestion(record) {
+  const pkg = record?.package || currentPackage;
+  if (!pkg) return "先回生成页跑出第一个项目。";
+
+  const deliveryConfig = getDeliveryShortcutConfig(pkg);
+  const storyboardConfig = getStoryboardShortcutConfig(pkg);
+  const submitted = hasSubmittedBatchTasks(record || { package: pkg });
+  const workflowStatus = pkg.workflowStatus || getWorkflowStatus();
+  const deliverySummary = String(workflowStatus?.deliveryStatusSummary || "").trim();
+
+  if (/^一键带走完成/.test(deliverySummary)) {
+    return submitted ? "结果已经带走完成，可继续等待本地服务批次结果。" : "结果已经带走完成；如果还要跑视频任务，点“提交生成”。";
+  }
+  if (/^一键带走待继续/.test(deliverySummary)) {
+    return "故事版还在处理中，稍后继续等待，或再点一次“一键带走全部结果”。";
+  }
+  if (deliveryConfig.action === "storyboard-first") {
+    return `先点“${deliveryConfig.label}”，系统会在故事版就绪后继续带走结果。`;
+  }
+  if (submitted) {
+    return "已经提交到本地服务；如果还要整理文案和图片，点“一键带走全部结果”。";
+  }
+  if (deliveryConfig.action === "deliver") {
+    return "优先点“一键带走全部结果”；如果只想先跑视频任务，也可以点“提交生成”。";
+  }
+  if (storyboardConfig.visible && storyboardConfig.action !== "none") {
+    return `先点“${storyboardConfig.label}”，再继续后面的提交或带走。`;
+  }
+  return "先看右侧详情，再按当前项目状态继续处理。";
 }
 
 function summarizeStoryboardState(tasks = []) {

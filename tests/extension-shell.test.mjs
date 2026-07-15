@@ -78,6 +78,8 @@ test("workspace shell turns history into a project library plus detail workspace
   assert.match(workspaceJs, /thumbnailDataUrl/);
   assert.match(workspaceJs, /formatHistoryProjectTime/);
   assert.match(workspaceJs, /getHistoryProjectStatus/);
+  assert.match(workspaceJs, /function getCurrentNextActionSuggestion\(/);
+  assert.match(workspaceJs, /下一步建议：/);
   assert.match(workspaceJs, /模板：\$\{escapeHtml\(templateName\)\}/);
   assert.match(workspaceJs, /模型：\$\{escapeHtml\(preferredModel\)\}/);
   assert.match(workspaceJs, /nodes\.currentTaskStatusBadge\.textContent = currentProjectStatus/);
