@@ -760,10 +760,12 @@ function renderStoryboardDetailPanel(tasks) {
   }
 
   const storyboardPrimaryLabel = getStoryboardPrimaryActionLabel(tasks);
+  const downloadableCount = tasks.filter((task) => canDownloadStoryboardTask(task)).length;
 
   return `
     <div class="storyboardDetailToolbar">
       <button class="primaryButton" type="button" data-storyboard-run ${storyboardRequestRunning ? "disabled" : ""}>${storyboardPrimaryLabel}</button>
+      <button class="ghostButton" type="button" data-storyboard-download-all ${downloadableCount ? "" : "disabled"}>下载全部故事版图片${downloadableCount ? `（${downloadableCount} 张）` : ""}</button>
       <div class="detailMeta">${storyboardRequestRunning ? "系统正在自动等待结果，当前页会继续回填状态。" : "点击一次后会自动提交并等待结果，不用再手动刷新。"}</div>
     </div>
     <div class="storyboardDetailGrid">
@@ -784,6 +786,7 @@ function renderStoryboardDetailPanel(tasks) {
                 <span>任务 ID：${escapeHtml(task.taskId || "未创建")}</span>
                 <span>Provider：${escapeHtml(task.provider || "未设置")}</span>
               </div>
+              <button class="ghostButton" type="button" data-storyboard-download="${escapeHtml(task.taskId || "")}" ${canDownloadStoryboardTask(task) ? "" : "disabled"}>下载这张图</button>
               ${task.errorMessage ? `<div class="detailMeta is-error">${escapeHtml(task.errorMessage)}</div>` : ""}
               <pre>${escapeHtml(task.prompt || "当前还没有故事版提示词。")}</pre>
             </article>
@@ -796,7 +799,12 @@ function renderStoryboardDetailPanel(tasks) {
 
 function bindStoryboardDetailEvents() {
   const runButton = nodes.projectDetailPanel.querySelector("[data-storyboard-run]");
+  const downloadAllButton = nodes.projectDetailPanel.querySelector("[data-storyboard-download-all]");
   runButton?.addEventListener("click", runStoryboardFlow);
+  downloadAllButton?.addEventListener("click", downloadAllStoryboardImages);
+  nodes.projectDetailPanel.querySelectorAll("[data-storyboard-download]").forEach((button) => {
+    button.addEventListener("click", () => downloadStoryboardImageByTaskId(button.dataset.storyboardDownload));
+  });
 }
 
 async function runStoryboardFlow() {
@@ -951,6 +959,76 @@ function persistStoryboardTaskState() {
   replaceCurrentProject(currentPackage);
   renderProjects();
   renderProjectDetail();
+}
+
+function canDownloadStoryboardTask(task = {}) {
+  return Boolean(task.taskId) && String(task.status || "").trim().toLowerCase() === "succeeded";
+}
+
+async function downloadAllStoryboardImages() {
+  if (!currentPackage?.storyboardTasks?.length) {
+    setActionFeedback("当前没有故事版图片可下载。", true);
+    return;
+  }
+
+  const downloadableTasks = currentPackage.storyboardTasks.filter((task) => canDownloadStoryboardTask(task));
+  if (!downloadableTasks.length) {
+    setActionFeedback("当前还没有生成完成的故事版图片。", true);
+    return;
+  }
+
+  let successCount = 0;
+  for (let index = 0; index < downloadableTasks.length; index += 1) {
+    const task = downloadableTasks[index];
+    const ok = await downloadStoryboardImageByTaskId(task.taskId, task, index + 1, downloadableTasks.length);
+    if (ok) successCount += 1;
+  }
+  if (successCount === downloadableTasks.length) {
+    setActionFeedback(`故事版图片已开始下载，共 ${downloadableTasks.length} 张。`);
+    return;
+  }
+  setActionFeedback(`故事版图片已下载 ${successCount}/${downloadableTasks.length} 张，其余任务请稍后再试。`, true);
+}
+
+async function downloadStoryboardImageByTaskId(taskId, taskLike = null, currentIndex = null, totalCount = null) {
+  const normalizedTaskId = String(taskId || "").trim();
+  if (!normalizedTaskId) {
+    setActionFeedback("当前故事版任务还没有可下载的图片。", true);
+    return false;
+  }
+
+  const matchedTask = taskLike || currentPackage?.storyboardTasks?.find((task) => task.taskId === normalizedTaskId) || null;
+  const progressText =
+    currentIndex && totalCount ? `正在下载故事版图片 ${currentIndex}/${totalCount}。` : "正在下载故事版图片。";
+  setActionFeedback(progressText);
+
+  try {
+    const response = await fetch(`${batchServiceBaseUrl}/api/storyboards/${encodeURIComponent(normalizedTaskId)}/image`);
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || `${response.status} ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    downloadBlob(resolveStoryboardImageFilename(matchedTask, normalizedTaskId, blob.type), blob, blob.type || "image/png");
+    if (!currentIndex || !totalCount) {
+      setActionFeedback("故事版图片已开始下载。");
+    }
+    return true;
+  } catch (error) {
+    const message = getFriendlyBatchServiceErrorMessage(error, "下载故事版图片");
+    const detail = isBatchServiceOfflineError(error) ? `${message} 启动命令：${batchServiceCommand}` : message;
+    setActionFeedback(`下载失败：${detail}`, true);
+    return false;
+  }
+}
+
+function resolveStoryboardImageFilename(task, taskId, contentType = "") {
+  const title = String(task?.taskTitle || task?.unitId || taskId || "storyboard").trim();
+  const safeTitle = title.replace(/[^\p{L}\p{N}._-]+/gu, "-").replace(/^-+|-+$/g, "") || "storyboard";
+  const ext = String(contentType || "").startsWith("image/")
+    ? String(contentType).split("/")[1].split(";")[0].trim().toLowerCase()
+    : "png";
+  return `${safeTitle}.${ext || "png"}`;
 }
 
 function formatStoryboardStatus(status) {

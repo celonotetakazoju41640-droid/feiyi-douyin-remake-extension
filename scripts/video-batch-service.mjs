@@ -122,7 +122,14 @@ const server = createServer(async (request, response) => {
     }
 
     if (request.method === "GET" && request.url.startsWith("/api/storyboards/")) {
-      const taskId = decodeURIComponent(request.url.split("/api/storyboards/")[1].split("?")[0] || "");
+      const route = request.url.split("/api/storyboards/")[1] || "";
+      const [taskPart] = route.split("?");
+      if (taskPart.endsWith("/image")) {
+        const taskId = decodeURIComponent(taskPart.slice(0, -"/image".length) || "");
+        const image = await downloadStoryboardImage(taskId, config);
+        return sendBinary(response, 200, image.buffer, image.contentType, image.fileName);
+      }
+      const taskId = decodeURIComponent(taskPart || "");
       const result = await getStoryboardTask(taskId, config);
       return sendJson(response, 200, result);
     }
@@ -157,6 +164,22 @@ export function mapKieStoryboardStatus(raw = "") {
   if (["success", "succeeded", "completed"].includes(value)) return "succeeded";
   if (["failed", "error", "cancelled"].includes(value)) return "failed";
   return "queued";
+}
+
+export function buildStoryboardImageDownloadMeta(taskId, imageUrl = "", contentType = "") {
+  const normalizedTaskId = String(taskId || "").trim() || "storyboard";
+  const normalizedContentType = String(contentType || "").trim().toLowerCase();
+  const urlWithoutQuery = String(imageUrl || "").split("?")[0];
+  const urlExt = urlWithoutQuery.includes(".") ? urlWithoutQuery.split(".").pop().trim().toLowerCase() : "";
+  const extFromType = normalizedContentType.startsWith("image/")
+    ? normalizedContentType.split("/")[1].split(";")[0].trim().toLowerCase()
+    : "";
+  const ext = extFromType || urlExt || "png";
+
+  return {
+    fileName: `storyboard-${normalizedTaskId}.${ext}`,
+    contentType: normalizedContentType || `image/${ext}`
+  };
 }
 
 async function createStoryboardTask(body, config) {
@@ -234,6 +257,30 @@ async function getStoryboardTask(taskId, config) {
     status: mapKieStoryboardStatus(record?.status || data.status || ""),
     imageUrl,
     errorMessage: String(record?.errorMessage || data.errorMessage || "").trim()
+  };
+}
+
+async function downloadStoryboardImage(taskId, config) {
+  const task = await getStoryboardTask(taskId, config);
+  if (!task.imageUrl) {
+    throw new Error("当前故事版任务还没有可下载的图片。");
+  }
+
+  const imageResponse = await fetch(task.imageUrl);
+  if (!imageResponse.ok) {
+    throw new Error(`故事版图片下载失败：${imageResponse.status} ${imageResponse.statusText}`);
+  }
+
+  const buffer = Buffer.from(await imageResponse.arrayBuffer());
+  const meta = buildStoryboardImageDownloadMeta(
+    task.taskId,
+    task.imageUrl,
+    imageResponse.headers.get("content-type") || ""
+  );
+
+  return {
+    ...meta,
+    buffer
   };
 }
 
@@ -450,6 +497,15 @@ function getKieBaseUrl(config) {
 
 function readKieError(payload = {}) {
   return String(payload?.message || payload?.error?.message || "").trim();
+}
+
+function sendBinary(response, status, buffer, contentType, fileName = "download.bin") {
+  response.writeHead(status, {
+    "content-type": contentType || "application/octet-stream",
+    "content-disposition": `attachment; filename="${fileName}"`,
+    "content-length": Buffer.byteLength(buffer)
+  });
+  response.end(buffer);
 }
 
 function pickProcessEnv() {

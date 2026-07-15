@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  buildStoryboardImageDownloadMeta,
   buildKieStoryboardTaskRequest,
   buildDeepDistillPrompt,
   mapKieStoryboardStatus
@@ -25,6 +26,13 @@ test("mapKieStoryboardStatus normalizes provider states", () => {
   assert.equal(mapKieStoryboardStatus("completed"), "succeeded");
   assert.equal(mapKieStoryboardStatus("error"), "failed");
   assert.equal(mapKieStoryboardStatus("unknown"), "queued");
+});
+
+test("buildStoryboardImageDownloadMeta infers filename and content type for storyboard images", () => {
+  const meta = buildStoryboardImageDownloadMeta("task-123", "https://cdn.example.com/result/storyboard-final.webp?x=1", "image/webp");
+
+  assert.equal(meta.fileName, "storyboard-task-123.webp");
+  assert.equal(meta.contentType, "image/webp");
 });
 
 test("buildDeepDistillPrompt asks for timeline-based structure analysis instead of generic summary", () => {

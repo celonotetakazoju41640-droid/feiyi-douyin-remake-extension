@@ -67,6 +67,14 @@ test("workspace shell turns storyboard generation into a one-click auto-wait flo
   assert.doesNotMatch(workspaceJs, /data-storyboard-refresh/);
 });
 
+test("workspace shell lets users download storyboard image files through the local proxy", () => {
+  assert.match(workspaceJs, /data-storyboard-download-all/);
+  assert.match(workspaceJs, /data-storyboard-download=/);
+  assert.match(workspaceJs, /\/api\/storyboards\/\$\{encodeURIComponent\(normalizedTaskId\)\}\/image/);
+  assert.match(workspaceJs, /下载全部故事版图片/);
+  assert.match(workspaceJs, /故事版图片已开始下载/);
+});
+
 test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {
   assert.match(workspaceHtml, /id="copyBatchTasksButton"/);
   assert.match(workspaceHtml, /复制结果包/);
