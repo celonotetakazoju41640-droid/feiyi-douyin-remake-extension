@@ -3689,10 +3689,12 @@ function getWorkflowStatus(projectId = currentProjectId) {
       deliveryStatusSummary: ""
     };
   }
+  const projectRecord = projects.find((item) => item.id === projectId) || null;
+  const packageWorkflowStatus = projectRecord?.package?.workflowStatus || {};
   return (
     projectWorkflowStatus.get(projectId) || {
-      storyboardStatusSummary: "",
-      deliveryStatusSummary: ""
+      storyboardStatusSummary: packageWorkflowStatus.storyboardStatusSummary || "",
+      deliveryStatusSummary: packageWorkflowStatus.deliveryStatusSummary || ""
     }
   );
 }
@@ -3704,6 +3706,14 @@ function updateWorkflowStatus(projectId, partial = {}) {
     ...partial
   };
   projectWorkflowStatus.set(projectId, nextStatus);
+  const record = projects.find((item) => item.id === projectId) || null;
+  if (record?.package) {
+    record.package.workflowStatus = {
+      storyboardStatusSummary: nextStatus.storyboardStatusSummary || "",
+      deliveryStatusSummary: nextStatus.deliveryStatusSummary || ""
+    };
+    saveProjects();
+  }
   if (projectId === currentProjectId) {
     renderGenerateFlowStatus();
     renderCurrentResultSummary();
@@ -4325,7 +4335,17 @@ function loadProjects() {
     return Array.isArray(parsed)
       ? parsed.map((item) => ({
           ...item,
-          thumbnailDataUrl: typeof item?.thumbnailDataUrl === "string" ? item.thumbnailDataUrl : ""
+          thumbnailDataUrl: typeof item?.thumbnailDataUrl === "string" ? item.thumbnailDataUrl : "",
+          package: item?.package
+            ? {
+                ...item.package,
+                workflowStatus: {
+                  storyboardStatusSummary: item.package.workflowStatus?.storyboardStatusSummary || "",
+                  deliveryStatusSummary: item.package.workflowStatus?.deliveryStatusSummary || ""
+                }
+              }
+            : item.package
+
         }))
       : [];
   } catch {

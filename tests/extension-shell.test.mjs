@@ -154,6 +154,15 @@ test("workspace shell marks submitted projects as submitted after send-to-servic
   assert.match(workspaceJs, /if \(tasks\.some\(\(task\) => task\?\.batchId\)\) return "已提交"/);
 });
 
+test("workspace shell persists storyboard and delivery summaries with each project record", () => {
+  assert.match(workspaceJs, /record\.package\.workflowStatus = \{/);
+  assert.match(workspaceJs, /storyboardStatusSummary: nextStatus\.storyboardStatusSummary \|\| ""/);
+  assert.match(workspaceJs, /deliveryStatusSummary: nextStatus\.deliveryStatusSummary \|\| ""/);
+  assert.match(workspaceJs, /const packageWorkflowStatus = projectRecord\?\.package\?\.workflowStatus \|\| \{\}/);
+  assert.match(workspaceJs, /storyboardStatusSummary: packageWorkflowStatus\.storyboardStatusSummary \|\| ""/);
+  assert.match(workspaceJs, /deliveryStatusSummary: packageWorkflowStatus\.deliveryStatusSummary \|\| ""/);
+});
+
 test("workspace shell lets generate-page primary action run straight into delivery", () => {
   assert.match(workspaceHtml, /id="remakeAndDeliverButton"/);
   assert.match(workspaceJs, /handleGenerate\(\{ autoDeliver: true \}\)/);
