@@ -99,6 +99,13 @@ test("workspace shell sends uploaded product images through the local vision ser
   assert.match(workspaceJs, /nodes\.remakeButton\.disabled = !\(hasTemplate && hasProductImage\) \|\| productImageAnalysisRunning/);
 });
 
+test("workspace shell batch export also downloads storyboard image files through the local proxy", () => {
+  assert.match(workspaceJs, /downloadStoryboardImagesForBundle/);
+  assert.match(workspaceJs, /已按项目结构导出/);
+  assert.match(workspaceJs, /故事版图片/);
+  assert.match(workspaceJs, /\/api\/storyboards\/\$\{encodeURIComponent\(normalizedTaskId\)\}\/image/);
+});
+
 test("workspace shell lets users copy a complete delivery pack instead of raw task json only", () => {
   assert.match(workspaceHtml, /id="copyBatchTasksButton"/);
   assert.match(workspaceHtml, /复制结果包/);

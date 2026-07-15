@@ -1160,7 +1160,7 @@ async function importJsonProject(event) {
   }
 }
 
-function downloadBundle() {
+async function downloadBundle() {
   if (!currentPackage) {
     setActionFeedback("当前没有可批量导出的项目。", true);
     return;
@@ -1172,7 +1172,34 @@ function downloadBundle() {
     const type = filename.endsWith(".json") ? "application/json" : "text/plain";
     downloadBlob(filename, file.content, type);
   }
-  setActionFeedback(`已按项目结构导出 ${bundle.files.length} 个文件。`);
+  const imageDownloadResult = await downloadStoryboardImagesForBundle(currentPackage);
+  const totalFiles = bundle.files.length + imageDownloadResult.successCount;
+  if (imageDownloadResult.failedCount > 0) {
+    setActionFeedback(
+      `文本文件已导出，故事版图片成功 ${imageDownloadResult.successCount}/${imageDownloadResult.totalCount} 张，其余图片请稍后再试。`,
+      true
+    );
+    return;
+  }
+  setActionFeedback(`已按项目结构导出 ${totalFiles} 个文件${imageDownloadResult.successCount ? `，其中包含 ${imageDownloadResult.successCount} 张故事版图片` : ""}。`);
+}
+
+async function downloadStoryboardImagesForBundle(pkg) {
+  const tasks = Array.isArray(pkg?.storyboardTasks) ? pkg.storyboardTasks.filter((task) => canDownloadStoryboardTask(task)) : [];
+  if (!tasks.length) {
+    return { successCount: 0, failedCount: 0, totalCount: 0 };
+  }
+
+  let successCount = 0;
+  for (const task of tasks) {
+    const ok = await downloadStoryboardImageByTaskId(task.taskId, task);
+    if (ok) successCount += 1;
+  }
+  return {
+    successCount,
+    failedCount: tasks.length - successCount,
+    totalCount: tasks.length
+  };
 }
 
 async function copyClipcatPrompt() {
