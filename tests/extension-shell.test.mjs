@@ -316,6 +316,8 @@ test("workspace shell gives dedicated next-step guidance for partially delivered
 test("workspace shell preserves imported batch and storyboard progress when restoring a JSON project", () => {
   assert.match(workspaceJs, /currentPackage = restoreImportedProjectState\(regeneratePrompts\(parsed\), parsed\);/);
   assert.match(workspaceJs, /function restoreImportedProjectState\(nextPkg, importedPkg\)/);
+  assert.match(workspaceJs, /activeDetailTab = "summary";/);
+  assert.match(workspaceJs, /setCurrentView\("history"\);/);
   assert.match(workspaceJs, /batchId: matchedTask\.batchId \|\| task\.batchId \|\| ""/);
   assert.match(workspaceJs, /imageUrl: matchedTask\.imageUrl \|\| task\.imageUrl \|\| ""/);
   assert.match(workspaceJs, /workflowStatus: \{/);

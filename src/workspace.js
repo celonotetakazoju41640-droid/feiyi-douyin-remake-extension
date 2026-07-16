@@ -1273,8 +1273,10 @@ async function importJsonProject(event) {
     projects.unshift(record);
     currentProjectId = record.id;
     saveProjects();
+    activeDetailTab = "summary";
     syncFormWithCurrentPackage();
     renderProjects();
+    setCurrentView("history");
     setActionFeedback("JSON 项目已导入，可以继续改模板和镜头。");
   } catch {
     setActionFeedback("导入失败：请确认是本插件导出的 JSON。", true);
