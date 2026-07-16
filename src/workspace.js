@@ -1250,6 +1250,7 @@ function clearProjects() {
   projects = [];
   currentPackage = null;
   currentProjectId = null;
+  activeDetailTab = "summary";
   saveProjects();
   resetStoryboardDefaultToggle();
   renderProjects();

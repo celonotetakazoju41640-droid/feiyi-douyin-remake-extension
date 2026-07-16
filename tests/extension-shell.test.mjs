@@ -85,6 +85,7 @@ test("workspace shell turns history into a project library plus detail workspace
   assert.match(workspaceJs, /模型：\$\{escapeHtml\(preferredModel\)\}/);
   assert.match(workspaceJs, /nodes\.currentTaskStatusBadge\.textContent = currentProjectStatus/);
   assert.match(workspaceJs, /function selectProject\(projectId\) \{[\s\S]*activeDetailTab = "summary";/);
+  assert.match(workspaceJs, /function clearProjects\(\) \{[\s\S]*activeDetailTab = "summary";/);
 });
 
 test("workspace shell keeps template and remake model visible in the result summary", () => {
