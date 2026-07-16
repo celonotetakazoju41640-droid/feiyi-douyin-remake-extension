@@ -4110,6 +4110,11 @@ function renderCurrentResultSummary() {
   const submittedStageHint = currentBatchId
     ? "本地服务阶段：视频任务已经交给本地服务继续跑；按当前批次号去本地服务或外部视频工具继续追踪，文案和图片仍可继续一键带走。"
     : "";
+  const primaryStageSummary =
+    workflowStatus.deliveryStatusSummary ||
+    workflowStatus.storyboardStatusSummary ||
+    submittedStageHint ||
+    (storyboardSummary ? `故事版：${storyboardSummary}` : "");
   nodes.currentResultSummary.hidden = false;
   nodes.currentResultSummary.innerHTML = `
     <div class="currentResultSummaryHead">
@@ -4129,14 +4134,11 @@ function renderCurrentResultSummary() {
       <span class="currentResultChip">证明：${escapeHtml(resultSnapshot.proof)}</span>
       <span class="currentResultChip">收口：${escapeHtml(resultSnapshot.cta)}</span>
     </div>
+    <div class="currentResultSummaryNote">下一步建议：${escapeHtml(nextActionSuggestion)}</div>
+    ${primaryStageSummary ? `<div class="currentResultSummaryNote">当前阶段：${escapeHtml(primaryStageSummary)}</div>` : ""}
+    ${currentBatchId ? `<div class="currentResultSummaryNote">当前批次号：${escapeHtml(currentBatchId)}</div>` : ""}
     <div class="currentResultSummaryNote">主卖点：${escapeHtml(firstSellingPoint)}</div>
     ${productImageInsightStatus ? `<div class="currentResultSummaryNote">商品图识别：${escapeHtml(productImageInsightStatus)}</div>` : ""}
-    ${currentBatchId ? `<div class="currentResultSummaryNote">当前批次号：${escapeHtml(currentBatchId)}</div>` : ""}
-    ${submittedStageHint ? `<div class="currentResultSummaryNote">${escapeHtml(submittedStageHint)}</div>` : ""}
-    ${storyboardSummary ? `<div class="currentResultSummaryNote">故事版：${escapeHtml(storyboardSummary)}</div>` : ""}
-    ${workflowStatus.storyboardStatusSummary ? `<div class="currentResultSummaryNote">当前故事版进度：${escapeHtml(workflowStatus.storyboardStatusSummary)}</div>` : ""}
-    ${workflowStatus.deliveryStatusSummary ? `<div class="currentResultSummaryNote">当前带走结果：${escapeHtml(workflowStatus.deliveryStatusSummary)}</div>` : ""}
-    <div class="currentResultSummaryNote">下一步建议：${escapeHtml(nextActionSuggestion)}</div>
     <div class="currentResultSummaryNote">${escapeHtml(resultSnapshot.overview)}</div>
   `;
 }

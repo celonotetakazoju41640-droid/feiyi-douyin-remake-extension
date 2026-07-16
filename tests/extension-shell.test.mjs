@@ -94,6 +94,19 @@ test("workspace shell keeps template and remake model visible in the result summ
   assert.match(workspaceJs, /当前这次结果按“\$\{templateName\} \/ \$\{modelName\}”在出/);
 });
 
+test("workspace shell puts next action and current stage first in the current project summary", () => {
+  assert.match(workspaceJs, /const primaryStageSummary =/);
+  assert.match(workspaceJs, /workflowStatus\.deliveryStatusSummary \|\|/);
+  assert.match(workspaceJs, /workflowStatus\.storyboardStatusSummary \|\|/);
+  assert.match(workspaceJs, /submittedStageHint \|\|/);
+  assert.match(
+    workspaceJs,
+    /<div class="currentResultSummaryNote">下一步建议：\$\{escapeHtml\(nextActionSuggestion\)\}<\/div>\s*\$\{primaryStageSummary \? `<div class="currentResultSummaryNote">当前阶段：\$\{escapeHtml\(primaryStageSummary\)\}<\/div>` : ""\}\s*\$\{currentBatchId \? `<div class="currentResultSummaryNote">当前批次号：\$\{escapeHtml\(currentBatchId\)\}<\/div>` : ""\}/s
+  );
+  assert.doesNotMatch(workspaceJs, /当前故事版进度：/);
+  assert.doesNotMatch(workspaceJs, /当前带走结果：/);
+});
+
 test("workspace shell turns storyboard generation into a one-click auto-wait flow", () => {
   assert.match(workspaceJs, /data-storyboard-run/);
   assert.match(workspaceJs, /\/api\/storyboards/);
