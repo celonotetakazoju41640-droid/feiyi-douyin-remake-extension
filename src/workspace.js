@@ -3821,7 +3821,7 @@ function updateResultButtons() {
   nodes.downloadJsonButton.disabled = disabled;
   nodes.downloadMarkdownButton.disabled = disabled;
   nodes.copyBatchTasksButton.disabled = disabled;
-  nodes.sendBatchTasksButton.textContent = submitted ? "已提交到本地服务" : "提交生成";
+  nodes.sendBatchTasksButton.textContent = submitted ? "已提交到本地服务" : "提交到本地服务";
   nodes.sendBatchTasksButton.disabled = disabled || submitted;
   updateDeliveryShortcutButton();
   updateStoryboardShortcutButton();
@@ -4049,7 +4049,7 @@ function buildGenerateFlowStatusSummary() {
   if (currentStatus.deliveryStatusSummary) return currentStatus.deliveryStatusSummary;
   if (currentStatus.storyboardStatusSummary) return currentStatus.storyboardStatusSummary;
   if (currentPackage && !hasFreshProductImage) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";
-  if (currentPackage) return "项目已生成，可继续故事版、提交生成或一键带走结果。";
+  if (currentPackage) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。";
   if (productImageInsightStatus) return `商品图已就绪，${productImageInsightStatus}，可以直接生成。`;
   return "当前已具备生成条件，直接点主按钮即可。";
 }
@@ -4227,7 +4227,7 @@ function getCurrentNextActionSuggestion(record) {
   if (/^一键带走完成/.test(deliverySummary)) {
     return submitted
       ? "视频任务已经进入本地服务阶段；按当前批次号去本地服务或外部视频工具继续追踪，文案和图片也已带走完成。"
-      : "结果已经带走完成；如果还要跑视频任务，点“提交生成”。";
+      : "结果已经带走完成；如果还要跑视频任务，点“提交到本地服务”。";
   }
   if (/^一键带走部分完成/.test(deliverySummary)) {
     return submitted
@@ -4244,7 +4244,7 @@ function getCurrentNextActionSuggestion(record) {
     return "视频任务已经提交到本地服务；按当前批次号去本地服务或外部视频工具继续追踪，如果还要整理文案和图片，点“一键带走全部结果”。";
   }
   if (deliveryConfig.action === "deliver") {
-    return "优先点“一键带走全部结果”；如果只想先跑视频任务，也可以点“提交生成”。";
+    return "优先点“一键带走全部结果”；如果只想先跑视频任务，也可以点“提交到本地服务”。";
   }
   if (storyboardConfig.visible && storyboardConfig.action !== "none") {
     return `先点“${storyboardConfig.label}”，再继续后面的提交或带走。`;

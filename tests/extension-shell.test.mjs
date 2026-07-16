@@ -30,6 +30,7 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /蒸馏模型/);
   assert.match(workspaceHtml, /生成并一键带走结果/);
   assert.match(workspaceHtml, /只生成项目/);
+  assert.match(workspaceHtml, /提交到本地服务/);
   assert.match(workspaceHtml, /只做两步：选模板、传图/);
   assert.match(workspaceHtml, /id="accountTemplateSelect"/);
   assert.match(workspaceHtml, /更多设置（可选）/);
@@ -242,7 +243,7 @@ test("workspace shell marks submitted projects as submitted after send-to-servic
   assert.match(workspaceJs, /renderProjects\(\);/);
   assert.match(workspaceJs, /setActionFeedback\(`已发送到本地服务，批次号：\$\{data\.batchId \|\| "未返回"\}`\)/);
   assert.match(workspaceJs, /const submitted = currentProjectRecord \? hasSubmittedBatchTasks\(currentProjectRecord\) : false/);
-  assert.match(workspaceJs, /nodes\.sendBatchTasksButton\.textContent = submitted \? "已提交到本地服务" : "提交生成"/);
+  assert.match(workspaceJs, /nodes\.sendBatchTasksButton\.textContent = submitted \? "已提交到本地服务" : "提交到本地服务"/);
   assert.match(workspaceJs, /nodes\.sendBatchTasksButton\.disabled = disabled \|\| submitted/);
   assert.match(workspaceJs, /const currentBatchId = currentPackage\.batchVideoTasks\?\.find\(\(task\) => task\.batchId\)\?\.batchId \|\| ""/);
   assert.match(workspaceJs, /当前批次号：/);
@@ -422,13 +423,13 @@ test("workspace shell keeps known uploaded-image status after project restore ev
   assert.match(workspaceJs, /nodes\.productUploadStatus\.textContent = productCount \? `商品图：已上传 \$\{productCount\} 张` : "商品图：未上传"/);
   assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{productImageInsightStatus \? `，\$\{productImageInsightStatus\}` : ""\}` : "待上传"/);
   assert.match(workspaceJs, /renderAssetStatus\(\);/);
-  assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。"/);
+  assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。"/);
 });
 
 test("workspace shell keeps generated-project status ahead of reusable image-insight wording", () => {
   assert.match(
     workspaceJs,
-    /if \(currentPackage && !hasFreshProductImage\) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";\s*if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。";\s*if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/s
+    /if \(currentPackage && !hasFreshProductImage\) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";\s*if \(currentPackage\) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。";\s*if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/s
   );
 });
 
