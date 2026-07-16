@@ -644,7 +644,7 @@ async function handleGenerate(options = {}) {
   currentProjectId = record.id;
   updateWorkflowStatus(record.id, {
     productImageInsightStatusSummary: lastProductImageInsightStatus || "",
-    storyboardStatusSummary: currentPackage.project.storyboardEnabled ? "故事版已排进主链路，生成后可直接开始。" : "",
+    storyboardStatusSummary: currentPackage.project.storyboardEnabled ? "故事版已排进主链路，生成后可直接点“生成故事版图”开始。" : "",
     deliveryStatusSummary: ""
   });
   saveProjects();
@@ -653,7 +653,7 @@ async function handleGenerate(options = {}) {
   renderShotEditor();
   renderProjectDetail();
   updateResultButtons();
-  setActionFeedback(`已生成项目，并跳到历史记录。当前有 ${currentPackage.batchVideoTasks?.length || 0} 条可直接去跑的任务。`);
+  setActionFeedback(`已生成项目，并跳到历史记录。当前有 ${currentPackage.batchVideoTasks?.length || 0} 条可提交到本地服务的视频任务。`);
   syncFlowStepState();
   setWizardStep(4);
   setCurrentView("history");
@@ -701,7 +701,7 @@ function renderProjects() {
   nodes.currentTaskUnitLabel.textContent = `第 1 条 / 共 ${currentPackage?.batchVideoTasks?.length || 1} 条`;
   nodes.currentTaskHint.textContent = currentPackage
     ? `下一步建议：${nextActionSuggestion}`
-    : "当前任务已准备好，可以继续处理。";
+    : "当前项目已准备好，先看摘要，再按建议继续下一步。";
 
   nodes.seriesList.innerHTML = projects
     .slice(0, 8)
@@ -4249,7 +4249,7 @@ function getCurrentNextActionSuggestion(record) {
   if (storyboardConfig.visible && storyboardConfig.action !== "none") {
     return `先点“${storyboardConfig.label}”，再继续后面的提交或带走。`;
   }
-  return "先看右侧详情，再按当前项目状态继续处理。";
+  return "先看右侧详情，再按当前建议继续下一步。";
 }
 
 function summarizeStoryboardState(tasks = []) {
@@ -4471,7 +4471,7 @@ function getWizardStepConfig(step) {
     },
     4: {
       title: "结果与提交",
-      description: "项目已经生成完成。这里直接复制结果包、导出文件，或提交去跑视频。",
+      description: "项目已经生成完成。这里可以直接复制结果包、导出文件，或提交到本地服务继续跑视频任务。",
       nextLabel: "已完成"
     }
   }[step];

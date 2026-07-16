@@ -300,6 +300,7 @@ test("workspace shell preserves imported batch and storyboard progress when rest
 test("workspace shell lets generate-page primary action run straight into delivery", () => {
   assert.match(workspaceHtml, /id="remakeAndDeliverButton"/);
   assert.match(workspaceJs, /handleGenerate\(\{ autoDeliver: true \}\)/);
+  assert.match(workspaceJs, /已生成项目，并跳到历史记录。当前有 \$\{currentPackage\.batchVideoTasks\?\.length \|\| 0\} 条可提交到本地服务的视频任务。/);
   assert.match(workspaceJs, /项目已生成，正在继续整理故事版和交付结果/);
   assert.match(workspaceJs, /await handleDeliveryShortcut\(\);/);
 });
@@ -431,6 +432,16 @@ test("workspace shell keeps generated-project status ahead of reusable image-ins
     workspaceJs,
     /if \(currentPackage && !hasFreshProductImage\) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";\s*if \(currentPackage\) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。";\s*if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/s
   );
+});
+
+test("workspace shell replaces abstract follow-up wording with concrete next-step guidance", () => {
+  assert.match(workspaceJs, /故事版已排进主链路，生成后可直接点“生成故事版图”开始。/);
+  assert.match(workspaceJs, /当前项目已准备好，先看摘要，再按建议继续下一步。/);
+  assert.match(workspaceJs, /先看右侧详情，再按当前建议继续下一步。/);
+  assert.match(workspaceJs, /项目已经生成完成。这里可以直接复制结果包、导出文件，或提交到本地服务继续跑视频任务。/);
+  assert.doesNotMatch(workspaceJs, /可直接去跑的任务/);
+  assert.doesNotMatch(workspaceJs, /提交去跑视频/);
+  assert.doesNotMatch(workspaceJs, /可以继续处理/);
 });
 
 test("workspace shell clears stale local product uploads when switching to another restored project", () => {
