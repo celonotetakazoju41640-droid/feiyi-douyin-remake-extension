@@ -270,11 +270,21 @@ test("workspace shell history status reflects downstream storyboard and delivery
   assert.match(workspaceJs, /if \(/);
   assert.match(workspaceJs, /deliveryStatusSummary/);
   assert.match(workspaceJs, /return "已带走"/);
+  assert.match(workspaceJs, /return "部分带走"/);
   assert.match(workspaceJs, /return "待带走"/);
   assert.match(workspaceJs, /return "故事版中"/);
   assert.match(workspaceJs, /return "待故事版"/);
   assert.match(workspaceJs, /return "已提交"/);
   assert.match(workspaceJs, /return "可提交"/);
+});
+
+test("workspace shell gives dedicated next-step guidance for partially delivered results", () => {
+  assert.match(workspaceJs, /if \(\/\^一键带走部分完成\/\.test\(deliverySummary\)\) \{/);
+  assert.match(workspaceJs, /文案和文件只带走了一部分；重新点“一键带走全部结果”补复制或补下载。/);
+  assert.match(
+    workspaceJs,
+    /文案和文件只带走了一部分；重新点“一键带走全部结果”补复制或补下载，同时继续按当前批次号追踪视频任务。/
+  );
 });
 
 test("workspace shell preserves imported batch and storyboard progress when restoring a JSON project", () => {

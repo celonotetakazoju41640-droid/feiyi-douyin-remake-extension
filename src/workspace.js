@@ -4229,6 +4229,11 @@ function getCurrentNextActionSuggestion(record) {
       ? "视频任务已经进入本地服务阶段；按当前批次号去本地服务或外部视频工具继续追踪，文案和图片也已带走完成。"
       : "结果已经带走完成；如果还要跑视频任务，点“提交生成”。";
   }
+  if (/^一键带走部分完成/.test(deliverySummary)) {
+    return submitted
+      ? "文案和文件只带走了一部分；重新点“一键带走全部结果”补复制或补下载，同时继续按当前批次号追踪视频任务。"
+      : "文案和文件只带走了一部分；重新点“一键带走全部结果”补复制或补下载。";
+  }
   if (/^一键带走待继续/.test(deliverySummary)) {
     return "故事版还在处理中，稍后继续等待，或再点一次“一键带走全部结果”。";
   }
@@ -4823,7 +4828,8 @@ function getHistoryProjectStatus(record) {
   ).length;
   const creatableStoryboardCount = storyboardTasks.filter((task) => shouldCreateStoryboardTask(task)).length;
 
-  if (/^一键带走完成|^一键带走部分完成/.test(deliveryStatusSummary)) return "已带走";
+  if (/^一键带走完成/.test(deliveryStatusSummary)) return "已带走";
+  if (/^一键带走部分完成/.test(deliveryStatusSummary)) return "部分带走";
   if (/^正在整理结果/.test(deliveryStatusSummary)) return "带走中";
   if (storyboardEnabled && storyboardTasks.length) {
     if (pendingStoryboardCount > 0) return "故事版中";
