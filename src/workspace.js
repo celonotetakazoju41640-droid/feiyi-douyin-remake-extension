@@ -3825,6 +3825,29 @@ function updateResultButtons() {
   nodes.sendBatchTasksButton.disabled = disabled || submitted;
   updateDeliveryShortcutButton();
   updateStoryboardShortcutButton();
+  updateHistoryPrimaryActionHierarchy();
+}
+
+function applyActionButtonTone(button, tone) {
+  if (!button) return;
+  button.classList.toggle("primaryButton", tone === "primary");
+  button.classList.toggle("ghostButton", tone !== "primary");
+}
+
+function updateHistoryPrimaryActionHierarchy() {
+  const deliveryConfig = getDeliveryShortcutConfig(currentPackage);
+  const storyboardConfig = getStoryboardShortcutConfig(currentPackage);
+  const submitDisabled = Boolean(nodes.sendBatchTasksButton?.disabled);
+
+  const deliveryVisible = Boolean(deliveryConfig.visible && !nodes.deliveryShortcutButton?.hidden);
+  const storyboardVisible = Boolean(storyboardConfig.visible && !nodes.storyboardShortcutButton?.hidden);
+  const deliveryPrimary = deliveryVisible;
+  const storyboardPrimary = !deliveryPrimary && storyboardVisible;
+  const submitPrimary = !deliveryPrimary && !storyboardPrimary && !submitDisabled;
+
+  applyActionButtonTone(nodes.deliveryShortcutButton, deliveryPrimary ? "primary" : "ghost");
+  applyActionButtonTone(nodes.storyboardShortcutButton, storyboardPrimary ? "primary" : "ghost");
+  applyActionButtonTone(nodes.sendBatchTasksButton, submitPrimary ? "primary" : "ghost");
 }
 
 function updateActionFeedback() {

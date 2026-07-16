@@ -236,6 +236,17 @@ test("workspace shell exposes a true one-click delivery action in the result are
   assert.match(workspaceJs, /复制结果包失败，但导出已继续完成/);
 });
 
+test("workspace shell keeps only one highlighted primary action in history based on the next best step", () => {
+  assert.match(workspaceJs, /function applyActionButtonTone\(button, tone\)/);
+  assert.match(workspaceJs, /function updateHistoryPrimaryActionHierarchy\(\)/);
+  assert.match(workspaceJs, /const deliveryPrimary = deliveryVisible;/);
+  assert.match(workspaceJs, /const storyboardPrimary = !deliveryPrimary && storyboardVisible;/);
+  assert.match(workspaceJs, /const submitPrimary = !deliveryPrimary && !storyboardPrimary && !submitDisabled;/);
+  assert.match(workspaceJs, /applyActionButtonTone\(nodes\.deliveryShortcutButton, deliveryPrimary \? "primary" : "ghost"\);/);
+  assert.match(workspaceJs, /applyActionButtonTone\(nodes\.storyboardShortcutButton, storyboardPrimary \? "primary" : "ghost"\);/);
+  assert.match(workspaceJs, /applyActionButtonTone\(nodes\.sendBatchTasksButton, submitPrimary \? "primary" : "ghost"\);/);
+});
+
 test("workspace shell marks submitted projects as submitted after send-to-service succeeds", () => {
   assert.match(workspaceJs, /task\.status = data\.status \|\| "queued"/);
   assert.match(workspaceJs, /task\.batchId = data\.batchId \|\| task\.batchId \|\| ""/);
