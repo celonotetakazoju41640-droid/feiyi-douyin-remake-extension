@@ -4085,7 +4085,7 @@ function renderCurrentResultSummary() {
   const resultSnapshot = buildCurrentResultSnapshot(currentPackage);
   const nextActionSuggestion = getCurrentNextActionSuggestion(projects.find((item) => item.id === currentProjectId) || null);
   const submittedStageHint = currentBatchId
-    ? "本地服务阶段：视频任务已经交给本地服务继续跑；文案和图片仍可继续一键带走。"
+    ? "本地服务阶段：视频任务已经交给本地服务继续跑；按当前批次号去本地服务或外部视频工具继续追踪，文案和图片仍可继续一键带走。"
     : "";
   nodes.currentResultSummary.hidden = false;
   nodes.currentResultSummary.innerHTML = `
@@ -4226,7 +4226,7 @@ function getCurrentNextActionSuggestion(record) {
 
   if (/^一键带走完成/.test(deliverySummary)) {
     return submitted
-      ? "视频任务已经进入本地服务阶段；文案和图片也已带走完成，接下来继续等批次结果。"
+      ? "视频任务已经进入本地服务阶段；按当前批次号去本地服务或外部视频工具继续追踪，文案和图片也已带走完成。"
       : "结果已经带走完成；如果还要跑视频任务，点“提交生成”。";
   }
   if (/^一键带走待继续/.test(deliverySummary)) {
@@ -4236,7 +4236,7 @@ function getCurrentNextActionSuggestion(record) {
     return `先点“${deliveryConfig.label}”，系统会在故事版就绪后继续带走结果。`;
   }
   if (submitted) {
-    return "视频任务已经提交到本地服务；如果还要整理文案和图片，点“一键带走全部结果”。";
+    return "视频任务已经提交到本地服务；按当前批次号去本地服务或外部视频工具继续追踪，如果还要整理文案和图片，点“一键带走全部结果”。";
   }
   if (deliveryConfig.action === "deliver") {
     return "优先点“一键带走全部结果”；如果只想先跑视频任务，也可以点“提交生成”。";
