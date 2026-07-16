@@ -3707,6 +3707,7 @@ function bindProjectListEvents() {
 function selectProject(projectId) {
   currentProjectId = projectId;
   ensureCurrentProject();
+  activeDetailTab = "summary";
   syncFormWithCurrentPackage();
   renderProjects();
   nodes.currentTaskHint.textContent = `当前已切换到：${currentPackage.project.projectName}。先看左侧摘要，再看右侧详情。`;
