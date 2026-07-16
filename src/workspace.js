@@ -4049,8 +4049,8 @@ function buildGenerateFlowStatusSummary() {
   if (currentStatus.deliveryStatusSummary) return currentStatus.deliveryStatusSummary;
   if (currentStatus.storyboardStatusSummary) return currentStatus.storyboardStatusSummary;
   if (currentPackage && !hasFreshProductImage) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";
-  if (productImageInsightStatus) return `商品图已就绪，${productImageInsightStatus}，可以直接生成。`;
   if (currentPackage) return "项目已生成，可继续故事版、提交生成或一键带走结果。";
+  if (productImageInsightStatus) return `商品图已就绪，${productImageInsightStatus}，可以直接生成。`;
   return "当前已具备生成条件，直接点主按钮即可。";
 }
 

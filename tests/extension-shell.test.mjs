@@ -415,6 +415,13 @@ test("workspace shell keeps known uploaded-image status after project restore ev
   assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。"/);
 });
 
+test("workspace shell keeps generated-project status ahead of reusable image-insight wording", () => {
+  assert.match(
+    workspaceJs,
+    /if \(currentPackage && !hasFreshProductImage\) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";\s*if \(currentPackage\) return "项目已生成，可继续故事版、提交生成或一键带走结果。";\s*if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/s
+  );
+});
+
 test("workspace shell clears stale local product uploads when switching to another restored project", () => {
   assert.match(workspaceJs, /function clearLocalProductUploadState\(\)/);
   assert.match(workspaceJs, /nodes\.productImages\.value = ""/);
