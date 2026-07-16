@@ -325,6 +325,7 @@ test("workspace shell lets generate-page primary action run straight into delive
   assert.match(workspaceHtml, /id="remakeAndDeliverButton"/);
   assert.match(workspaceJs, /handleGenerate\(\{ autoDeliver: true \}\)/);
   assert.match(workspaceJs, /已生成项目，并跳到历史记录。当前有 \$\{currentPackage\.batchVideoTasks\?\.length \|\| 0\} 条可提交到本地服务的视频任务。/);
+  assert.match(workspaceJs, /activeDetailTab = "summary";/);
   assert.match(workspaceJs, /项目已生成，正在继续整理故事版和交付结果/);
   assert.match(workspaceJs, /await handleDeliveryShortcut\(\);/);
 });

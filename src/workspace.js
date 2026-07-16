@@ -649,6 +649,7 @@ async function handleGenerate(options = {}) {
   });
   saveProjects();
   syncFormWithCurrentPackage();
+  activeDetailTab = "summary";
   renderProjects();
   renderShotEditor();
   renderProjectDetail();
