@@ -62,10 +62,12 @@ const nodes = {
   productInsightSummary: document.querySelector("#productInsightSummary"),
   autoPromptSummary: document.querySelector("#autoPromptSummary"),
   generationExpectationSummary: document.querySelector("#generationExpectationSummary"),
-  generateAutomationList: document.querySelector("#generateAutomationList"),
-  generateOutcomeSummary: document.querySelector("#generateOutcomeSummary"),
-  generateOutcomeMeta: document.querySelector("#generateOutcomeMeta"),
-  generateOutcomeText: document.querySelector("#generateOutcomeText"),
+  generateMainChain: document.querySelector("#generateMainChain"),
+  generateMainSteps: document.querySelector("#generateMainSteps"),
+  generateAutoStatus: document.querySelector("#generateAutoStatus"),
+  generateOutcomeSummary: document.querySelector("#generateResultBridge"),
+  generateOutcomeMeta: document.querySelector("#generateResultMeta"),
+  generateOutcomeText: document.querySelector("#generateResultText"),
   copyPromptDraftButton: document.querySelector("#copyPromptDraftButton"),
   continueDeliveryFromGenerateButton: document.querySelector("#continueDeliveryFromGenerateButton"),
   openHistoryFromGenerateButton: document.querySelector("#openHistoryFromGenerateButton"),
@@ -262,8 +264,9 @@ function init() {
   renderCastList();
   renderAssetStatus();
   renderGenerationExpectationSummary();
-  renderGenerateAutomationList();
-  renderGenerateOutcomeSummary();
+  renderGenerateAutoStatus();
+  renderGenerateResultBridge();
+  renderGenerateMainSteps();
   renderTemplateSelectionSummary();
   renderTemplateGuide();
   renderManageScanSummary();
@@ -676,7 +679,7 @@ async function handleGenerate(options = {}) {
   syncFlowStepState();
   setWizardStep(4);
   setCurrentView(options.autoDeliver ? "generate" : "history");
-  renderGenerateOutcomeSummary();
+  renderGenerateResultBridge();
   if (options.autoDeliver) {
     await handleDeliveryShortcut();
   }
@@ -706,8 +709,9 @@ function renderProjects() {
     nodes.shotEditorPanel.innerHTML = "";
     nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近项目</strong><p>第一次生成后，这里会保留最近项目卡片和切换入口。</p></div>`;
     renderCurrentResultSummary();
-    renderGenerateAutomationList();
-    renderGenerateOutcomeSummary();
+    renderGenerateAutoStatus();
+    renderGenerateResultBridge();
+    renderGenerateMainSteps();
     updateResultButtons();
     return;
   }
@@ -3918,8 +3922,9 @@ function renderAssetStatus() {
   renderProductInsightSummary();
   renderAutoPromptSummary();
   renderGenerationExpectationSummary();
-  renderGenerateAutomationList();
-  renderGenerateOutcomeSummary();
+  renderGenerateAutoStatus();
+  renderGenerateResultBridge();
+  renderGenerateMainSteps();
 }
 
 function renderProductInsightSummary() {
@@ -3995,6 +4000,10 @@ function renderAutoPromptSummary() {
     </div>
     <p class="templateDeepDistillSummaryText">${escapeHtml(promptPreview)}</p>
   `;
+}
+
+function renderGenerateOutcomeSummary() {
+  renderGenerateResultBridge();
 }
 
 function summarizePromptDraft(value, maxLength = 92) {
@@ -4086,8 +4095,8 @@ function buildGenerateAutomationItems() {
 }
 
 function renderGenerateAutomationList() {
-  if (!nodes.generateAutomationList) return;
-  nodes.generateAutomationList.innerHTML = buildGenerateAutomationItems()
+  if (!nodes.generateAutoStatus) return;
+  nodes.generateAutoStatus.innerHTML = buildGenerateAutomationItems()
     .map(
       (item, index) => `
         <article class="generateAutomationItem is-${escapeHtml(item.state)}">
@@ -4102,7 +4111,28 @@ function renderGenerateAutomationList() {
     .join("");
 }
 
-function renderGenerateOutcomeSummary() {
+function renderGenerateMainSteps() {
+  const hasTemplate = Boolean(getSelectedTemplate());
+  const hasProductImage = getKnownProductImageCount() > 0;
+  const hasPromptDraft = Boolean(String(nodes.referenceBrief?.value || "").trim());
+  const hasResult = Boolean(currentPackage);
+  document.querySelectorAll("[data-main-step]").forEach((card) => {
+    const step = card.dataset.mainStep;
+    const ready =
+      (step === "template" && hasTemplate) ||
+      (step === "upload" && hasProductImage) ||
+      (step === "auto" && hasPromptDraft) ||
+      (step === "result" && hasResult);
+    card.classList.toggle("is-ready", ready);
+    card.classList.toggle("is-active", !ready && ((step === "template" && !hasTemplate) || (step === "upload" && hasTemplate && !hasProductImage) || (step === "auto" && hasProductImage && !hasPromptDraft) || (step === "result" && hasPromptDraft && !hasResult)));
+  });
+}
+
+function renderGenerateAutoStatus() {
+  renderGenerateAutomationList();
+}
+
+function renderGenerateResultBridge() {
   if (!nodes.generateOutcomeSummary || !nodes.generateOutcomeMeta || !nodes.generateOutcomeText) return;
   if (!currentPackage) {
     nodes.generateOutcomeSummary.hidden = true;
@@ -4156,8 +4186,7 @@ function renderGenerateOutcomeSummary() {
 
 async function copyPromptDraftFromGenerate() {
   const promptDraft = String(nodes.referenceBrief?.value || currentPackage?.project?.referenceSummary || "").trim();
-  const sellingPoints = splitLines(nodes.productNotes?.value || currentPackage?.project?.sellingPoints?.join("
-") || "");
+  const sellingPoints = splitLines(nodes.productNotes?.value || currentPackage?.project?.sellingPoints?.join("\n") || "");
   const productName = String(nodes.productName?.value || currentPackage?.project?.productName || "当前商品").trim();
   if (!promptDraft) {
     setActionFeedback("当前还没有可复制的提示词草稿。先传图并等 AI 补完草稿。", true);
@@ -4169,8 +4198,7 @@ async function copyPromptDraftFromGenerate() {
     `提示词草稿：${promptDraft}`
   ]
     .filter(Boolean)
-    .join("
-");
+    .join("\n");
   await navigator.clipboard.writeText(text);
   setActionFeedback("已复制当前提示词草稿，可直接带到外部工具继续用。");
   return true;
@@ -4251,8 +4279,9 @@ function updateWorkflowStatus(projectId, partial = {}) {
   }
   if (projectId === currentProjectId) {
     renderGenerateFlowStatus();
-    renderGenerateAutomationList();
-    renderGenerateOutcomeSummary();
+    renderGenerateAutoStatus();
+    renderGenerateResultBridge();
+    renderGenerateMainSteps();
     renderCurrentResultSummary();
     renderProjectDetail();
   }
@@ -4709,8 +4738,9 @@ function updateGenerateButtonState() {
     nodes.remakeAndDeliverButton.disabled = disabled;
   }
   renderGenerateFlowStatus();
-  renderGenerateAutomationList();
-  renderGenerateOutcomeSummary();
+  renderGenerateAutoStatus();
+  renderGenerateResultBridge();
+  renderGenerateMainSteps();
 }
 
 function syncFlowStepState() {
@@ -4837,7 +4867,8 @@ function renderCurrentView() {
 function setCurrentView(view) {
   currentView = view || "generate";
   renderCurrentView();
-  renderGenerateOutcomeSummary();
+  renderGenerateResultBridge();
+  renderGenerateMainSteps();
 }
 
 function handleDocumentKeydown(event) {

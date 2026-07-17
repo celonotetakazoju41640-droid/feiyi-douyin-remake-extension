@@ -82,20 +82,22 @@
               </section>
 
               <section class="contentSection generateTaskSection">
-                <div class="generateHeroGrid">
-                  <section class="simpleFlowCard generateTaskCard">
-                  <div class="contentSectionHead generateTaskHead">
+                <section id="generateMainChain" class="simpleFlowCard generateMainChain">
+                  <div class="contentSectionHead generateTaskHead generateMainChainHead">
                     <div>
-                      <strong>开始生成</strong>
-                      <p>先把项目跑起来，其它内容都可以后面再补。</p>
+                      <strong>第一眼只看这 4 步</strong>
+                      <p>先选模型，再传图，剩下交给系统自动往下走。</p>
                     </div>
                   </div>
 
-                  <div class="generateTaskTop">
-                    <section class="generateComposerCard">
+                  <div id="generateMainSteps" class="generateMainSteps">
+                    <section class="generateMainStepCard" data-main-step="template">
                       <div class="contentSectionHead">
-                        <strong>1. 选模板</strong>
-                        <p>先选模板</p>
+                        <div>
+                          <strong>1. 选蒸馏模型</strong>
+                          <p>先确认这轮要套哪一个模型。</p>
+                        </div>
+                        <span class="generateStepBadge">必做</span>
                       </div>
                       <div class="generateControlGrid simpleSettingsGrid generatePrimaryConfigGrid">
                         <label class="fieldBlock">
@@ -107,13 +109,16 @@
                       <div id="templateDeepDistillSummary" class="templateDeepDistillSummary" hidden></div>
                     </section>
 
-                    <section class="generateUploadCard">
+                    <section class="generateMainStepCard" data-main-step="upload">
                       <div class="contentSectionHead">
-                        <strong>2. 上传产品图</strong>
-                        <p>传图后自动识别</p>
+                        <div>
+                          <strong>2. 上传商品图</strong>
+                          <p>商品图传上来以后，系统会自己往下做识别和补草稿。</p>
+                        </div>
+                        <span class="generateStepBadge">必做</span>
                       </div>
                       <div class="simpleImageUploadRow">
-                        <label class="simpleProductTile">
+                        <label class="simpleProductTile generateMainUploadTile">
                           <input id="productImages" type="file" accept="image/*" multiple />
                           <div class="simpleProductPreview">
                             <span id="productHeroBadge" class="uploadAssetBadge" hidden>示例</span>
@@ -126,26 +131,57 @@
                       <div class="uploadStatusRow" aria-label="素材状态">
                         <span id="productUploadStatus" class="uploadStatusBadge">商品图：未上传</span>
                       </div>
+                    </section>
+
+                    <section class="generateMainStepCard" data-main-step="auto">
+                      <div class="contentSectionHead">
+                        <div>
+                          <strong>3. 等系统自动往下走</strong>
+                          <p>这里会连续显示识别、卖点、草稿和当前主流程状态。</p>
+                        </div>
+                        <span class="generateStepBadge">自动</span>
+                      </div>
+                      <div id="generateAutoStatus" class="generateAutoStatus"></div>
                       <div id="productInsightSummary" class="templateDeepDistillSummary"></div>
                       <div id="autoPromptSummary" class="templateDeepDistillSummary"></div>
+                      <section class="templateDeepDistillSummary generateFlowStatusCard">
+                        <div class="templateDeepDistillSummaryHead">
+                          <strong>当前主流程状态</strong>
+                        </div>
+                        <p id="generateFlowStatusSummary" class="templateDeepDistillSummaryText">先选蒸馏模型，再上传商品图。</p>
+                        <div id="generateFlowStatusList" class="currentResultSummaryGrid"></div>
+                      </section>
+                    </section>
+
+                    <section class="generateMainStepCard" data-main-step="result">
+                      <div class="contentSectionHead">
+                        <div>
+                          <strong>4. 生成并带走结果</strong>
+                          <p>草稿补完后，直接点主按钮；生成后的复制和去向也在这一块接住。</p>
+                        </div>
+                        <span class="generateStepBadge">主动作</span>
+                      </div>
                       <div id="generationExpectationSummary" class="templateDeepDistillSummary"></div>
                       <div class="generatePrimaryActionRow">
                         <button id="remakeAndDeliverButton" class="primaryButton" type="button">生成并一键带走结果</button>
                         <button id="remakeButton" class="ghostButton" type="button">只生成项目</button>
                         <p id="actionFeedback">先选模板，再上传商品图，然后直接点生成并一键带走结果。</p>
                       </div>
+                      <section id="generateResultBridge" class="templateDeepDistillSummary generateOutcomeSummary" hidden>
+                        <div class="templateDeepDistillSummaryHead">
+                          <strong>这轮结果已经接住了</strong>
+                          <span class="templateDeepDistillChip">先复制，再去看完整结果</span>
+                        </div>
+                        <div id="generateResultMeta" class="templateDeepDistillSummaryGrid"></div>
+                        <p id="generateResultText" class="templateDeepDistillSummaryText">生成完成后，这里会直接告诉你该复制什么、去哪里拿图片和结果。</p>
+                        <div class="resultActions generateOutcomeActions">
+                          <button id="copyPromptDraftButton" class="ghostButton" type="button">复制当前提示词草稿</button>
+                          <button id="continueDeliveryFromGenerateButton" class="primaryButton" type="button">继续一键带走全部结果</button>
+                          <button id="openHistoryFromGenerateButton" class="ghostButton" type="button">去历史记录看完整结果</button>
+                        </div>
+                      </section>
                     </section>
                   </div>
-
-                  <section class="simpleFlowCard">
-                    <div class="contentSectionHead">
-                      <div>
-                        <strong>主流程状态</strong>
-                        <p id="generateFlowStatusSummary">先选蒸馏模型，再上传商品图。</p>
-                      </div>
-                    </div>
-                    <div id="generateFlowStatusList" class="currentResultSummaryGrid"></div>
-                  </section>
 
                   <details class="textDetails generateOptionalDetails">
                     <summary>更多设置（可选）</summary>
@@ -277,31 +313,7 @@
                       </div>
                     </section>
                   </details>
-                  </section>
-
-                  <section class="simpleFlowCard generateAutomationCard">
-                    <div class="contentSectionHead generateAutomationHead">
-                      <div>
-                        <strong>系统会自动替你做这 4 件事</strong>
-                        <p>你只管选模型、传图、点主按钮；识别、补草稿和结果承接都在这里看。</p>
-                      </div>
-                    </div>
-                    <div id="generateAutomationList" class="generateAutomationList"></div>
-                    <section id="generateOutcomeSummary" class="templateDeepDistillSummary generateOutcomeSummary" hidden>
-                      <div class="templateDeepDistillSummaryHead">
-                        <strong>这轮结果已经接住了</strong>
-                        <span class="templateDeepDistillChip">生成后这里给你复制和去向</span>
-                      </div>
-                      <div id="generateOutcomeMeta" class="templateDeepDistillSummaryGrid"></div>
-                      <p id="generateOutcomeText" class="templateDeepDistillSummaryText">生成完成后，这里会直接告诉你该复制什么、去哪里拿图片和结果。</p>
-                      <div class="resultActions generateOutcomeActions">
-                        <button id="copyPromptDraftButton" class="ghostButton" type="button">复制当前提示词草稿</button>
-                        <button id="continueDeliveryFromGenerateButton" class="primaryButton" type="button">继续一键带走全部结果</button>
-                        <button id="openHistoryFromGenerateButton" class="ghostButton" type="button">去历史记录看完整结果</button>
-                      </div>
-                    </section>
-                  </section>
-                </div>
+                </section>
               </section>
             </article>
           </section>

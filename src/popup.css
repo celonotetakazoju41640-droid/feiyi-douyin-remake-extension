@@ -4,35 +4,50 @@
 
 body {
   margin: 0;
-  width: 360px;
-  color: #17202a;
-  background: #f4f6f8;
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  width: 380px;
+  color: #27231b;
+  background: #f7f1e5;
+  font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-main {
+button {
+  cursor: pointer;
+  font: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.popupShell {
   display: grid;
   gap: 12px;
   padding: 14px;
 }
 
-header,
-.panelHead,
-.actions {
+.popupHeader,
+.popupPanelHead,
+.popupActions {
   display: flex;
-  align-items: center;
   gap: 10px;
+  align-items: center;
 }
 
-header {
-  min-height: 42px;
+.popupHeader {
+  align-items: flex-start;
 }
 
 .brandLogo {
-  width: 52px;
-  height: 52px;
+  width: 42px;
+  height: 42px;
   object-fit: contain;
   flex: 0 0 auto;
+}
+
+.popupHeaderText {
+  display: grid;
+  gap: 2px;
 }
 
 h1,
@@ -42,119 +57,122 @@ p {
 
 h1 {
   font-size: 17px;
-  letter-spacing: 0;
 }
 
-header p,
-.panelHead span,
-#taskSummary {
-  color: #667085;
-  font-size: 12px;
+.popupHeaderText p,
+.popupPanelHead p,
+.emptyState,
+.projectCard span,
+.projectCard small {
+  color: #6f6455;
 }
 
-#status,
-#taskState {
+.popupBadge {
   margin-left: auto;
-  padding: 4px 8px;
+  padding: 5px 9px;
+  border: 1px solid #e2d3b8;
   border-radius: 999px;
-  background: #e8edf3;
-  color: #223044;
-  white-space: nowrap;
+  background: #fffaf1;
+  color: #4b4339;
   font-size: 12px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
-.panel {
+.popupPanel {
   display: grid;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #d7dde6;
-  border-radius: 8px;
-  background: white;
+  border: 1px solid #e1d1b4;
+  border-radius: 14px;
+  background: #fffdf8;
 }
 
-.panelHead {
+.popupHeroPanel {
+  background: linear-gradient(180deg, #fffaf1 0%, #fffdf8 100%);
+}
+
+.popupPanelHead {
   justify-content: space-between;
+  align-items: flex-start;
 }
 
-.flowList {
+.popupPanelHead strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 14px;
+}
+
+.popupFlowList {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   margin: 0;
   padding-left: 18px;
-  color: #334155;
+  color: #2f2a22;
 }
 
-.actions {
+.popupActions {
   display: grid;
   grid-template-columns: 1fr 1fr;
 }
 
-.projectList {
+button {
+  min-height: 38px;
+  border: 1px solid #d7aa49;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: #d9ad4f;
+  color: #2b2419;
+  font-weight: 800;
+}
+
+.secondaryButton {
+  border-color: #d8cab3;
+  background: #fffaf1;
+  color: #4f473d;
+}
+
+.projectList,
+.latestProjectSnapshot,
+.projectSnapshotGrid {
   display: grid;
   gap: 8px;
 }
 
+.snapshotChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid #e6d8bf;
+  border-radius: 999px;
+  background: #fff;
+  color: #635647;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .projectCard {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   text-align: left;
-  border-color: #cbd5e1;
-  background: #f8fafc;
-  color: #17202a;
-}
-
-.projectCard strong {
-  font-size: 13px;
-}
-
-.projectCard span,
-.projectCard small,
-.emptyState {
-  color: #667085;
+  border-color: #e3d5bc;
+  background: #fffaf1;
 }
 
 .projectCard.is-active {
-  border-color: #1d4ed8;
-  background: #dbeafe;
-}
-
-button {
-  min-height: 36px;
-  border: 1px solid #1d4ed8;
-  border-radius: 6px;
-  padding: 7px 9px;
-  background: #1d4ed8;
-  color: white;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 850;
-}
-
-button:disabled {
-  border-color: #a9b3c1;
-  background: #a9b3c1;
-  cursor: not-allowed;
-}
-
-.secondaryButton {
-  border-color: #4b5563;
-  background: #4b5563;
-}
-
-.remakeButton {
-  border-color: #047857;
-  background: #047857;
+  border-color: #d7aa49;
+  background: #fff3dc;
 }
 
 #result {
-  max-height: 180px;
+  max-height: 170px;
   overflow: auto;
   margin: 0;
   padding: 10px;
-  border-radius: 8px;
-  background: #111827;
-  color: #d1fae5;
+  border-radius: 12px;
+  background: #2b241a;
+  color: #f7e8c8;
   white-space: pre-wrap;
-  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
 }

@@ -7,55 +7,63 @@
     <link rel="stylesheet" href="./popup.css" />
   </head>
   <body>
-    <main>
-      <header>
+    <main class="popupShell">
+      <header class="popupHeader">
         <img class="brandLogo" src="../images/feiyi-logo.png" alt="飞蚁" />
-        <div>
+        <div class="popupHeaderText">
           <h1>飞蚁抖音复刻</h1>
-          <p>参考短视频拆解、复刻提示词、Seedance 返工</p>
+          <p>选择蒸馏模型 / 上传商品图 / AI 自动补提示词</p>
         </div>
-        <span id="status">检测中</span>
+        <span id="status" class="popupBadge">检测中</span>
       </header>
 
-      <section class="panel">
-        <div class="panelHead">
-          <strong>当前主流程</strong>
-          <span>先拆参考，再出复刻包</span>
+      <section class="popupPanel popupHeroPanel">
+        <div class="popupPanelHead">
+          <div>
+            <strong>生成工作台</strong>
+            <p id="popupHeroSummary">先选蒸馏模型，再传商品图，剩下交给系统自动往下走。</p>
+          </div>
         </div>
-        <ol class="flowList">
-          <li>打开复刻工作台，上传参考视频或镜头资料</li>
-          <li>上传商品图，确认后拆结构并生成提示词</li>
-          <li>按镜头表生成素材，再按审片规则返工</li>
+        <ol class="popupFlowList">
+          <li>选择蒸馏模型</li>
+          <li>上传商品图</li>
+          <li>AI 自动识别卖点和场景</li>
+          <li>自动补提示词</li>
+          <li>一键生成叙事图并带走结果</li>
         </ol>
-        <div class="actions">
-          <button id="openRemakeButton" type="button">打开复刻工作台</button>
-          <button id="openProjectsButton" class="secondaryButton" type="button">查看项目结构</button>
+        <div class="popupActions popupPrimaryActions">
+          <button id="openWorkspaceButton" type="button">打开生成工作台</button>
+          <button id="openLatestProjectButton" class="secondaryButton" type="button">查看最近结果</button>
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panelHead">
-          <strong>最近复刻任务</strong>
-          <span id="taskState">未开始</span>
+      <section class="popupPanel">
+        <div class="popupPanelHead">
+          <div>
+            <strong>最近项目</strong>
+            <p id="taskSummary">还没有最近项目，先打开生成工作台跑第一轮。</p>
+          </div>
+          <span id="taskState" class="popupBadge">未开始</span>
         </div>
-        <p id="taskSummary">先在工作台保存项目，再生成镜头表、图片提示词和 Seedance 提示词。</p>
-        <div class="actions">
-          <button id="runSyButton" class="remakeButton" type="button" disabled>生成复刻包</button>
-          <button id="openDirButton" class="secondaryButton" type="button" disabled>打开工作目录</button>
+        <div id="latestProjectSnapshot" class="latestProjectSnapshot">
+          <p class="emptyState">生成完成后，这里会直接显示模板、卖点、任务数和下一步。</p>
+        </div>
+        <div class="popupActions">
+          <button id="copySummaryButton" class="secondaryButton" type="button" disabled>复制提示词草稿</button>
+          <button id="copyClipcatButton" type="button" disabled>复制结果包摘要</button>
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panelHead">
-          <strong>最近项目列表</strong>
-          <span id="projectCount">0 个</span>
+      <section class="popupPanel">
+        <div class="popupPanelHead">
+          <div>
+            <strong>最近项目列表</strong>
+            <p>先看最新项目，不再把旧的拆解口径混进来。</p>
+          </div>
+          <span id="projectCount" class="popupBadge">0 个</span>
         </div>
         <div id="projectList" class="projectList">
           <p class="emptyState">还没有本地项目。</p>
-        </div>
-        <div class="actions">
-          <button id="copySummaryButton" class="secondaryButton" type="button" disabled>复制项目摘要</button>
-          <button id="copyClipcatButton" type="button" disabled>复制 Clipcat 指令</button>
         </div>
       </section>
 

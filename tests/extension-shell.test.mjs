@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const manifest = JSON.parse(fs.readFileSync(new URL("../manifest.json", import.meta.url), "utf8"));
+const popupHtml = fs.readFileSync(new URL("../src/popup.html", import.meta.url), "utf8");
+const popupJs = fs.readFileSync(new URL("../src/popup.js", import.meta.url), "utf8");
 const workspaceHtml = fs.readFileSync(new URL("../src/workspace.html", import.meta.url), "utf8");
 const workspaceJs = fs.readFileSync(new URL("../src/workspace.js", import.meta.url), "utf8");
 const remakeCoreJs = fs.readFileSync(new URL("../src/remake-core.js", import.meta.url), "utf8");
@@ -13,6 +15,35 @@ test("manifest declares MV3 background service worker and required local permiss
   assert.ok(manifest.permissions.includes("storage"));
   assert.ok(manifest.host_permissions.includes("http://127.0.0.1:4328/*"));
   assert.ok(manifest.host_permissions.includes("https://vip.gptsdd.com/*"));
+});
+
+test("popup entry matches the current product-image-driven main flow", () => {
+  assert.match(popupHtml, /生成工作台/);
+  assert.match(popupHtml, /选择蒸馏模型/);
+  assert.match(popupHtml, /上传商品图/);
+  assert.match(popupHtml, /AI 自动识别卖点和场景/);
+  assert.match(popupHtml, /自动补提示词/);
+  assert.match(popupHtml, /一键生成叙事图并带走结果/);
+  assert.match(popupHtml, /id="openWorkspaceButton"/);
+  assert.match(popupHtml, /id="openLatestProjectButton"/);
+  assert.doesNotMatch(popupHtml, /参考短视频拆解/);
+  assert.doesNotMatch(popupHtml, /Seedance 返工/);
+  assert.doesNotMatch(popupHtml, /上传参考视频或镜头资料/);
+  assert.match(popupJs, /function renderPopupHeroSummary\(/);
+  assert.match(popupJs, /function getPopupPrimaryActionLabel\(/);
+});
+
+test("workspace shell keeps the generate view as a single primary chain instead of a split helper board", () => {
+  assert.match(workspaceHtml, /id="generateMainChain"/);
+  assert.match(workspaceHtml, /id="generateMainSteps"/);
+  assert.match(workspaceHtml, /id="generateAutoStatus"/);
+  assert.match(workspaceHtml, /id="generateResultBridge"/);
+  assert.match(workspaceHtml, /第一眼只看这 4 步/);
+  assert.match(workspaceHtml, /先选模型，再传图，剩下交给系统自动往下走/);
+  assert.doesNotMatch(workspaceHtml, /系统会自动替你做这 4 件事/);
+  assert.match(workspaceJs, /function renderGenerateMainSteps\(/);
+  assert.match(workspaceJs, /function renderGenerateAutoStatus\(/);
+  assert.match(workspaceJs, /function renderGenerateResultBridge\(/);
 });
 
 test("workspace shell no longer exposes disconnected draft controls", () => {
@@ -34,7 +65,7 @@ test("workspace shell exposes a simplified consumer flow", () => {
   assert.match(workspaceHtml, /只做两步：选模板、传图/);
   assert.match(workspaceHtml, /id="accountTemplateSelect"/);
   assert.match(workspaceHtml, /更多设置（可选）/);
-  assert.match(workspaceHtml, /先把项目跑起来，其它内容都可以后面再补/);
+  assert.match(workspaceHtml, /先选模型，再传图，剩下交给系统自动往下走/);
   assert.match(workspaceHtml, /data-view-nav="generate"/);
   assert.match(workspaceHtml, /data-view-panel="history"/);
   assert.match(workspaceHtml, /id="openOnboardingButton"/);
@@ -49,11 +80,11 @@ test("workspace shell exposes a simplified consumer flow", () => {
 test("workspace shell keeps the generate-page top flow in the same order as the system guidance", () => {
   assert.match(
     workspaceHtml,
-    /<strong>1\. 选模板<\/strong>[\s\S]*?<strong>2\. 上传产品图<\/strong>/
+    /<strong>1\. 选蒸馏模型<\/strong>[\s\S]*?<strong>2\. 上传商品图<\/strong>/
   );
-  assert.match(workspaceHtml, /先选模板/);
+  assert.match(workspaceHtml, /先确认这轮要套哪一个模型/);
   assert.match(workspaceHtml, /id="templateSelectionSummary"/);
-  assert.match(workspaceHtml, /传图后自动识别/);
+  assert.match(workspaceHtml, /系统会自己往下做识别和补草稿/);
   assert.match(workspaceHtml, /先选模板，再上传商品图，然后直接点生成并一键带走结果。/);
   assert.match(workspaceHtml, /id="autoPromptSummary"/);
 });
@@ -237,17 +268,14 @@ test("workspace shell does not immediately overwrite completed product-image ins
   );
 });
 
-test("workspace shell adds a user-facing auto-run checklist and post-generate handoff", () => {
-  assert.match(workspaceHtml, /id="generateAutomationList"/);
-  assert.match(workspaceHtml, /系统会自动替你做这 4 件事/);
-  assert.match(workspaceHtml, /id="generateOutcomeSummary"/);
-  assert.match(workspaceHtml, /id="copyPromptDraftButton"/);
-  assert.match(workspaceHtml, /id="openHistoryFromGenerateButton"/);
-  assert.match(workspaceJs, /function renderGenerateAutomationList\(\)/);
+test("workspace shell keeps a direct result bridge inside the single main chain", () => {
+  assert.match(workspaceHtml, /id="generateResultBridge"/);
+  assert.match(workspaceHtml, /复制当前提示词草稿/);
+  assert.match(workspaceHtml, /去历史记录看完整结果/);
+  assert.match(workspaceJs, /function renderGenerateResultBridge\(\)/);
   assert.match(workspaceJs, /function renderGenerateOutcomeSummary\(\)/);
   assert.match(workspaceJs, /function copyPromptDraftFromGenerate\(\)/);
   assert.match(workspaceJs, /已复制当前提示词草稿/);
-  assert.match(workspaceJs, /去历史记录看完整结果/);
 });
 
 
@@ -368,7 +396,7 @@ test("workspace shell lets generate-page primary action run straight into delive
   assert.match(workspaceJs, /options\.autoDeliver\s*\?\s*`项目已生成，正在继续整理故事版和交付结果。当前有 \$\{generatedTaskCount\} 条可提交到本地服务的视频任务。`/);
   assert.match(workspaceJs, /setCurrentView\(options\.autoDeliver \? "generate" : "history"\);/);
   assert.match(workspaceJs, /activeDetailTab = "summary";/);
-  assert.match(workspaceJs, /renderGenerateOutcomeSummary\(\);/);
+  assert.match(workspaceJs, /renderGenerateResultBridge\(\);/);
   assert.match(workspaceJs, /await handleDeliveryShortcut\(\);/);
 });
 
