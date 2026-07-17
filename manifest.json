@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "飞蚁抖音复刻",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "上传参考短视频和商品图，按对标账户模板生成抖音复刻包、批量提示词和本地任务。",
   "permissions": [
     "activeTab",

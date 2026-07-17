@@ -55,6 +55,7 @@ test("workspace shell keeps the generate-page top flow in the same order as the 
   assert.match(workspaceHtml, /id="templateSelectionSummary"/);
   assert.match(workspaceHtml, /传图后自动识别/);
   assert.match(workspaceHtml, /先选模板，再上传商品图，然后直接点生成并一键带走结果。/);
+  assert.match(workspaceHtml, /id="autoPromptSummary"/);
 });
 
 test("workspace shell shows template and default model before generation starts", () => {
@@ -169,7 +170,7 @@ test("workspace shell keeps product-image feedback truthful when visual analysis
   assert.match(workspaceJs, /let usedVisionAnalysis = false/);
   assert.match(workspaceJs, /usedVisionAnalysis = true/);
   assert.match(workspaceJs, /商品图视觉分析暂时没成功，已先按文件名和模板自动提炼一版/);
-  assert.match(workspaceJs, /usedVisionAnalysis\s*\?\s*"产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"\s*:\s*"产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿。"/);
+  assert.match(workspaceJs, /usedVisionAnalysis\s*\?\s*"产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿，现在可以直接生成。"\s*:\s*"产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿，现在可以直接生成。"/);
 });
 
 test("workspace shell keeps product-image analysis completion visible in the main flow state", () => {
@@ -177,8 +178,9 @@ test("workspace shell keeps product-image analysis completion visible in the mai
   assert.match(workspaceJs, /lastProductImageInsightStatus = usedVisionAnalysis\s*\?\s*"已识别完成"\s*:\s*"已按文件名兜底提炼"/);
   assert.match(workspaceJs, /lastProductImageInsightStatus = ""/);
   assert.match(workspaceJs, /const productImageInsightStatus = currentStatus\.productImageInsightStatusSummary \|\| lastProductImageInsightStatus/);
-  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{productImageInsightStatus \? `，\$\{productImageInsightStatus\}` : ""\}` : "待上传"/);
-  assert.match(workspaceJs, /if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/);
+  assert.match(workspaceJs, /label: "3\. AI 识别"/);
+  assert.match(workspaceJs, /status: productImageAnalysisRunning \? "识别中" : productImageInsightStatus \|\| \(hasProductImage \? "待识别" : "等上传"\)/);
+  assert.match(workspaceJs, /if \(productImageInsightStatus && hasPromptDraft\) return `商品图已就绪，\$\{productImageInsightStatus\}，卖点和提示词草稿也已补好，可以直接生成。`;/);
 });
 
 test("workspace shell shows a concise product-image recognition summary before generation", () => {
@@ -192,6 +194,17 @@ test("workspace shell shows a concise product-image recognition summary before g
   assert.match(workspaceJs, /角色结构：\$\{escapeHtml\(castSummary \|\| "待识别"\)\}/);
 });
 
+test("workspace shell keeps the auto prompt draft visible before generation", () => {
+  assert.match(workspaceHtml, /id="autoPromptSummary"/);
+  assert.match(workspaceJs, /function renderAutoPromptSummary\(\)/);
+  assert.match(workspaceJs, /<strong>自动提示词草稿<\/strong>/);
+  assert.match(workspaceJs, /草稿：\$\{escapeHtml\(promptStatus\)\}/);
+  assert.match(workspaceJs, /开场：\$\{escapeHtml\(firstSellingPoint \|\| "待补"\)\}/);
+  assert.match(workspaceJs, /场景：\$\{escapeHtml\(primaryScene \|\| "待补"\)\}/);
+  assert.match(workspaceJs, /传图后会根据商品图和模板，自动补一版提示词草稿。/);
+  assert.match(workspaceJs, /function summarizePromptDraft\(value, maxLength = 92\)/);
+});
+
 test("workspace shell shows expected outputs before generation starts", () => {
   assert.match(workspaceHtml, /id="generationExpectationSummary"/);
   assert.match(workspaceJs, /function renderGenerationExpectationSummary\(\)/);
@@ -199,8 +212,18 @@ test("workspace shell shows expected outputs before generation starts", () => {
   assert.match(workspaceJs, /任务数：预计 \$\{expectedCount\} 条/);
   assert.match(workspaceJs, /比例：\$\{escapeHtml\(aspectRatio\)\}/);
   assert.match(workspaceJs, /故事版：\$\{storyboardEnabled \? "会一起生成" : "这轮不生成"\}/);
+  assert.match(workspaceJs, /传图后系统会先自动补商品名、卖点、场景和提示词草稿，再进入生成项目。/);
   assert.match(workspaceJs, /主按钮会：先生成项目，再自动接故事版，并继续一键带走结果。/);
   assert.match(workspaceJs, /主按钮会：先生成项目，再直接一键带走结果。/);
+});
+
+test("workspace shell main flow status now makes AI recognition and prompt drafting explicit", () => {
+  assert.match(workspaceJs, /label: "3\. AI 识别"/);
+  assert.match(workspaceJs, /label: "4\. 自动补提示词"/);
+  assert.match(workspaceJs, /label: "5\. 生成项目"/);
+  assert.match(workspaceJs, /label: "6\. 故事版 \/ 带走结果"/);
+  assert.match(workspaceJs, /正在识别商品图并自动补提示词草稿，完成后就能生成。/);
+  assert.match(workspaceJs, /卖点和提示词草稿也已补好，可以直接生成。/);
 });
 
 test("workspace shell does not immediately overwrite completed product-image insight feedback after upload", () => {
@@ -443,15 +466,15 @@ test("workspace shell keeps primary-action feedback aligned with disabled-state 
 test("workspace shell does not tell restored projects they can regenerate before a fresh product-image upload", () => {
   assert.match(workspaceJs, /const hasFreshProductImage = Boolean\(nodes\.productImages\?\.files\?\.length\)/);
   assert.match(workspaceJs, /if \(currentPackage && !hasFreshProductImage\) \{/);
-  assert.match(workspaceJs, /setActionFeedback\("当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。"\)/);
-  assert.match(workspaceJs, /if \(currentPackage && !hasFreshProductImage\) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";/);
+  assert.match(workspaceJs, /setActionFeedback\("当前项目的卖点和提示词草稿还在；若要重新生成，请先重新上传这轮要用的商品图。"\)/);
+  assert.match(workspaceJs, /if \(currentPackage && !hasFreshProductImage\) return "当前项目的卖点和提示词草稿还在；若要重新生成，请先重新上传这轮要用的商品图。";/);
 });
 
 test("workspace shell keeps known uploaded-image status after project restore even when the file input is empty", () => {
   assert.match(workspaceJs, /function getKnownProductImageCount\(\)/);
   assert.match(workspaceJs, /currentPackage\?\.project\?\.clipcatConfig\?\.productImageCount/);
   assert.match(workspaceJs, /nodes\.productUploadStatus\.textContent = productCount \? `商品图：已上传 \$\{productCount\} 张` : "商品图：未上传"/);
-  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张\$\{productImageInsightStatus \? `，\$\{productImageInsightStatus\}` : ""\}` : "待上传"/);
+  assert.match(workspaceJs, /status: hasProductImage \? `已上传 \$\{knownProductImageCount\} 张` : "待上传"/);
   assert.match(workspaceJs, /renderAssetStatus\(\);/);
   assert.match(workspaceJs, /if \(currentPackage\) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。"/);
 });
@@ -459,7 +482,7 @@ test("workspace shell keeps known uploaded-image status after project restore ev
 test("workspace shell keeps generated-project status ahead of reusable image-insight wording", () => {
   assert.match(
     workspaceJs,
-    /if \(currentPackage && !hasFreshProductImage\) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";\s*if \(currentPackage\) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。";\s*if \(productImageInsightStatus\) return `商品图已就绪，\$\{productImageInsightStatus\}，可以直接生成。`;/s
+    /if \(currentPackage && !hasFreshProductImage\) return "当前项目的卖点和提示词草稿还在；若要重新生成，请先重新上传这轮要用的商品图。";\s*if \(currentPackage\) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。";\s*if \(productImageInsightStatus && hasPromptDraft\) return `商品图已就绪，\$\{productImageInsightStatus\}，卖点和提示词草稿也已补好，可以直接生成。`;/s
   );
 });
 

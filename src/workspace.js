@@ -60,6 +60,7 @@ const nodes = {
   productHeroImage: document.querySelector("#productHeroImage"),
   productUploadStatus: document.querySelector("#productUploadStatus"),
   productInsightSummary: document.querySelector("#productInsightSummary"),
+  autoPromptSummary: document.querySelector("#autoPromptSummary"),
   generationExpectationSummary: document.querySelector("#generationExpectationSummary"),
   sampleProduct: document.querySelector("#sampleProduct"),
   productHeroBadge: document.querySelector("#productHeroBadge"),
@@ -2785,8 +2786,8 @@ async function autoFillProductInsightsFromImage(file) {
   lastProductImageInsightStatus = usedVisionAnalysis ? "已识别完成" : "已按文件名兜底提炼";
   setActionFeedback(
     usedVisionAnalysis
-      ? "产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿。"
-      : "产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿。"
+      ? "产品图已上传，已根据商品图内容自动提炼一版商品名、卖点、场景和提示词草稿，现在可以直接生成。"
+      : "产品图已上传，已先按文件名和模板自动提炼一版商品名、卖点、场景和提示词草稿，现在可以直接生成。"
   );
 }
 
@@ -3878,7 +3879,7 @@ function updateActionFeedback() {
     return;
   }
   if (currentPackage && !hasFreshProductImage) {
-    setActionFeedback("当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。");
+    setActionFeedback("当前项目的卖点和提示词草稿还在；若要重新生成，请先重新上传这轮要用的商品图。");
     return;
   }
   if (!hasPrompt) {
@@ -3896,6 +3897,7 @@ function renderAssetStatus() {
     nodes.productUploadStatus.classList.toggle("is-optional", false);
   }
   renderProductInsightSummary();
+  renderAutoPromptSummary();
   renderGenerationExpectationSummary();
 }
 
@@ -3932,6 +3934,54 @@ function renderProductInsightSummary() {
   `;
 }
 
+function renderAutoPromptSummary() {
+  if (!nodes.autoPromptSummary) return;
+  const productCount = getKnownProductImageCount();
+  const hasFreshProductImage = Boolean(nodes.productImages?.files?.length);
+  const currentStatus = getWorkflowStatus();
+  const promptDraft = String(nodes.referenceBrief?.value || "").trim();
+  const firstSellingPoint = splitLines(nodes.productNotes?.value || "")[0] || "";
+  const primaryScene = String(nodes.scenePrimaryLocation?.value || nodes.sceneEnvironmentStyle?.value || "").trim();
+  const promptStatus = productImageAnalysisRunning
+    ? "正在自动补"
+    : promptDraft
+      ? hasFreshProductImage
+        ? "已补好"
+        : currentPackage
+          ? "沿用上次项目"
+          : "已补好"
+      : productCount
+        ? "待补"
+        : "未开始";
+  const promptPreview = promptDraft
+    ? summarizePromptDraft(promptDraft, 92)
+    : "传图后会根据商品图和模板，自动补一版提示词草稿。";
+  const hasSummary = Boolean(productCount || promptDraft || firstSellingPoint || primaryScene || currentStatus.productImageInsightStatusSummary);
+
+  if (!hasSummary) {
+    nodes.autoPromptSummary.innerHTML = "";
+    return;
+  }
+
+  nodes.autoPromptSummary.innerHTML = `
+    <div class="templateDeepDistillSummaryHead">
+      <strong>自动提示词草稿</strong>
+    </div>
+    <div class="templateDeepDistillSummaryGrid">
+      <span class="templateDeepDistillChip">草稿：${escapeHtml(promptStatus)}</span>
+      <span class="templateDeepDistillChip">开场：${escapeHtml(firstSellingPoint || "待补")}</span>
+      <span class="templateDeepDistillChip">场景：${escapeHtml(primaryScene || "待补")}</span>
+    </div>
+    <p class="templateDeepDistillSummaryText">${escapeHtml(promptPreview)}</p>
+  `;
+}
+
+function summarizePromptDraft(value, maxLength = 92) {
+  const normalized = String(value || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+  return normalized.length > maxLength ? `${normalized.slice(0, maxLength)}...` : normalized;
+}
+
 function renderGenerationExpectationSummary() {
   if (!nodes.generationExpectationSummary) return;
   const template = getSelectedTemplate();
@@ -3951,6 +4001,7 @@ function renderGenerationExpectationSummary() {
       <span class="templateDeepDistillChip">比例：${escapeHtml(aspectRatio)}</span>
       <span class="templateDeepDistillChip">故事版：${storyboardEnabled ? "会一起生成" : "这轮不生成"}</span>
     </div>
+    <p class="templateDeepDistillSummaryText">传图后系统会先自动补商品名、卖点、场景和提示词草稿，再进入生成项目。</p>
     <p class="templateDeepDistillSummaryText">${escapeHtml(primaryActionSummary)}</p>
   `;
 }
@@ -4030,6 +4081,7 @@ function buildGenerateFlowStatusItems() {
   const hasProductImage = knownProductImageCount > 0;
   const currentStatus = getWorkflowStatus();
   const productImageInsightStatus = currentStatus.productImageInsightStatusSummary || lastProductImageInsightStatus;
+  const promptDraft = String(nodes.referenceBrief?.value || "").trim();
   const storyboardSummary = currentStatus.storyboardStatusSummary || summarizeStoryboardState(currentPackage?.storyboardTasks || []);
   const deliverySummary = currentStatus.deliveryStatusSummary;
 
@@ -4040,23 +4092,29 @@ function buildGenerateFlowStatusItems() {
     },
     {
       label: "2. 商品图",
-      status: hasProductImage ? `已上传 ${knownProductImageCount} 张${productImageInsightStatus ? `，${productImageInsightStatus}` : ""}` : "待上传"
+      status: hasProductImage ? `已上传 ${knownProductImageCount} 张` : "待上传"
     },
     {
-      label: "3. 生成项目",
+      label: "3. AI 识别",
+      status: productImageAnalysisRunning ? "识别中" : productImageInsightStatus || (hasProductImage ? "待识别" : "等上传")
+    },
+    {
+      label: "4. 自动补提示词",
+      status: promptDraft ? "已补好" : productImageAnalysisRunning ? "补草稿中" : hasProductImage ? "待补" : "等识别"
+    },
+    {
+      label: "5. 生成项目",
       status: currentPackage ? "已生成" : productImageAnalysisRunning ? "识别中" : hasTemplate && hasProductImage ? "可开始" : "未就绪"
     },
     {
-      label: "4. 故事版",
+      label: "6. 故事版 / 带走结果",
       status: currentPackage?.project?.storyboardEnabled
-        ? storyboardSummary || "待生成"
+        ? deliveryShortcutRunning
+          ? "整理中"
+          : deliverySummary || storyboardSummary || "生成后可继续"
         : currentPackage
-          ? "未开启"
-          : "生成后开启"
-    },
-    {
-      label: "5. 带走结果",
-      status: deliveryShortcutRunning ? "整理中" : deliverySummary || (currentPackage ? "待带走" : "生成后可用")
+          ? deliverySummary || "待带走"
+          : "生成后可用"
     }
   ];
 }
@@ -4068,17 +4126,19 @@ function buildGenerateFlowStatusSummary() {
   const hasFreshProductImage = Boolean(nodes.productImages?.files?.length);
   const currentStatus = getWorkflowStatus();
   const productImageInsightStatus = currentStatus.productImageInsightStatusSummary || lastProductImageInsightStatus;
+  const hasPromptDraft = Boolean(String(nodes.referenceBrief?.value || "").trim());
 
-  if (productImageAnalysisRunning) return "正在识别商品图内容，识别完就能生成。";
+  if (productImageAnalysisRunning) return "正在识别商品图并自动补提示词草稿，完成后就能生成。";
   if (!hasTemplate && !hasProductImage) return "先选蒸馏模型，再上传商品图。";
   if (!hasTemplate) return "先选蒸馏模型。";
   if (!hasProductImage) return "再上传商品图就能生成。";
   if (deliveryShortcutRunning) return "正在一键整理结果，复制和导出会自动继续。";
   if (currentStatus.deliveryStatusSummary) return currentStatus.deliveryStatusSummary;
   if (currentStatus.storyboardStatusSummary) return currentStatus.storyboardStatusSummary;
-  if (currentPackage && !hasFreshProductImage) return "当前项目已记录商品图；若要重新生成，请先重新上传这轮要用的商品图。";
+  if (currentPackage && !hasFreshProductImage) return "当前项目的卖点和提示词草稿还在；若要重新生成，请先重新上传这轮要用的商品图。";
   if (currentPackage) return "项目已生成，可继续故事版、提交到本地服务或一键带走结果。";
-  if (productImageInsightStatus) return `商品图已就绪，${productImageInsightStatus}，可以直接生成。`;
+  if (productImageInsightStatus && hasPromptDraft) return `商品图已就绪，${productImageInsightStatus}，卖点和提示词草稿也已补好，可以直接生成。`;
+  if (productImageInsightStatus) return `商品图已就绪，${productImageInsightStatus}，提示词草稿马上可用。`;
   return "当前已具备生成条件，直接点主按钮即可。";
 }
 
