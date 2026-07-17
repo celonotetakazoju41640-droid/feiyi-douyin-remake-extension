@@ -62,6 +62,13 @@ const nodes = {
   productInsightSummary: document.querySelector("#productInsightSummary"),
   autoPromptSummary: document.querySelector("#autoPromptSummary"),
   generationExpectationSummary: document.querySelector("#generationExpectationSummary"),
+  generateAutomationList: document.querySelector("#generateAutomationList"),
+  generateOutcomeSummary: document.querySelector("#generateOutcomeSummary"),
+  generateOutcomeMeta: document.querySelector("#generateOutcomeMeta"),
+  generateOutcomeText: document.querySelector("#generateOutcomeText"),
+  copyPromptDraftButton: document.querySelector("#copyPromptDraftButton"),
+  continueDeliveryFromGenerateButton: document.querySelector("#continueDeliveryFromGenerateButton"),
+  openHistoryFromGenerateButton: document.querySelector("#openHistoryFromGenerateButton"),
   sampleProduct: document.querySelector("#sampleProduct"),
   productHeroBadge: document.querySelector("#productHeroBadge"),
   productName: document.querySelector("#productName"),
@@ -255,6 +262,8 @@ function init() {
   renderCastList();
   renderAssetStatus();
   renderGenerationExpectationSummary();
+  renderGenerateAutomationList();
+  renderGenerateOutcomeSummary();
   renderTemplateSelectionSummary();
   renderTemplateGuide();
   renderManageScanSummary();
@@ -276,6 +285,9 @@ function bindEvents() {
   nodes.aspectRatioSelect?.addEventListener("change", renderGenerationExpectationSummary);
   nodes.remakeButton?.addEventListener("click", () => handleGenerate({ autoDeliver: false }));
   nodes.remakeAndDeliverButton?.addEventListener("click", () => handleGenerate({ autoDeliver: true }));
+  nodes.copyPromptDraftButton?.addEventListener("click", copyPromptDraftFromGenerate);
+  nodes.continueDeliveryFromGenerateButton?.addEventListener("click", handleDeliveryShortcut);
+  nodes.openHistoryFromGenerateButton?.addEventListener("click", openHistoryFromGenerate);
   nodes.productName?.addEventListener("input", () => {
     updateGenerateButtonState();
     updateActionFeedback();
@@ -655,12 +667,17 @@ async function handleGenerate(options = {}) {
   renderShotEditor();
   renderProjectDetail();
   updateResultButtons();
-  setActionFeedback(`已生成项目，并跳到历史记录。当前有 ${currentPackage.batchVideoTasks?.length || 0} 条可提交到本地服务的视频任务。`);
+  const generatedTaskCount = currentPackage.batchVideoTasks?.length || 0;
+  setActionFeedback(
+    options.autoDeliver
+      ? `项目已生成，正在继续整理故事版和交付结果。当前有 ${generatedTaskCount} 条可提交到本地服务的视频任务。`
+      : `已生成项目，并跳到历史记录。当前有 ${generatedTaskCount} 条可提交到本地服务的视频任务。`
+  );
   syncFlowStepState();
   setWizardStep(4);
-  setCurrentView("history");
+  setCurrentView(options.autoDeliver ? "generate" : "history");
+  renderGenerateOutcomeSummary();
   if (options.autoDeliver) {
-    setActionFeedback("项目已生成，正在继续整理故事版和交付结果。");
     await handleDeliveryShortcut();
   }
 }
@@ -689,6 +706,8 @@ function renderProjects() {
     nodes.shotEditorPanel.innerHTML = "";
     nodes.seriesList.innerHTML = `<div class="emptyStateCard"><strong>还没有最近项目</strong><p>第一次生成后，这里会保留最近项目卡片和切换入口。</p></div>`;
     renderCurrentResultSummary();
+    renderGenerateAutomationList();
+    renderGenerateOutcomeSummary();
     updateResultButtons();
     return;
   }
@@ -3899,6 +3918,8 @@ function renderAssetStatus() {
   renderProductInsightSummary();
   renderAutoPromptSummary();
   renderGenerationExpectationSummary();
+  renderGenerateAutomationList();
+  renderGenerateOutcomeSummary();
 }
 
 function renderProductInsightSummary() {
@@ -4006,6 +4027,166 @@ function renderGenerationExpectationSummary() {
   `;
 }
 
+function buildGenerateAutomationItems() {
+  const hasProductImage = getKnownProductImageCount() > 0;
+  const currentStatus = getWorkflowStatus();
+  const promptDraft = String(nodes.referenceBrief?.value || "").trim();
+  const sellingPoint = splitLines(nodes.productNotes?.value || "")[0] || "";
+  const primaryScene = String(nodes.scenePrimaryLocation?.value || nodes.sceneEnvironmentStyle?.value || "").trim();
+  const productImageInsightStatus = currentStatus.productImageInsightStatusSummary || lastProductImageInsightStatus;
+  const storyboardSummary = currentStatus.storyboardStatusSummary || summarizeStoryboardState(currentPackage?.storyboardTasks || []);
+  const deliverySummary = currentStatus.deliveryStatusSummary;
+  const castLabels = normalizeCastDraft(currentCastDraft)
+    .map((member) => String(member.label || "").trim())
+    .filter(Boolean)
+    .join(" / ");
+
+  return [
+    {
+      label: "识别商品图里的商品和包装",
+      state: productImageAnalysisRunning ? "active" : productImageInsightStatus ? "done" : hasProductImage ? "pending" : "idle",
+      detail: productImageAnalysisRunning ? "正在识别" : productImageInsightStatus || (hasProductImage ? "等系统开始识别" : "等你上传商品图")
+    },
+    {
+      label: "拆卖点、主场景和角色结构",
+      state: productImageAnalysisRunning ? "active" : sellingPoint || primaryScene || castLabels ? "done" : hasProductImage ? "pending" : "idle",
+      detail: productImageAnalysisRunning ? "正在补卖点和场景" : sellingPoint || primaryScene || castLabels || (hasProductImage ? "识别后自动补" : "传图后自动补")
+    },
+    {
+      label: "补一版可直接生成的提示词草稿",
+      state: productImageAnalysisRunning ? "active" : promptDraft ? "done" : hasProductImage ? "pending" : "idle",
+      detail: productImageAnalysisRunning ? "正在补草稿" : promptDraft ? summarizePromptDraft(promptDraft, 66) : hasProductImage ? "识别完成后自动补" : "等前两步完成"
+    },
+    {
+      label: "生成项目后继续接故事版和带走结果",
+      state: deliveryShortcutRunning
+        ? "active"
+        : deliverySummary
+          ? /^一键带走(完成|部分完成)/.test(deliverySummary)
+            ? "done"
+            : /^一键带走待继续/.test(deliverySummary)
+              ? "pending"
+              : /^一键带走失败/.test(deliverySummary)
+                ? "pending"
+                : currentPackage
+                  ? "active"
+                  : "idle"
+          : currentPackage
+            ? storyboardSummary
+              ? /^已生成完成/.test(storyboardSummary)
+                ? "done"
+                : "active"
+              : "pending"
+            : "idle",
+      detail: deliveryShortcutRunning
+        ? "正在整理结果包、文本和图片"
+        : deliverySummary || storyboardSummary || (currentPackage ? "项目已生成，下一步会在这里接住" : "生成后这里自动承接")
+    }
+  ];
+}
+
+function renderGenerateAutomationList() {
+  if (!nodes.generateAutomationList) return;
+  nodes.generateAutomationList.innerHTML = buildGenerateAutomationItems()
+    .map(
+      (item, index) => `
+        <article class="generateAutomationItem is-${escapeHtml(item.state)}">
+          <span class="generateAutomationIndex">${index + 1}</span>
+          <div class="generateAutomationBody">
+            <strong>${escapeHtml(item.label)}</strong>
+            <p>${escapeHtml(item.detail)}</p>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function renderGenerateOutcomeSummary() {
+  if (!nodes.generateOutcomeSummary || !nodes.generateOutcomeMeta || !nodes.generateOutcomeText) return;
+  if (!currentPackage) {
+    nodes.generateOutcomeSummary.hidden = true;
+    nodes.generateOutcomeMeta.innerHTML = "";
+    nodes.generateOutcomeText.textContent = "生成完成后，这里会直接告诉你该复制什么、去哪里拿图片和结果。";
+    if (nodes.copyPromptDraftButton) nodes.copyPromptDraftButton.disabled = true;
+    if (nodes.continueDeliveryFromGenerateButton) {
+      nodes.continueDeliveryFromGenerateButton.hidden = true;
+      nodes.continueDeliveryFromGenerateButton.disabled = true;
+    }
+    if (nodes.openHistoryFromGenerateButton) nodes.openHistoryFromGenerateButton.disabled = true;
+    return;
+  }
+
+  const workflowStatus = getWorkflowStatus();
+  const templateName = currentPackage.project.accountTemplate?.name || "未选模板";
+  const modelName = getPackagePreferredModel(currentPackage);
+  const promptDraft = String(nodes.referenceBrief?.value || currentPackage.project.referenceSummary || "").trim();
+  const storyboardSummary = workflowStatus.storyboardStatusSummary || summarizeStoryboardState(currentPackage.storyboardTasks || []) || "生成后可继续处理";
+  const deliverySummary = workflowStatus.deliveryStatusSummary || "结果包和图片还没开始整理";
+  const deliveryConfig = getDeliveryShortcutConfig(currentPackage);
+  const summaryText = deliveryShortcutRunning
+    ? "系统正在继续整理结果包、文本和图片。你可以先复制提示词草稿，稍后再去历史记录拿完整结果。"
+    : workflowStatus.deliveryStatusSummary
+      ? `${workflowStatus.deliveryStatusSummary} 完整镜头、批量任务和图片下载入口也已经在历史记录里。`
+      : `项目已经生成。${storyboardSummary}。现在可以先复制提示词草稿，或去历史记录看完整结果。`;
+
+  nodes.generateOutcomeSummary.hidden = false;
+  nodes.generateOutcomeMeta.innerHTML = `
+    <span class="templateDeepDistillChip">模板：${escapeHtml(templateName)}</span>
+    <span class="templateDeepDistillChip">模型：${escapeHtml(modelName)}</span>
+    <span class="templateDeepDistillChip">提示词：${promptDraft ? "可复制" : "待检查"}</span>
+    <span class="templateDeepDistillChip">故事版：${escapeHtml(storyboardSummary)}</span>
+    <span class="templateDeepDistillChip">带走结果：${escapeHtml(deliverySummary)}</span>
+  `;
+  nodes.generateOutcomeText.textContent = summaryText;
+
+  if (nodes.copyPromptDraftButton) {
+    nodes.copyPromptDraftButton.disabled = !promptDraft;
+  }
+  if (nodes.continueDeliveryFromGenerateButton) {
+    nodes.continueDeliveryFromGenerateButton.hidden = !deliveryConfig.visible;
+    nodes.continueDeliveryFromGenerateButton.disabled = deliveryConfig.disabled;
+    nodes.continueDeliveryFromGenerateButton.textContent = deliveryConfig.label || "继续一键带走全部结果";
+    applyActionButtonTone(nodes.continueDeliveryFromGenerateButton, deliveryConfig.action === "deliver" ? "primary" : "ghost");
+  }
+  if (nodes.openHistoryFromGenerateButton) {
+    nodes.openHistoryFromGenerateButton.disabled = false;
+  }
+}
+
+async function copyPromptDraftFromGenerate() {
+  const promptDraft = String(nodes.referenceBrief?.value || currentPackage?.project?.referenceSummary || "").trim();
+  const sellingPoints = splitLines(nodes.productNotes?.value || currentPackage?.project?.sellingPoints?.join("
+") || "");
+  const productName = String(nodes.productName?.value || currentPackage?.project?.productName || "当前商品").trim();
+  if (!promptDraft) {
+    setActionFeedback("当前还没有可复制的提示词草稿。先传图并等 AI 补完草稿。", true);
+    return false;
+  }
+  const text = [
+    `商品：${productName}`,
+    sellingPoints.length ? `主卖点：${sellingPoints.join("；")}` : "",
+    `提示词草稿：${promptDraft}`
+  ]
+    .filter(Boolean)
+    .join("
+");
+  await navigator.clipboard.writeText(text);
+  setActionFeedback("已复制当前提示词草稿，可直接带到外部工具继续用。");
+  return true;
+}
+
+function openHistoryFromGenerate() {
+  if (!currentPackage) {
+    setActionFeedback("当前还没有可查看的结果。先完成一次生成。", true);
+    return;
+  }
+  activeDetailTab = "summary";
+  setCurrentView("history");
+  renderProjectDetail();
+  setActionFeedback("已切到历史记录。完整提示词、镜头、任务和图片下载入口都在这里。");
+}
+
 function getKnownProductImageCount() {
   const currentInputCount = nodes.productImages?.files?.length || 0;
   if (currentInputCount > 0) return currentInputCount;
@@ -4070,6 +4251,8 @@ function updateWorkflowStatus(projectId, partial = {}) {
   }
   if (projectId === currentProjectId) {
     renderGenerateFlowStatus();
+    renderGenerateAutomationList();
+    renderGenerateOutcomeSummary();
     renderCurrentResultSummary();
     renderProjectDetail();
   }
@@ -4526,6 +4709,8 @@ function updateGenerateButtonState() {
     nodes.remakeAndDeliverButton.disabled = disabled;
   }
   renderGenerateFlowStatus();
+  renderGenerateAutomationList();
+  renderGenerateOutcomeSummary();
 }
 
 function syncFlowStepState() {
@@ -4652,6 +4837,7 @@ function renderCurrentView() {
 function setCurrentView(view) {
   currentView = view || "generate";
   renderCurrentView();
+  renderGenerateOutcomeSummary();
 }
 
 function handleDocumentKeydown(event) {

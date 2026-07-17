@@ -237,6 +237,20 @@ test("workspace shell does not immediately overwrite completed product-image ins
   );
 });
 
+test("workspace shell adds a user-facing auto-run checklist and post-generate handoff", () => {
+  assert.match(workspaceHtml, /id="generateAutomationList"/);
+  assert.match(workspaceHtml, /系统会自动替你做这 4 件事/);
+  assert.match(workspaceHtml, /id="generateOutcomeSummary"/);
+  assert.match(workspaceHtml, /id="copyPromptDraftButton"/);
+  assert.match(workspaceHtml, /id="openHistoryFromGenerateButton"/);
+  assert.match(workspaceJs, /function renderGenerateAutomationList\(\)/);
+  assert.match(workspaceJs, /function renderGenerateOutcomeSummary\(\)/);
+  assert.match(workspaceJs, /function copyPromptDraftFromGenerate\(\)/);
+  assert.match(workspaceJs, /已复制当前提示词草稿/);
+  assert.match(workspaceJs, /去历史记录看完整结果/);
+});
+
+
 test("workspace shell refreshes previous auto-filled product insights when users upload a new product image set", () => {
   assert.match(workspaceJs, /let lastAutoFilledInsights = createEmptyAutoFilledInsightsState\(\);/);
   assert.match(workspaceJs, /function shouldReplaceAutoFilledField\(currentValue, lastAutoFilledValue\)/);
@@ -351,9 +365,10 @@ test("workspace shell preserves imported batch and storyboard progress when rest
 test("workspace shell lets generate-page primary action run straight into delivery", () => {
   assert.match(workspaceHtml, /id="remakeAndDeliverButton"/);
   assert.match(workspaceJs, /handleGenerate\(\{ autoDeliver: true \}\)/);
-  assert.match(workspaceJs, /已生成项目，并跳到历史记录。当前有 \$\{currentPackage\.batchVideoTasks\?\.length \|\| 0\} 条可提交到本地服务的视频任务。/);
+  assert.match(workspaceJs, /options\.autoDeliver\s*\?\s*`项目已生成，正在继续整理故事版和交付结果。当前有 \$\{generatedTaskCount\} 条可提交到本地服务的视频任务。`/);
+  assert.match(workspaceJs, /setCurrentView\(options\.autoDeliver \? "generate" : "history"\);/);
   assert.match(workspaceJs, /activeDetailTab = "summary";/);
-  assert.match(workspaceJs, /项目已生成，正在继续整理故事版和交付结果/);
+  assert.match(workspaceJs, /renderGenerateOutcomeSummary\(\);/);
   assert.match(workspaceJs, /await handleDeliveryShortcut\(\);/);
 });
 

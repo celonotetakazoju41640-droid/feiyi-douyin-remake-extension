@@ -82,7 +82,8 @@
               </section>
 
               <section class="contentSection generateTaskSection">
-                <section class="simpleFlowCard generateTaskCard">
+                <div class="generateHeroGrid">
+                  <section class="simpleFlowCard generateTaskCard">
                   <div class="contentSectionHead generateTaskHead">
                     <div>
                       <strong>开始生成</strong>
@@ -276,7 +277,31 @@
                       </div>
                     </section>
                   </details>
-                </section>
+                  </section>
+
+                  <section class="simpleFlowCard generateAutomationCard">
+                    <div class="contentSectionHead generateAutomationHead">
+                      <div>
+                        <strong>系统会自动替你做这 4 件事</strong>
+                        <p>你只管选模型、传图、点主按钮；识别、补草稿和结果承接都在这里看。</p>
+                      </div>
+                    </div>
+                    <div id="generateAutomationList" class="generateAutomationList"></div>
+                    <section id="generateOutcomeSummary" class="templateDeepDistillSummary generateOutcomeSummary" hidden>
+                      <div class="templateDeepDistillSummaryHead">
+                        <strong>这轮结果已经接住了</strong>
+                        <span class="templateDeepDistillChip">生成后这里给你复制和去向</span>
+                      </div>
+                      <div id="generateOutcomeMeta" class="templateDeepDistillSummaryGrid"></div>
+                      <p id="generateOutcomeText" class="templateDeepDistillSummaryText">生成完成后，这里会直接告诉你该复制什么、去哪里拿图片和结果。</p>
+                      <div class="resultActions generateOutcomeActions">
+                        <button id="copyPromptDraftButton" class="ghostButton" type="button">复制当前提示词草稿</button>
+                        <button id="continueDeliveryFromGenerateButton" class="primaryButton" type="button">继续一键带走全部结果</button>
+                        <button id="openHistoryFromGenerateButton" class="ghostButton" type="button">去历史记录看完整结果</button>
+                      </div>
+                    </section>
+                  </section>
+                </div>
               </section>
             </article>
           </section>
